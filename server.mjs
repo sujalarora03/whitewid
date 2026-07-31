@@ -4,7 +4,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const DIST = path.join(__dirname, 'dist')
+const DIST = path.join(__dirname, 'dist', 'client')
 const PORT = Number(process.env.PORT) || 4173
 
 const MIME = {
