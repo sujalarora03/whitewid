@@ -1,0 +1,226 @@
+import type { AppState } from '../types'
+
+export const STORAGE_KEY = 'white-widow-manager-v1'
+
+export const defaultState = (): AppState => ({
+  settings: {
+    businessName: 'White Widow',
+    commissionRate: 0.15,
+    weekStartsOn: 1,
+    discordWebhookUrl: '',
+    discordPostSales: true,
+    discordPostBonuses: true,
+  },
+  materials: [
+    { id: 'mat-water', name: 'Water', cost: 50, category: 'supplies', stock: 0 },
+    { id: 'mat-rolling-paper', name: 'Rolling Paper', cost: 70, category: 'supplies', stock: 0 },
+    { id: 'mat-empty-bag', name: 'Empty Bag', cost: 100, category: 'supplies', stock: 0 },
+    { id: 'mat-synthetic-fiber', name: 'Synthetic Fiber', cost: 55, category: 'supplies', stock: 0 },
+    { id: 'mat-dried-bud', name: 'Dried Bud', cost: 50, category: 'supplies', stock: 0 },
+    { id: 'mat-lime-powder', name: 'Lime Powder', cost: 40, category: 'fertilizer', stock: 0 },
+    { id: 'mat-urea', name: 'Urea', cost: 40, category: 'fertilizer', stock: 0 },
+    { id: 'mat-bio-mix', name: 'Bio Mix', cost: 40, category: 'fertilizer', stock: 0 },
+    { id: 'mat-lighter', name: 'Lighter', cost: 200, category: 'smoking', stock: 0 },
+  ],
+  recipes: [
+    {
+      id: 'rec-headband',
+      name: 'Headband Seed',
+      category: 'seeds',
+      salePrice: 0,
+      ingredients: [
+        { materialId: 'mat-dried-bud', qty: 2 },
+        { materialId: 'mat-synthetic-fiber', qty: 2 },
+      ],
+    },
+    {
+      id: 'rec-grape-ape',
+      name: 'Grape Ape Seed',
+      category: 'seeds',
+      salePrice: 0,
+      ingredients: [
+        { materialId: 'mat-dried-bud', qty: 4 },
+        { materialId: 'mat-synthetic-fiber', qty: 4 },
+      ],
+    },
+    {
+      id: 'rec-exodus',
+      name: 'Exodus Seed',
+      category: 'seeds',
+      salePrice: 0,
+      ingredients: [
+        { materialId: 'mat-dried-bud', qty: 2 },
+        { materialId: 'mat-synthetic-fiber', qty: 2 },
+      ],
+    },
+    {
+      id: 'rec-insecticide',
+      name: 'Insecticide',
+      category: 'fertilizer',
+      salePrice: 0,
+      ingredients: [
+        { materialId: 'mat-bio-mix', qty: 1 },
+        { materialId: 'mat-lime-powder', qty: 1 },
+        { materialId: 'mat-urea', qty: 1 },
+      ],
+    },
+  ],
+  products: [
+    {
+      id: 'prod-headband',
+      name: 'Headband Seed',
+      category: 'seeds',
+      cost: 210,
+      salePrice: 0,
+      stock: 0,
+      recipeId: 'rec-headband',
+    },
+    {
+      id: 'prod-grape-ape',
+      name: 'Grape Ape Seed',
+      category: 'seeds',
+      cost: 420,
+      salePrice: 0,
+      stock: 0,
+      recipeId: 'rec-grape-ape',
+    },
+    {
+      id: 'prod-exodus',
+      name: 'Exodus Seed',
+      category: 'seeds',
+      cost: 210,
+      salePrice: 0,
+      stock: 0,
+      recipeId: 'rec-exodus',
+    },
+    {
+      id: 'prod-insecticide',
+      name: 'Insecticide',
+      category: 'fertilizer',
+      cost: 120,
+      salePrice: 0,
+      stock: 0,
+      recipeId: 'rec-insecticide',
+    },
+    {
+      id: 'prod-silver-ember',
+      name: 'Silver Ember Cigarette',
+      category: 'smoking',
+      cost: 0,
+      salePrice: 500,
+      stock: 0,
+    },
+    {
+      id: 'prod-royal-drift',
+      name: 'Royal Drift Cigarette',
+      category: 'smoking',
+      cost: 0,
+      salePrice: 500,
+      stock: 0,
+    },
+    {
+      id: 'prod-black-velvet',
+      name: 'Black Velvet Cigarette',
+      category: 'smoking',
+      cost: 0,
+      salePrice: 500,
+      stock: 0,
+    },
+    {
+      id: 'prod-water',
+      name: 'Water',
+      category: 'supplies',
+      cost: 50,
+      salePrice: 50,
+      stock: 0,
+    },
+    {
+      id: 'prod-rolling-paper',
+      name: 'Rolling Paper',
+      category: 'supplies',
+      cost: 70,
+      salePrice: 70,
+      stock: 0,
+    },
+    {
+      id: 'prod-empty-bag',
+      name: 'Empty Bag',
+      category: 'supplies',
+      cost: 100,
+      salePrice: 100,
+      stock: 0,
+    },
+    {
+      id: 'prod-synthetic-fiber',
+      name: 'Synthetic Fiber',
+      category: 'supplies',
+      cost: 55,
+      salePrice: 55,
+      stock: 0,
+    },
+    {
+      id: 'prod-dried-bud',
+      name: 'Dried Bud',
+      category: 'supplies',
+      cost: 50,
+      salePrice: 50,
+      stock: 0,
+    },
+    {
+      id: 'prod-lime-powder',
+      name: 'Lime Powder',
+      category: 'fertilizer',
+      cost: 40,
+      salePrice: 40,
+      stock: 0,
+    },
+    {
+      id: 'prod-urea',
+      name: 'Urea',
+      category: 'fertilizer',
+      cost: 40,
+      salePrice: 40,
+      stock: 0,
+    },
+    {
+      id: 'prod-bio-mix',
+      name: 'Bio Mix',
+      category: 'fertilizer',
+      cost: 40,
+      salePrice: 40,
+      stock: 0,
+    },
+    {
+      id: 'prod-lighter',
+      name: 'Lighter',
+      category: 'smoking',
+      cost: 200,
+      salePrice: 200,
+      stock: 0,
+    },
+  ],
+  employees: [
+    {
+      id: 'emp-sergio',
+      name: 'Sergio Rodriguez',
+      active: true,
+      createdAt: new Date().toISOString(),
+    },
+  ],
+  sales: [],
+  bonuses: [],
+})
+
+/** Production cost for one craft from current material prices */
+export function recipeUnitCost(
+  recipeId: string,
+  materials: AppState['materials'],
+  recipes: AppState['recipes'],
+): number {
+  const recipe = recipes.find((r) => r.id === recipeId)
+  if (!recipe) return 0
+  return recipe.ingredients.reduce((sum, ing) => {
+    const mat = materials.find((m) => m.id === ing.materialId)
+    return sum + (mat?.cost ?? 0) * ing.qty
+  }, 0)
+}
