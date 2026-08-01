@@ -14,11 +14,11 @@ Preview deploys get random subdomains and expire unless claimed.
 2. Sign in / create a Cloudflare account and **claim** it.
 3. Bookmark this forever:
 
-**https://white-widow-manager.diligent-stew.workers.dev**
+**https://white-widow-manager.incandescent-impatiens.workers.dev**
 
 Employee link:
 
-**https://white-widow-manager.diligent-stew.workers.dev/?role=employee**
+**https://white-widow-manager.incandescent-impatiens.workers.dev/?role=employee**
 
 After claim, `npm run deploy` (or GitHub Actions) **updates that same URL** — it does not create a new one.
 

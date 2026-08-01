@@ -15,7 +15,7 @@
     {
       "binding": "DB",
       "database_name": "white-widow",
-      "database_id": "18144660-a76c-4524-af4e-5bacd483d2cf",
+      "database_id": "9a65ccb3-e21b-4591-b9b5-4c385d4ff308",
       "migrations_dir": "migrations"
     }
   ]
