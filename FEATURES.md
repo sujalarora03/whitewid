@@ -6,47 +6,37 @@ Everyone who opens the deployed app shares the **same Cloudflare D1 database**. 
 
 ---
 
-## Dashboard
-Weekly overview for you as owner:
-- Revenue, profit, commissions, bonuses
-- Crafts this week
-- Pending stash buys waiting for your clear
-- Top employee + most sold items
-- Button to post the weekly report to Discord
+## Dashboard (owner overview)
+Each week you see:
+- Revenue, profit, **total commissions**, bonuses
+- **Top crafter** (units crafted) and **Top seller** (units sold + commission)
+- Full crew table: crafted / what they crafted / sold / revenue / commission / payout
+- Most sold items + Discord weekly post
+
+Craft logs and sale logs stay **separate** — the overview joins them.
 
 ---
 
 ## Craft
-Log **production** (who made what) — even if nothing was sold yet.
+Crafters log **production** (who made what). Separate from selling.
 
 | You do | What happens |
 |---|---|
 | Pick who crafted + recipe + qty → Log craft | Finished product stock goes up |
-| “Deduct from business material stock” ON | Shared materials drop (business stock) |
-| Checkbox OFF | Craft is logged only; stock not touched |
+| “Deduct from business material stock” ON | Shared materials drop |
+| Checkbox OFF | Log only |
 
-**Does not mean** the crafter bought the materials. Material buys are under **Stock**.
-
-Also shows recipe costs and a restock list if business stock is short.
+Material store buys are under **Stock**, not Craft.
 
 ---
 
 ## Personal
-When someone wants to **craft for themselves** (not for the shop).
-
-| You do | What happens |
-|---|---|
-| Pick recipe + qty | See full material list + reference cost |
-| Log personal craft | Logged under that person; **no** finished stock added to business |
-| “Took materials from business stock” ON | Shared mats drop |
-| Checkbox OFF (default) | Own mats / bought yourself |
-
-Does **not** create a sale or commission. Business Craft tab stays for shop production.
+Craft for yourself (not shop stock). No sale / no commission.
 
 ---
 
 ## Sales
-Normal shop sales (employee sold an item for a price).
+Sellers log what they sold. This is the normal path for commission.
 
 | Calculated | Formula |
 |---|---|
@@ -54,34 +44,20 @@ Normal shop sales (employee sold an item for a price).
 | Cost | material/recipe cost × qty |
 | Profit | revenue − cost |
 | Commission (default 15%) | profit × 15% |
-| You keep | profit − commission |
 
-Optional Discord post when a sale is saved.
+Someone who crafts **and** sells just uses Craft + Sales. No need to link who made a sold item.
 
 ---
 
-## Stash
-When something leaves the **shop stash**. Crew often splits roles: crafters, sellers, or both.
+## Stash — usually skip
+**Verdict: optional / often unused.**
 
-| Field | Meaning |
-|---|---|
-| **Seller** | Who sold it — gets commission when you clear |
-| **Crafter** | Who made it — can be a different person; craft log credits them |
-| Log craft + sale | Optional — records the craft under the crafter |
-| Owner **Clear** | Confirms the sale (profit + seller commission) |
-
-Use **Sales** for simple sells with no crafter split / no owner clear.
+Only useful if you want a sale **held until Pablo clears it** before commission counts. Sellers do **not** pick a crafter here (they usually don’t know). Prefer **Sales** for normal sells.
 
 ---
 
 ## Orders (pending)
-Customer wants something later — queue it before it’s crafted/sold.
-
-| Step | What happens |
-|---|---|
-| Add order | Customer + item + qty + optional crafter/seller |
-| Status | Open → Crafting → Ready → Fulfilled / Cancelled |
-| **Fulfill → stash** | Creates a stash sale (crafter + seller marked); owner still clears stash for commission |
+Customer wants something later. Assign crafter/seller for the queue, track status, fulfill when ready (can create a pending stash sale for the seller). Crafting still logged on **Craft**.
 
 ---
 

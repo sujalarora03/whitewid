@@ -291,9 +291,9 @@ export function Employees({ store }: { store: StoreApi }) {
               <tr>
                 <th>Name</th>
                 <th>Grade</th>
-                <th>Sales</th>
+                <th>Crafted</th>
+                <th>Sold</th>
                 <th>Revenue</th>
-                <th>Profit</th>
                 <th>Commission</th>
                 <th>Bonuses</th>
                 <th>Payout</th>
@@ -310,9 +310,12 @@ export function Employees({ store }: { store: StoreApi }) {
                         {emp?.grade ?? 'Junior Seller'}
                       </span>
                     </td>
-                    <td>{e.salesCount}</td>
+                    <td>{e.craftUnits}</td>
+                    <td>
+                      {e.unitsSold}{' '}
+                      <span className="note-tag">({e.salesCount})</span>
+                    </td>
                     <td>{money(e.revenue)}</td>
-                    <td>{money(e.profit)}</td>
                     <td>{money(e.commission)}</td>
                     <td>{money(e.bonuses)}</td>
                     <td>

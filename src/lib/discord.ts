@@ -99,18 +99,19 @@ export function weekReportEmbed(
   report: WeekReport,
   commissionRate: number,
 ): DiscordPayload {
-  const topEmp = report.topEmployee
+  const topSeller = report.topSeller ?? report.topEmployee
+  const topCrafter = report.topCrafter
   const topItems = report.topProducts
     .slice(0, 5)
     .map((p, i) => `${i + 1}. ${p.name} — ${p.units} sold (${money(p.revenue)})`)
     .join('\n')
 
   const crew = report.employees
-    .filter((e) => e.salesCount > 0 || e.bonuses > 0)
+    .filter((e) => e.salesCount > 0 || e.craftUnits > 0 || e.bonuses > 0)
     .slice(0, 8)
     .map(
       (e, i) =>
-        `${i + 1}. **${e.name}** — ${money(e.revenue)} sales · ${money(e.payout)} payout`,
+        `${i + 1}. **${e.name}** — ${e.craftUnits} crafted · ${e.unitsSold} sold · ${money(e.commission)} commission`,
     )
     .join('\n')
 
@@ -135,9 +136,21 @@ export function weekReportEmbed(
             inline: true,
           },
           {
-            name: 'Top performer',
-            value: topEmp?.salesCount
-              ? `${topEmp.name} (${money(topEmp.profit)} profit)`
+            name: 'Units crafted',
+            value: String(report.craftUnits),
+            inline: true,
+          },
+          {
+            name: 'Top crafter',
+            value: topCrafter
+              ? `${topCrafter.name} (${topCrafter.craftUnits} units)`
+              : 'No crafts yet',
+            inline: true,
+          },
+          {
+            name: 'Top seller',
+            value: topSeller?.unitsSold
+              ? `${topSeller.name} (${topSeller.unitsSold} sold · ${money(topSeller.commission)} commission)`
               : 'No sales yet',
             inline: true,
           },

@@ -94,29 +94,27 @@ export function Orders({
 
   function fulfillAsStash(order: PendingOrder) {
     const seller = order.sellerId || lockedEmployeeId || order.createdById
-    const crafter = order.crafterId || seller
     const product = state.products.find((p) => p.id === order.productId)
     if (!seller || !product) return
     if (
       !confirm(
-        `Fulfill order for ${order.customerName}: log stash sale (seller ${empName(state.employees, seller)}, crafter ${empName(state.employees, crafter)})? Owner still clears stash for commission.`,
+        `Fulfill order for ${order.customerName}: log a pending stash sale for seller ${empName(state.employees, seller)}? (Crafts stay on the Craft tab — owner clears stash for commission.)`,
       )
     ) {
       return
     }
     addStashBuy({
       employeeId: seller,
-      crafterId: crafter,
       buyerName: order.customerName,
       productId: order.productId,
       qty: order.qty,
       amount: order.amount,
       note: order.note,
       orderId: order.id,
-      craftedThenSold: Boolean(product.recipeId),
-      deductMaterials: true,
+      craftedThenSold: false,
+      deductMaterials: false,
     })
-    setMsg('Order fulfilled → stash sale logged (pending owner clear)')
+    setMsg('Order fulfilled → pending sale logged (owner clears for commission)')
   }
 
   return (

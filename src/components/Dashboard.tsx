@@ -6,20 +6,13 @@ import {
   Gift,
   Flame,
   Send,
-  PackageOpen,
   FlaskConical,
+  Receipt,
 } from 'lucide-react'
 import type { StoreApi } from '../hooks/useStore'
 import { buildWeekReport } from '../lib/stats'
 import { postToDiscord, weekReportEmbed } from '../lib/discord'
-import {
-  formatWeekLabel,
-  inRange,
-  money,
-  pct,
-  weekEnd,
-  weekStart,
-} from '../lib/utils'
+import { formatWeekLabel, money, pct } from '../lib/utils'
 
 export function Dashboard({ store }: { store: StoreApi }) {
   const { state } = store
@@ -27,16 +20,9 @@ export function Dashboard({ store }: { store: StoreApi }) {
   const rate = state.settings.commissionRate
   const [discordMsg, setDiscordMsg] = useState<string | null>(null)
 
-  const start = weekStart(new Date(), state.settings.weekStartsOn)
-  const end = weekEnd(start)
-  const pendingStash = state.stashBuys.filter((b) => b.status === 'pending')
-  const pendingTotal = pendingStash.reduce((sum, b) => sum + b.amount, 0)
-  const craftsThisWeek = state.craftLogs.filter(
-    (c) =>
-      (c.purpose ?? 'business') === 'business' &&
-      inRange(c.createdAt, start, end),
+  const activeCrew = report.employees.filter(
+    (e) => e.craftUnits > 0 || e.salesCount > 0 || e.bonuses > 0,
   )
-  const craftUnits = craftsThisWeek.reduce((sum, c) => sum + c.qty, 0)
 
   async function postWeekly() {
     const result = await postToDiscord(
@@ -52,9 +38,12 @@ export function Dashboard({ store }: { store: StoreApi }) {
     <div className="stack">
       <section className="hero-panel">
         <div>
-          <p className="eyebrow">This week</p>
+          <p className="eyebrow">Weekly overview</p>
           <h2 className="hero-brand">{state.settings.businessName}</h2>
-          <p className="hero-copy">{formatWeekLabel(report.start)}</p>
+          <p className="hero-copy">
+            {formatWeekLabel(report.start)} · Crafts and sales logged separately ·
+            Commission {pct(rate)} of sale profit
+          </p>
           <div className="actions" style={{ marginTop: '0.85rem' }}>
             <button
               type="button"
@@ -73,22 +62,6 @@ export function Dashboard({ store }: { store: StoreApi }) {
         </div>
       </section>
 
-      {pendingStash.length > 0 && (
-        <section className="panel warn-panel">
-          <header className="panel-head">
-            <h3>
-              <PackageOpen size={16} /> Stash buys waiting
-            </h3>
-            <span className="muted">{money(pendingTotal)}</span>
-          </header>
-          <p className="muted">
-            {pendingStash.length} pending sale
-            {pendingStash.length === 1 ? '' : 's'} need your clear — open{' '}
-            <strong>Stash</strong> to confirm sales &amp; commission.
-          </p>
-        </section>
-      )}
-
       <div className="stat-grid">
         <article className="stat-card">
           <Wallet size={18} />
@@ -102,7 +75,7 @@ export function Dashboard({ store }: { store: StoreApi }) {
         </article>
         <article className="stat-card">
           <Trophy size={18} />
-          <span>Commissions ({pct(rate)})</span>
+          <span>Total commissions</span>
           <strong>{money(report.commission)}</strong>
         </article>
         <article className="stat-card">
@@ -112,48 +85,54 @@ export function Dashboard({ store }: { store: StoreApi }) {
         </article>
         <article className="stat-card">
           <FlaskConical size={18} />
-          <span>Crafted (week)</span>
-          <strong>{craftUnits}</strong>
+          <span>Units crafted</span>
+          <strong>{report.craftUnits}</strong>
         </article>
         <article className="stat-card">
-          <PackageOpen size={18} />
-          <span>Stash pending</span>
-          <strong>{pendingStash.length}</strong>
+          <Receipt size={18} />
+          <span>Units sold</span>
+          <strong>
+            {report.employees.reduce((s, e) => s + e.unitsSold, 0)}
+          </strong>
         </article>
       </div>
 
       <div className="split">
         <section className="panel">
           <header className="panel-head">
-            <h3>Top performer</h3>
+            <h3>
+              <FlaskConical size={16} /> Top crafter
+            </h3>
           </header>
-          {report.topEmployee && report.topEmployee.salesCount > 0 ? (
+          {report.topCrafter ? (
             <div className="top-emp">
               <div className="top-emp-badge">
-                <Trophy size={22} />
+                <FlaskConical size={22} />
               </div>
               <div>
-                <p className="top-emp-name">{report.topEmployee.name}</p>
+                <p className="top-emp-name">{report.topCrafter.name}</p>
                 <p className="muted">
-                  {report.topEmployee.unitsSold} units ·{' '}
-                  {money(report.topEmployee.revenue)} sales ·{' '}
-                  {money(report.topEmployee.payout)} payout
+                  {report.topCrafter.craftUnits} units ·{' '}
+                  {report.topCrafter.craftCount} craft logs
+                  {report.topCrafter.craftsByItem[0]
+                    ? ` · top: ${report.topCrafter.craftsByItem[0].recipeName}`
+                    : ''}
                 </p>
               </div>
             </div>
           ) : (
-            <p className="empty">No sales logged this week yet.</p>
+            <p className="empty">No business crafts logged this week.</p>
           )}
-
           <ul className="rank-list">
             {report.employees
-              .filter((e) => e.salesCount > 0)
+              .filter((e) => e.craftUnits > 0)
+              .sort((a, b) => b.craftUnits - a.craftUnits)
               .slice(0, 5)
               .map((e, i) => (
                 <li key={e.employeeId}>
                   <span className="rank">#{i + 1}</span>
                   <span className="grow">{e.name}</span>
-                  <span>{money(e.profit)} profit</span>
+                  <span>{e.craftUnits} crafted</span>
                 </li>
               ))}
           </ul>
@@ -162,35 +141,150 @@ export function Dashboard({ store }: { store: StoreApi }) {
         <section className="panel">
           <header className="panel-head">
             <h3>
-              <Flame size={16} /> Most sold
+              <Trophy size={16} /> Top seller
             </h3>
           </header>
-          {report.topProducts.length === 0 ? (
-            <p className="empty">Products will rank here after sales.</p>
+          {report.topSeller ? (
+            <div className="top-emp">
+              <div className="top-emp-badge">
+                <Trophy size={22} />
+              </div>
+              <div>
+                <p className="top-emp-name">{report.topSeller.name}</p>
+                <p className="muted">
+                  {report.topSeller.unitsSold} sold ·{' '}
+                  {money(report.topSeller.revenue)} revenue ·{' '}
+                  {money(report.topSeller.commission)} commission
+                </p>
+              </div>
+            </div>
           ) : (
-            <ul className="rank-list">
-              {report.topProducts.slice(0, 8).map((p, i) => (
-                <li key={p.productId}>
+            <p className="empty">No sales logged this week.</p>
+          )}
+          <ul className="rank-list">
+            {report.employees
+              .filter((e) => e.unitsSold > 0)
+              .sort((a, b) => b.unitsSold - a.unitsSold || b.revenue - a.revenue)
+              .slice(0, 5)
+              .map((e, i) => (
+                <li key={e.employeeId}>
                   <span className="rank">#{i + 1}</span>
-                  <span className="grow">{p.name}</span>
+                  <span className="grow">{e.name}</span>
                   <span>
-                    {p.units} sold · {money(p.revenue)}
+                    {e.unitsSold} sold · {money(e.commission)}
                   </span>
                 </li>
               ))}
-            </ul>
-          )}
+          </ul>
         </section>
       </div>
 
+      <section className="panel">
+        <header className="panel-head">
+          <h3>Crew breakdown · this week</h3>
+          <span className="muted">Who crafted / sold / earned</span>
+        </header>
+        {activeCrew.length === 0 ? (
+          <p className="empty">
+            Log crafts under <strong>Craft</strong> and sells under{' '}
+            <strong>Sales</strong> — they show up here.
+          </p>
+        ) : (
+          <div className="table-scroll">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Crafted</th>
+                  <th>What they crafted</th>
+                  <th>Sold</th>
+                  <th>Revenue</th>
+                  <th>Commission</th>
+                  <th>Bonuses</th>
+                  <th>Payout</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activeCrew.map((e) => (
+                  <tr key={e.employeeId}>
+                    <td>{e.name}</td>
+                    <td>
+                      <strong>{e.craftUnits}</strong>
+                      {e.craftCount > 0 ? (
+                        <span className="note-tag"> · {e.craftCount} logs</span>
+                      ) : null}
+                    </td>
+                    <td>
+                      {e.craftsByItem.length === 0 ? (
+                        <span className="muted">—</span>
+                      ) : (
+                        e.craftsByItem
+                          .slice(0, 3)
+                          .map((c) => `${c.qty}× ${c.recipeName}`)
+                          .join(', ')
+                      )}
+                    </td>
+                    <td>
+                      {e.unitsSold}{' '}
+                      <span className="note-tag">({e.salesCount} sales)</span>
+                    </td>
+                    <td>{money(e.revenue)}</td>
+                    <td>
+                      <strong>{money(e.commission)}</strong>
+                    </td>
+                    <td>{money(e.bonuses)}</td>
+                    <td>
+                      <strong>{money(e.payout)}</strong>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className="panel">
+        <header className="panel-head">
+          <h3>
+            <Flame size={16} /> Most sold items
+          </h3>
+        </header>
+        {report.topProducts.length === 0 ? (
+          <p className="empty">Products rank here after sales are logged.</p>
+        ) : (
+          <ul className="rank-list">
+            {report.topProducts.slice(0, 8).map((p, i) => (
+              <li key={p.productId}>
+                <span className="rank">#{i + 1}</span>
+                <span className="grow">{p.name}</span>
+                <span>
+                  {p.units} sold · {money(p.revenue)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       <section className="panel tip-panel">
-        <h3>Ideas you can run next</h3>
+        <h3>How to use the logs</h3>
         <ul className="tip-list">
-          <li>Stash sales mark <strong>seller + crafter</strong> (can differ). Clear as owner to confirm commission.</li>
-          <li>Queue customer asks under <strong>Orders</strong>, then fulfill into stash when ready.</li>
-          <li>Log crafts under <strong>Craft</strong> even if unsold — tracks who produced what.</li>
-          <li>Connect Discord under Prices to auto-post sales, crafts, and stash activity.</li>
-          <li>Track bonuses separately so commission stays clean at {pct(rate)} of profit.</li>
+          <li>
+            <strong>Craft</strong> — crafters log what they made (separate from
+            sales).
+          </li>
+          <li>
+            <strong>Sales</strong> — sellers log what they sold → commission.
+          </li>
+          <li>
+            Someone who does both just uses both tabs. This overview adds it up.
+          </li>
+          <li>
+            <strong>Stash</strong> is optional — only if you want sales held
+            until you personally clear them. Most shops can ignore it and use
+            Sales.
+          </li>
         </ul>
       </section>
     </div>
