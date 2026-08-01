@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import {
+  ClipboardList,
   FlaskConical,
   HandHeart,
   Package,
@@ -109,8 +110,17 @@ export function EmployeeDesk({
               onClick={() => onGo('stash')}
             >
               <PackageOpen size={18} />
-              <strong>Stash purchase</strong>
-              <span className="recipe-cost">Pending until owner clears</span>
+              <strong>Stash sale</strong>
+              <span className="recipe-cost">Seller + crafter split</span>
+            </button>
+            <button
+              type="button"
+              className="recipe-card"
+              onClick={() => onGo('orders')}
+            >
+              <ClipboardList size={18} />
+              <strong>Pending order</strong>
+              <span className="recipe-cost">Customer wants later</span>
             </button>
             <button
               type="button"

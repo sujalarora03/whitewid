@@ -168,7 +168,9 @@ function mergeWithDefaults(parsed: Partial<AppState>): AppState {
       ...b,
       unitCost: b.unitCost ?? 0,
       source: b.source ?? ('from_stock' as const),
+      crafterId: b.crafterId,
     })),
+    pendingOrders: parsed.pendingOrders ?? [],
     craftLogs: (parsed.craftLogs ?? []).map((c) => ({
       ...c,
       purpose: c.purpose ?? ('business' as const),

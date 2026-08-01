@@ -186,7 +186,8 @@ export function Dashboard({ store }: { store: StoreApi }) {
       <section className="panel tip-panel">
         <h3>Ideas you can run next</h3>
         <ul className="tip-list">
-          <li>Log stash buys under <strong>Stash</strong> — clear them as owner when you settle.</li>
+          <li>Stash sales mark <strong>seller + crafter</strong> (can differ). Clear as owner to confirm commission.</li>
+          <li>Queue customer asks under <strong>Orders</strong>, then fulfill into stash when ready.</li>
           <li>Log crafts under <strong>Craft</strong> even if unsold — tracks who produced what.</li>
           <li>Connect Discord under Prices to auto-post sales, crafts, and stash activity.</li>
           <li>Track bonuses separately so commission stays clean at {pct(rate)} of profit.</li>

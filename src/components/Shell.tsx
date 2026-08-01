@@ -11,6 +11,7 @@ import {
   Tags,
   UserRound,
   HandHeart,
+  ClipboardList,
 } from 'lucide-react'
 
 const OWNER_NAV: { id: TabId; label: string; icon: typeof LayoutDashboard }[] =
@@ -20,6 +21,7 @@ const OWNER_NAV: { id: TabId; label: string; icon: typeof LayoutDashboard }[] =
     { id: 'personal', label: 'Personal', icon: HandHeart },
     { id: 'sales', label: 'Sales', icon: Receipt },
     { id: 'stash', label: 'Stash', icon: PackageOpen },
+    { id: 'orders', label: 'Orders', icon: ClipboardList },
     { id: 'employees', label: 'Crew', icon: Users },
     { id: 'inventory', label: 'Stock', icon: Package },
     { id: 'prices', label: 'Prices', icon: Tags },
@@ -31,6 +33,7 @@ const EMP_NAV: { id: TabId; label: string; icon: typeof LayoutDashboard }[] = [
   { id: 'personal', label: 'Personal', icon: HandHeart },
   { id: 'sales', label: 'Sales', icon: Receipt },
   { id: 'stash', label: 'Stash', icon: PackageOpen },
+  { id: 'orders', label: 'Orders', icon: ClipboardList },
   { id: 'inventory', label: 'Stock', icon: Package },
 ]
 
@@ -43,6 +46,7 @@ interface Props {
   tab: TabId
   onTab: (t: TabId) => void
   pendingStash?: number
+  pendingOrders?: number
   syncLabel?: string
   syncTone?: 'ok' | 'warn' | 'err' | 'muted'
   /** Extra sync error/detail under the status pill */
@@ -61,6 +65,7 @@ export function Shell({
   tab,
   onTab,
   pendingStash = 0,
+  pendingOrders = 0,
   syncLabel = 'Local',
   syncTone = 'muted',
   syncDetail = null,
@@ -120,6 +125,9 @@ export function Shell({
               {id === 'stash' && pendingStash > 0 && role === 'owner' ? (
                 <span className="nav-badge">{pendingStash}</span>
               ) : null}
+              {id === 'orders' && pendingOrders > 0 ? (
+                <span className="nav-badge">{pendingOrders}</span>
+              ) : null}
             </button>
           ))}
         </nav>
@@ -166,6 +174,9 @@ export function Shell({
               <Icon size={18} strokeWidth={2} />
               {id === 'stash' && pendingStash > 0 && role === 'owner' ? (
                 <span className="nav-badge sm">{pendingStash}</span>
+              ) : null}
+              {id === 'orders' && pendingOrders > 0 ? (
+                <span className="nav-badge sm">{pendingOrders}</span>
               ) : null}
             </span>
             <span>{label}</span>

@@ -229,7 +229,8 @@ export function craftLogEmbed(input: {
 
 export function stashPendingEmbed(input: {
   businessName: string
-  employeeName: string
+  sellerName: string
+  crafterName?: string
   buyerName: string
   productName: string
   qty: number
@@ -251,9 +252,14 @@ export function stashPendingEmbed(input: {
       {
         title: `${input.businessName} · Pending stash sale`,
         color: 0xf0c14a,
-        description: 'Awaiting owner clear — then sale + commission confirm',
+        description: 'Awaiting owner clear — seller gets commission when cleared',
         fields: [
-          { name: 'Employee', value: input.employeeName, inline: true },
+          { name: 'Seller', value: input.sellerName, inline: true },
+          {
+            name: 'Crafter',
+            value: input.crafterName || '—',
+            inline: true,
+          },
           { name: 'Buyer', value: input.buyerName, inline: true },
           { name: 'Flow', value: flow, inline: true },
           {
@@ -274,7 +280,8 @@ export function stashPendingEmbed(input: {
 
 export function stashClearedEmbed(input: {
   businessName: string
-  employeeName: string
+  sellerName: string
+  crafterName?: string
   buyerName: string
   productName: string
   qty: number
@@ -296,9 +303,14 @@ export function stashClearedEmbed(input: {
       {
         title: `${input.businessName} · Stash sale confirmed`,
         color: GREEN,
-        description: 'Owner cleared — sale counts for profit & commission',
+        description: 'Owner cleared — sale counts for profit & seller commission',
         fields: [
-          { name: 'Employee', value: input.employeeName, inline: true },
+          { name: 'Seller', value: input.sellerName, inline: true },
+          {
+            name: 'Crafter',
+            value: input.crafterName || '—',
+            inline: true,
+          },
           { name: 'Buyer', value: input.buyerName, inline: true },
           { name: 'Flow', value: flow, inline: true },
           {

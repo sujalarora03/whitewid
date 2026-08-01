@@ -9,6 +9,14 @@ import {
 import { recipeUnitCost } from '../data/seed'
 import { formatDate, money } from '../lib/utils'
 
+function empName(
+  employees: { id: string; name: string }[],
+  id?: string,
+): string {
+  if (!id) return '—'
+  return employees.find((e) => e.id === id)?.name ?? '—'
+}
+
 export function Stash({
   store,
   lockedEmployeeId,
@@ -27,9 +35,10 @@ export function Stash({
     removeStashBuy,
   } = store
   const activeEmps = state.employees.filter((e) => e.active)
-  const [employeeId, setEmployeeId] = useState(
+  const [sellerId, setSellerId] = useState(
     lockedEmployeeId || activeEmps[0]?.id || '',
   )
+  const [crafterId, setCrafterId] = useState(activeEmps[0]?.id || '')
   const [buyerName, setBuyerName] = useState('')
   const [productId, setProductId] = useState(state.products[0]?.id ?? '')
   const [qty, setQty] = useState(1)
@@ -41,7 +50,7 @@ export function Stash({
   const [deductMaterials, setDeductMaterials] = useState(true)
   const [discordMsg, setDiscordMsg] = useState<string | null>(null)
 
-  const effectiveEmployeeId = lockedEmployeeId || employeeId
+  const effectiveSellerId = lockedEmployeeId || sellerId
   const product = state.products.find((p) => p.id === productId)
   const isCraftable = Boolean(product?.recipeId)
 
@@ -61,14 +70,16 @@ export function Stash({
       b.status === 'pending' &&
       (!employeeMode ||
         !lockedEmployeeId ||
-        b.employeeId === lockedEmployeeId),
+        b.employeeId === lockedEmployeeId ||
+        b.crafterId === lockedEmployeeId),
   )
   const cleared = state.stashBuys.filter(
     (b) =>
       b.status === 'cleared' &&
       (!employeeMode ||
         !lockedEmployeeId ||
-        b.employeeId === lockedEmployeeId),
+        b.employeeId === lockedEmployeeId ||
+        b.crafterId === lockedEmployeeId),
   )
   const pendingTotal = pending.reduce((sum, b) => sum + b.amount, 0)
 
@@ -83,12 +94,18 @@ export function Stash({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!effectiveEmployeeId || !productId || qty < 1) return
+    if (!effectiveSellerId || !productId || qty < 1) return
+    if (isCraftable && craftedThenSold && !crafterId) return
 
-    const emp = state.employees.find((x) => x.id === effectiveEmployeeId)
+    const seller = state.employees.find((x) => x.id === effectiveSellerId)
+    const crafter = state.employees.find((x) => x.id === crafterId)
     const prod = state.products.find((x) => x.id === productId)
     addStashBuy({
-      employeeId: effectiveEmployeeId,
+      employeeId: effectiveSellerId,
+      crafterId:
+        isCraftable && craftedThenSold
+          ? crafterId
+          : crafterId || undefined,
       buyerName,
       productId,
       qty,
@@ -101,14 +118,20 @@ export function Stash({
     if (
       state.settings.discordPostStash &&
       state.settings.discordWebhookUrl.trim() &&
-      emp &&
+      seller &&
       prod
     ) {
       const result = await postToDiscord(
         state.settings.discordWebhookUrl,
         stashPendingEmbed({
           businessName: state.settings.businessName,
-          employeeName: emp.name,
+          sellerName: seller.name,
+          crafterName:
+            isCraftable && craftedThenSold
+              ? crafter?.name
+              : crafterId
+                ? crafter?.name
+                : undefined,
           buyerName: buyerName.trim() || 'Customer',
           productName: prod.name,
           qty,
@@ -123,11 +146,11 @@ export function Stash({
       )
       setDiscordMsg(
         result.ok
-          ? 'Pending sale logged + Discord'
+          ? 'Stash sale logged + Discord'
           : `Discord: ${result.error}`,
       )
     } else {
-      setDiscordMsg('Pending sale logged — clear to confirm commission')
+      setDiscordMsg('Stash sale logged — owner clears to confirm commission')
     }
 
     setBuyerName('')
@@ -143,12 +166,16 @@ export function Stash({
       state.settings.discordPostStash &&
       state.settings.discordWebhookUrl.trim()
     ) {
-      const emp = state.employees.find((e) => e.id === buy.employeeId)
+      const seller = state.employees.find((e) => e.id === buy.employeeId)
+      const crafter = buy.crafterId
+        ? state.employees.find((e) => e.id === buy.crafterId)
+        : undefined
       await postToDiscord(
         state.settings.discordWebhookUrl,
         stashClearedEmbed({
           businessName: state.settings.businessName,
-          employeeName: emp?.name ?? '—',
+          sellerName: seller?.name ?? '—',
+          crafterName: crafter?.name,
           buyerName: buy.buyerName,
           productName: buy.productName,
           qty: buy.qty,
@@ -165,7 +192,7 @@ export function Stash({
     if (pending.length === 0) return
     if (
       !confirm(
-        `Clear all ${pending.length} pending stash sales? This confirms them as real sales (commission counts).`,
+        `Clear all ${pending.length} pending stash sales? Confirms as real sales — commission goes to each seller.`,
       )
     ) {
       return
@@ -192,18 +219,19 @@ export function Stash({
       <section className="panel">
         <header className="panel-head">
           <h3>
-            <PackageOpen size={16} /> Log stash purchase
+            <PackageOpen size={16} /> Log stash sale
           </h3>
         </header>
         <p className="muted panel-intro">
-          Customer bought from stash → logged as a <strong>pending sale</strong>.
-          When you clear it, the sale is confirmed (profit + 15% commission). For
-          craftable items you can also log the craft in the same step.
+          Crew splits work: some craft, some sell, some do both. Mark{' '}
+          <strong>who crafted</strong> and <strong>who sold</strong> (can be
+          different). Commission goes to the <strong>seller</strong> when the
+          owner clears. Craft credit goes to the <strong>crafter</strong>.
         </p>
         <form className="form-stack" onSubmit={(e) => void submit(e)}>
           <div className="form-row">
             <label className="field grow">
-              <span>Employee / who sold</span>
+              <span>Seller (who sold)</span>
               {lockedEmployeeId ? (
                 <input
                   value={
@@ -214,8 +242,8 @@ export function Stash({
                 />
               ) : (
                 <select
-                  value={employeeId}
-                  onChange={(e) => setEmployeeId(e.target.value)}
+                  value={sellerId}
+                  onChange={(e) => setSellerId(e.target.value)}
                   required
                 >
                   {activeEmps.map((e) => (
@@ -225,6 +253,24 @@ export function Stash({
                   ))}
                 </select>
               )}
+            </label>
+            <label className="field grow">
+              <span>Crafter (who made it)</span>
+              <select
+                value={crafterId}
+                onChange={(e) => setCrafterId(e.target.value)}
+                required={isCraftable && craftedThenSold}
+              >
+                {!craftedThenSold && (
+                  <option value="">Unknown / not craftable</option>
+                )}
+                {activeEmps.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.name}
+                    {e.id === effectiveSellerId ? ' (same as seller)' : ''}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="field grow">
               <span>Buyer name</span>
@@ -292,7 +338,7 @@ export function Stash({
                   checked={craftedThenSold}
                   onChange={(e) => setCraftedThenSold(e.target.checked)}
                 />
-                Crafted then sold (log craft + pending sale together)
+                Log craft for the crafter + this stash sale
               </label>
               {craftedThenSold && (
                 <label className="check-field">
@@ -306,7 +352,8 @@ export function Stash({
               )}
               {!craftedThenSold && (
                 <p className="muted">
-                  Selling from finished stock only (no new craft log).
+                  Selling from finished stash stock. Optionally still name who
+                  crafted it earlier.
                 </p>
               )}
             </>
@@ -326,7 +373,7 @@ export function Stash({
               <strong>{money(previewProfit)}</strong>
             </div>
             <div>
-              <span className="muted">Commission (when cleared)</span>
+              <span className="muted">Seller commission</span>
               <strong>{money(previewComm)}</strong>
             </div>
           </div>
@@ -335,9 +382,9 @@ export function Stash({
             <button
               type="submit"
               className="btn primary"
-              disabled={!effectiveEmployeeId}
+              disabled={!effectiveSellerId}
             >
-              Log pending sale
+              Log stash sale
             </button>
             {discordMsg && <span className="muted">{discordMsg}</span>}
           </div>
@@ -348,17 +395,11 @@ export function Stash({
         <header className="panel-head">
           <h3>
             {employeeMode
-              ? 'Your pending sales (owner clears)'
-              : 'Pending sales — await owner clear'}
+              ? 'Your stash sales (owner clears)'
+              : 'Pending stash sales — await owner clear'}
           </h3>
           <span className="muted">{money(pendingTotal)} waiting</span>
         </header>
-        {employeeMode && (
-          <p className="muted panel-intro">
-            You can log stash buys here. Only the owner can clear / confirm
-            them for commission.
-          </p>
-        )}
         {pending.length === 0 ? (
           <p className="empty">No pending stash sales.</p>
         ) : (
@@ -368,7 +409,8 @@ export function Stash({
                 <thead>
                   <tr>
                     <th>When</th>
-                    <th>Employee</th>
+                    <th>Seller</th>
+                    <th>Crafter</th>
                     <th>Buyer</th>
                     <th>Item</th>
                     <th>Flow</th>
@@ -379,15 +421,20 @@ export function Stash({
                 </thead>
                 <tbody>
                   {pending.map((b) => {
-                    const emp = state.employees.find(
-                      (e) => e.id === b.employeeId,
-                    )
                     const cost = (b.unitCost ?? 0) * b.qty
                     const profit = b.amount - cost
+                    const same =
+                      b.crafterId && b.crafterId === b.employeeId
                     return (
                       <tr key={b.id} className="warn-row">
                         <td>{formatDate(b.createdAt)}</td>
-                        <td>{emp?.name ?? '—'}</td>
+                        <td>{empName(state.employees, b.employeeId)}</td>
+                        <td>
+                          {empName(state.employees, b.crafterId)}
+                          {same ? (
+                            <span className="note-tag"> · both</span>
+                          ) : null}
+                        </td>
                         <td>{b.buyerName}</td>
                         <td>
                           {b.qty}× {b.productName}
@@ -453,7 +500,7 @@ export function Stash({
 
       <section className="panel">
         <header className="panel-head">
-          <h3>Cleared / confirmed sales</h3>
+          <h3>Cleared / confirmed stash sales</h3>
         </header>
         {cleared.length === 0 ? (
           <p className="empty">Cleared stash sales will show here.</p>
@@ -464,7 +511,8 @@ export function Stash({
                 <tr>
                   <th>Logged</th>
                   <th>Cleared</th>
-                  <th>Employee</th>
+                  <th>Seller</th>
+                  <th>Crafter</th>
                   <th>Buyer</th>
                   <th>Item</th>
                   <th>Flow</th>
@@ -472,28 +520,26 @@ export function Stash({
                 </tr>
               </thead>
               <tbody>
-                {cleared.slice(0, 30).map((b) => {
-                  const emp = state.employees.find((e) => e.id === b.employeeId)
-                  return (
-                    <tr key={b.id}>
-                      <td>{formatDate(b.createdAt)}</td>
-                      <td>{b.clearedAt ? formatDate(b.clearedAt) : '—'}</td>
-                      <td>{emp?.name ?? '—'}</td>
-                      <td>{b.buyerName}</td>
-                      <td>
-                        {b.qty}× {b.productName}
-                      </td>
-                      <td>
-                        <span className="note-tag">
-                          {b.source === 'crafted_then_sold'
-                            ? 'crafted + sold'
-                            : 'from stock'}
-                        </span>
-                      </td>
-                      <td>{money(b.amount)}</td>
-                    </tr>
-                  )
-                })}
+                {cleared.slice(0, 30).map((b) => (
+                  <tr key={b.id}>
+                    <td>{formatDate(b.createdAt)}</td>
+                    <td>{b.clearedAt ? formatDate(b.clearedAt) : '—'}</td>
+                    <td>{empName(state.employees, b.employeeId)}</td>
+                    <td>{empName(state.employees, b.crafterId)}</td>
+                    <td>{b.buyerName}</td>
+                    <td>
+                      {b.qty}× {b.productName}
+                    </td>
+                    <td>
+                      <span className="note-tag">
+                        {b.source === 'crafted_then_sold'
+                          ? 'crafted + sold'
+                          : 'from stock'}
+                      </span>
+                    </td>
+                    <td>{money(b.amount)}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

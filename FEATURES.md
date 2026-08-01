@@ -61,19 +61,27 @@ Optional Discord post when a sale is saved.
 ---
 
 ## Stash
-When a customer buys from the **shop stash**.
+When something leaves the **shop stash**. Crew often splits roles: crafters, sellers, or both.
 
-This is a **pending sale** until you (Pablo) clear it.
+| Field | Meaning |
+|---|---|
+| **Seller** | Who sold it — gets commission when you clear |
+| **Crafter** | Who made it — can be a different person; craft log credits them |
+| Log craft + sale | Optional — records the craft under the crafter |
+| Owner **Clear** | Confirms the sale (profit + seller commission) |
+
+Use **Sales** for simple sells with no crafter split / no owner clear.
+
+---
+
+## Orders (pending)
+Customer wants something later — queue it before it’s crafted/sold.
 
 | Step | What happens |
 |---|---|
-| Log stash purchase | Pending sale created (stock or craft handled) |
-| Optional: “Crafted then sold” | Also logs the craft for that employee in the same step |
-| You hit **Clear → confirm sale** | Real sale is created → profit + 15% commission count on Dashboard / Crew |
-
-So stash purchase = sold (and optionally crafted) → waits for owner clear → then counts as a confirmed sale.
-
-Use normal **Sales** tab only for sells that don’t need owner clear.
+| Add order | Customer + item + qty + optional crafter/seller |
+| Status | Open → Crafting → Ready → Fulfilled / Cancelled |
+| **Fulfill → stash** | Creates a stash sale (crafter + seller marked); owner still clears stash for commission |
 
 ---
 

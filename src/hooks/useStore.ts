@@ -6,6 +6,8 @@ import type {
   Employee,
   Material,
   MaterialPurchase,
+  OrderStatus,
+  PendingOrder,
   Product,
   Recipe,
   Sale,
@@ -259,13 +261,17 @@ export function useStore() {
 
   const addStashBuy = useCallback(
     (input: {
+      /** Seller — commission on clear */
       employeeId: string
+      /** Crafter — may differ from seller */
+      crafterId?: string
       buyerName: string
       productId: string
       qty: number
       amount: number
       note?: string
-      /** If product is craftable: log craft + pending sale in one step */
+      orderId?: string
+      /** Log a craft for the crafter + pending stash sale */
       craftedThenSold?: boolean
       deductMaterials?: boolean
     }) => {
@@ -273,6 +279,8 @@ export function useStore() {
         const product = s.products.find((p) => p.id === input.productId)
         if (!product) return s
 
+        const sellerId = input.employeeId
+        const crafterId = input.crafterId || sellerId
         const craftedThenSold = Boolean(
           input.craftedThenSold && product.recipeId,
         )
@@ -304,9 +312,10 @@ export function useStore() {
             }
 
             craftLogId = uid('craft')
+            const seller = s.employees.find((e) => e.id === sellerId)
             const log: CraftLog = {
               id: craftLogId,
-              employeeId: input.employeeId,
+              employeeId: crafterId,
               recipeId: recipe.id,
               recipeName: recipe.name,
               qty: input.qty,
@@ -315,7 +324,7 @@ export function useStore() {
               deductedStock: deductMaterials,
               purpose: 'business',
               createdAt: new Date().toISOString(),
-              note: `Stash sale → ${input.buyerName.trim() || 'Customer'}`,
+              note: `Stash · sold by ${seller?.name ?? 'seller'} → ${input.buyerName.trim() || 'Customer'}`,
             }
             craftLogs = [log, ...s.craftLogs]
             // Crafted and sold in one step — finished stock unchanged
@@ -331,7 +340,8 @@ export function useStore() {
 
         const buy: StashBuy = {
           id: uid('stash'),
-          employeeId: input.employeeId,
+          employeeId: sellerId,
+          crafterId: craftedThenSold || input.crafterId ? crafterId : input.crafterId,
           buyerName: input.buyerName.trim() || 'Customer',
           productId: input.productId,
           productName: product.name,
@@ -340,9 +350,26 @@ export function useStore() {
           unitCost,
           source: craftedThenSold ? 'crafted_then_sold' : 'from_stock',
           craftLogId,
+          orderId: input.orderId,
           status: 'pending',
           createdAt: new Date().toISOString(),
           note: input.note,
+        }
+
+        let pendingOrders = s.pendingOrders
+        if (input.orderId) {
+          const now = new Date().toISOString()
+          pendingOrders = s.pendingOrders.map((o) =>
+            o.id === input.orderId
+              ? {
+                  ...o,
+                  status: 'fulfilled' as const,
+                  fulfilledAt: now,
+                  updatedAt: now,
+                  stashBuyId: buy.id,
+                }
+              : o,
+          )
         }
 
         return {
@@ -351,6 +378,7 @@ export function useStore() {
           products,
           craftLogs,
           stashBuys: [buy, ...s.stashBuys],
+          pendingOrders,
         }
       })
     },
@@ -364,6 +392,13 @@ export function useStore() {
 
       const unitPrice = buy.qty > 0 ? buy.amount / buy.qty : buy.amount
       const saleId = uid('sale')
+      const crafter = buy.crafterId
+        ? s.employees.find((e) => e.id === buy.crafterId)
+        : undefined
+      const craftNote =
+        crafter && buy.crafterId !== buy.employeeId
+          ? ` · crafted by ${crafter.name}`
+          : ''
       const sale: Sale = {
         id: saleId,
         employeeId: buy.employeeId,
@@ -373,7 +408,7 @@ export function useStore() {
         unitPrice,
         unitCost: buy.unitCost ?? 0,
         createdAt: new Date().toISOString(),
-        note: `Stash cleared · ${buy.buyerName}${buy.note ? ` · ${buy.note}` : ''}`,
+        note: `Stash cleared · ${buy.buyerName}${craftNote}${buy.note ? ` · ${buy.note}` : ''}`,
       }
 
       return {
@@ -432,6 +467,82 @@ export function useStore() {
     setState((s) => ({
       ...s,
       stashBuys: s.stashBuys.filter((b) => b.id !== id),
+    }))
+  }, [])
+
+  const addPendingOrder = useCallback(
+    (input: {
+      customerName: string
+      productId: string
+      qty: number
+      amount?: number
+      createdById: string
+      crafterId?: string
+      sellerId?: string
+      note?: string
+    }) => {
+      setState((s) => {
+        const product = s.products.find((p) => p.id === input.productId)
+        if (!product || !input.createdById || input.qty < 1) return s
+        const now = new Date().toISOString()
+        const order: PendingOrder = {
+          id: uid('ord'),
+          customerName: input.customerName.trim() || 'Customer',
+          productId: product.id,
+          productName: product.name,
+          qty: input.qty,
+          amount:
+            input.amount ??
+            (product.salePrice || product.cost || 0) * input.qty,
+          createdById: input.createdById,
+          crafterId: input.crafterId || undefined,
+          sellerId: input.sellerId || undefined,
+          status: 'open',
+          note: input.note?.trim() || undefined,
+          createdAt: now,
+          updatedAt: now,
+        }
+        return { ...s, pendingOrders: [order, ...s.pendingOrders] }
+      })
+    },
+    [],
+  )
+
+  const updatePendingOrder = useCallback(
+    (
+      id: string,
+      patch: Partial<
+        Pick<
+          PendingOrder,
+          'status' | 'crafterId' | 'sellerId' | 'note' | 'amount' | 'qty'
+        >
+      >,
+    ) => {
+      setState((s) => ({
+        ...s,
+        pendingOrders: s.pendingOrders.map((o) => {
+          if (o.id !== id) return o
+          const nextStatus = (patch.status ?? o.status) as OrderStatus
+          return {
+            ...o,
+            ...patch,
+            status: nextStatus,
+            updatedAt: new Date().toISOString(),
+            fulfilledAt:
+              nextStatus === 'fulfilled'
+                ? o.fulfilledAt || new Date().toISOString()
+                : o.fulfilledAt,
+          }
+        }),
+      }))
+    },
+    [],
+  )
+
+  const removePendingOrder = useCallback((id: string) => {
+    setState((s) => ({
+      ...s,
+      pendingOrders: s.pendingOrders.filter((o) => o.id !== id),
     }))
   }, [])
 
@@ -688,6 +799,9 @@ export function useStore() {
     clearStashBuy,
     clearAllPendingStash,
     removeStashBuy,
+    addPendingOrder,
+    updatePendingOrder,
+    removePendingOrder,
     craft,
     removeCraftLog,
     addMaterialPurchase,

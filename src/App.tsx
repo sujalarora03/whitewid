@@ -4,6 +4,7 @@ import { Dashboard } from './components/Dashboard'
 import { CraftCalc } from './components/CraftCalc'
 import { Sales } from './components/Sales'
 import { Stash } from './components/Stash'
+import { Orders } from './components/Orders'
 import { Employees } from './components/Employees'
 import { Inventory } from './components/Inventory'
 import { Prices } from './components/Prices'
@@ -60,6 +61,9 @@ export default function App() {
   const pendingStash = store.state.stashBuys.filter(
     (b) => b.status === 'pending',
   ).length
+  const pendingOrders = (store.state.pendingOrders ?? []).filter((o) =>
+    o.status === 'open' || o.status === 'crafting' || o.status === 'ready',
+  ).length
   const sync = syncUi(store.syncStatus, store.syncError)
   const employeeName = store.state.employees.find(
     (e) => e.id === employeeId,
@@ -109,6 +113,7 @@ export default function App() {
       tab={tab}
       onTab={setTab}
       pendingStash={pendingStash}
+      pendingOrders={pendingOrders}
       syncLabel={sync.label}
       syncTone={sync.tone}
       syncDetail={
@@ -140,12 +145,14 @@ export default function App() {
           tab === 'personal' ||
           tab === 'sales' ||
           tab === 'stash' ||
+          tab === 'orders' ||
           tab === 'inventory') && (
           <>
             {tab === 'craft' && <CraftCalc store={store} />}
             {tab === 'personal' && <CraftCalc store={store} mode="personal" />}
             {tab === 'sales' && <Sales store={store} />}
             {tab === 'stash' && <Stash store={store} />}
+            {tab === 'orders' && <Orders store={store} />}
             {tab === 'inventory' && <Inventory store={store} />}
           </>
         )}
@@ -179,6 +186,13 @@ export default function App() {
       )}
       {role === 'employee' && employeeLoggedIn && tab === 'stash' && (
         <Stash
+          store={store}
+          lockedEmployeeId={locked}
+          employeeMode
+        />
+      )}
+      {role === 'employee' && employeeLoggedIn && tab === 'orders' && (
+        <Orders
           store={store}
           lockedEmployeeId={locked}
           employeeMode

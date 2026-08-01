@@ -265,6 +265,7 @@ export const defaultState = (): AppState => ({
   sales: [],
   bonuses: [],
   stashBuys: [],
+  pendingOrders: [],
   craftLogs: [],
   materialPurchases: [],
 })

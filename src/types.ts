@@ -64,10 +64,17 @@ export interface Bonus {
   createdAt: string
 }
 
-/** Customer bought from shop stash — pending until owner clears (= confirms sale) */
+/**
+ * Stash sale: item left the shop stash.
+ * Crafter and seller can be different people (common crew split).
+ * Pending until owner clears (= confirms sale + seller commission).
+ */
 export interface StashBuy {
   id: string
+  /** Who sold it (commission goes here when cleared) */
   employeeId: string
+  /** Who crafted it — may differ from seller; empty if unknown / not craftable */
+  crafterId?: string
   buyerName: string
   productId: string
   productName: string
@@ -76,15 +83,48 @@ export interface StashBuy {
   amount: number
   /** Unit production cost at time of log (for profit when cleared) */
   unitCost: number
-  /** Sold from finished stock, or crafted in the same step then sold */
+  /** Sold from finished stock, or craft logged for the crafter then sold */
   source: 'from_stock' | 'crafted_then_sold'
   craftLogId?: string
+  /** Linked pending order if this fulfilled one */
+  orderId?: string
   /** Set when owner clears — the confirmed sale */
   saleId?: string
   status: 'pending' | 'cleared'
   createdAt: string
   clearedAt?: string
   note?: string
+}
+
+/** Customer order waiting to be crafted / sold */
+export type OrderStatus =
+  | 'open'
+  | 'crafting'
+  | 'ready'
+  | 'fulfilled'
+  | 'cancelled'
+
+export interface PendingOrder {
+  id: string
+  customerName: string
+  productId: string
+  productName: string
+  qty: number
+  /** Expected / quoted total (optional) */
+  amount: number
+  /** Who logged the order */
+  createdById: string
+  /** Assigned crafter (type-1 workers) */
+  crafterId?: string
+  /** Assigned seller (type-2 workers) */
+  sellerId?: string
+  status: OrderStatus
+  note?: string
+  createdAt: string
+  updatedAt: string
+  fulfilledAt?: string
+  /** Stash sale created when fulfilled */
+  stashBuyId?: string
 }
 
 /** Craft completed by an employee (even if not sold yet).
@@ -143,6 +183,7 @@ export interface AppState {
   sales: Sale[]
   bonuses: Bonus[]
   stashBuys: StashBuy[]
+  pendingOrders: PendingOrder[]
   craftLogs: CraftLog[]
   materialPurchases: MaterialPurchase[]
   settings: AppSettings
@@ -155,6 +196,7 @@ export type TabId =
   | 'personal'
   | 'sales'
   | 'stash'
+  | 'orders'
   | 'employees'
   | 'inventory'
   | 'prices'
