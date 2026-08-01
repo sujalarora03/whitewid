@@ -1,14 +1,21 @@
 import { useMemo, useState } from 'react'
-import { Calculator, ShoppingCart, Send } from 'lucide-react'
+import { Calculator, ShoppingCart, Send, Trash2 } from 'lucide-react'
 import type { StoreApi } from '../hooks/useStore'
 import { recipeUnitCost } from '../data/seed'
-import { craftRestockEmbed, postToDiscord } from '../lib/discord'
-import { money } from '../lib/utils'
+import {
+  craftLogEmbed,
+  craftRestockEmbed,
+  postToDiscord,
+} from '../lib/discord'
+import { formatDate, money } from '../lib/utils'
 
 export function CraftCalc({ store }: { store: StoreApi }) {
-  const { state, craft } = store
+  const { state, craft, removeCraftLog } = store
+  const activeEmps = state.employees.filter((e) => e.active)
   const [recipeId, setRecipeId] = useState(state.recipes[0]?.id ?? '')
+  const [employeeId, setEmployeeId] = useState(activeEmps[0]?.id ?? '')
   const [qty, setQty] = useState(1)
+  const [note, setNote] = useState('')
   const [discordMsg, setDiscordMsg] = useState<string | null>(null)
 
   const recipe = state.recipes.find((r) => r.id === recipeId)
@@ -35,7 +42,10 @@ export function CraftCalc({ store }: { store: StoreApi }) {
     : 0
   const totalCost = unitCost * qty
   const canCraft =
-    !!recipe && qty > 0 && breakdown.every((b) => b.short === 0)
+    !!recipe &&
+    !!employeeId &&
+    qty > 0 &&
+    breakdown.every((b) => b.short === 0)
 
   const shoppingList = breakdown.filter((b) => b.short > 0)
   const shopTotal = shoppingList.reduce((sum, b) => {
@@ -43,20 +53,65 @@ export function CraftCalc({ store }: { store: StoreApi }) {
     return sum + (mat?.cost ?? 0) * b.short
   }, 0)
 
+  async function doCraft() {
+    if (!recipe || !employeeId) return
+    const emp = state.employees.find((e) => e.id === employeeId)
+    craft(recipe.id, qty, employeeId, note || undefined)
+
+    if (
+      state.settings.discordPostCrafts &&
+      state.settings.discordWebhookUrl.trim() &&
+      emp
+    ) {
+      const result = await postToDiscord(
+        state.settings.discordWebhookUrl,
+        craftLogEmbed({
+          businessName: state.settings.businessName,
+          employeeName: emp.name,
+          recipeName: recipe.name,
+          qty,
+          totalCost,
+        }),
+      )
+      setDiscordMsg(
+        result.ok ? 'Craft logged + posted to Discord' : `Discord: ${result.error}`,
+      )
+    } else {
+      setDiscordMsg('Craft logged (not sold — stock updated)')
+    }
+    setNote('')
+  }
+
   return (
     <div className="stack">
       <section className="panel">
         <header className="panel-head">
           <h3>
-            <Calculator size={16} /> Material calculator
+            <Calculator size={16} /> Log a craft
           </h3>
         </header>
         <p className="muted panel-intro">
-          Pick a craft recipe and batch size. See exact materials, cost, and
-          what you still need to buy.
+          Record who crafted what — even if it hasn’t been sold yet. Materials
+          drop, finished stock goes up, and it shows in craft history.
         </p>
 
         <div className="form-row">
+          <label className="field grow">
+            <span>Employee</span>
+            <select
+              value={employeeId}
+              onChange={(e) => setEmployeeId(e.target.value)}
+            >
+              {activeEmps.length === 0 && (
+                <option value="">Add an employee first</option>
+              )}
+              {activeEmps.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.name}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="field grow">
             <span>Recipe</span>
             <select
@@ -77,6 +132,14 @@ export function CraftCalc({ store }: { store: StoreApi }) {
               min={1}
               value={qty}
               onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
+            />
+          </label>
+          <label className="field grow">
+            <span>Note</span>
+            <input
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Optional"
             />
           </label>
         </div>
@@ -124,15 +187,18 @@ export function CraftCalc({ store }: { store: StoreApi }) {
                 type="button"
                 className="btn primary"
                 disabled={!canCraft}
-                onClick={() => craft(recipe.id, qty)}
+                onClick={() => void doCraft()}
               >
-                Craft {qty}× {recipe.name}
+                Log craft {qty}× {recipe.name}
               </button>
               {!canCraft && (
                 <span className="muted">
-                  Update stock or buy missing materials first.
+                  {!employeeId
+                    ? 'Pick an employee.'
+                    : 'Update stock or buy missing materials first.'}
                 </span>
               )}
+              {discordMsg && <span className="muted">{discordMsg}</span>}
             </div>
           </>
         )}
@@ -197,10 +263,63 @@ export function CraftCalc({ store }: { store: StoreApi }) {
             >
               <Send size={16} /> Post restock to Discord
             </button>
-            {discordMsg && <span className="muted">{discordMsg}</span>}
           </div>
         </section>
       )}
+
+      <section className="panel">
+        <header className="panel-head">
+          <h3>Craft history</h3>
+          <span className="muted">Not sales — production only</span>
+        </header>
+        {state.craftLogs.length === 0 ? (
+          <p className="empty">No crafts logged yet.</p>
+        ) : (
+          <div className="table-scroll">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>When</th>
+                  <th>Employee</th>
+                  <th>Item</th>
+                  <th>Qty</th>
+                  <th>Cost</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {state.craftLogs.slice(0, 40).map((c) => {
+                  const emp = state.employees.find((e) => e.id === c.employeeId)
+                  return (
+                    <tr key={c.id}>
+                      <td>{formatDate(c.createdAt)}</td>
+                      <td>{emp?.name ?? '—'}</td>
+                      <td>
+                        {c.recipeName}
+                        {c.note ? (
+                          <span className="note-tag"> · {c.note}</span>
+                        ) : null}
+                      </td>
+                      <td>{c.qty}</td>
+                      <td>{money(c.totalCost)}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="icon-btn"
+                          aria-label="Delete craft log"
+                          onClick={() => removeCraftLog(c.id)}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       <section className="panel">
         <header className="panel-head">

@@ -190,6 +190,92 @@ export function craftRestockEmbed(input: {
   }
 }
 
+export function craftLogEmbed(input: {
+  businessName: string
+  employeeName: string
+  recipeName: string
+  qty: number
+  totalCost: number
+}): DiscordPayload {
+  return {
+    embeds: [
+      {
+        title: `${input.businessName} · Craft logged`,
+        color: GREEN,
+        fields: [
+          { name: 'Employee', value: input.employeeName, inline: true },
+          {
+            name: 'Crafted',
+            value: `${input.qty}× ${input.recipeName}`,
+            inline: true,
+          },
+          { name: 'Material cost', value: money(input.totalCost), inline: true },
+        ],
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  }
+}
+
+export function stashPendingEmbed(input: {
+  businessName: string
+  employeeName: string
+  buyerName: string
+  productName: string
+  qty: number
+  amount: number
+}): DiscordPayload {
+  return {
+    embeds: [
+      {
+        title: `${input.businessName} · Stash buy (pending)`,
+        color: 0xf0c14a,
+        description: 'Waiting for owner to clear',
+        fields: [
+          { name: 'Employee', value: input.employeeName, inline: true },
+          { name: 'Buyer', value: input.buyerName, inline: true },
+          {
+            name: 'Item',
+            value: `${input.qty}× ${input.productName}`,
+            inline: true,
+          },
+          { name: 'Amount', value: money(input.amount), inline: true },
+        ],
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  }
+}
+
+export function stashClearedEmbed(input: {
+  businessName: string
+  employeeName: string
+  buyerName: string
+  productName: string
+  qty: number
+  amount: number
+}): DiscordPayload {
+  return {
+    embeds: [
+      {
+        title: `${input.businessName} · Stash buy cleared`,
+        color: GREEN,
+        fields: [
+          { name: 'Employee', value: input.employeeName, inline: true },
+          { name: 'Buyer', value: input.buyerName, inline: true },
+          {
+            name: 'Item',
+            value: `${input.qty}× ${input.productName}`,
+            inline: true,
+          },
+          { name: 'Amount', value: money(input.amount), inline: true },
+        ],
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  }
+}
+
 export function discordReady(settings: AppSettings): boolean {
   return Boolean(settings.discordWebhookUrl?.trim())
 }

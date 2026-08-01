@@ -5,12 +5,20 @@ export function loadState(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return defaultState()
-    const parsed = JSON.parse(raw) as AppState
+    const parsed = JSON.parse(raw) as Partial<AppState>
     const base = defaultState()
     return {
       ...base,
       ...parsed,
       settings: { ...base.settings, ...parsed.settings },
+      materials: parsed.materials ?? base.materials,
+      recipes: parsed.recipes ?? base.recipes,
+      products: parsed.products ?? base.products,
+      employees: parsed.employees ?? base.employees,
+      sales: parsed.sales ?? [],
+      bonuses: parsed.bonuses ?? [],
+      stashBuys: parsed.stashBuys ?? [],
+      craftLogs: parsed.craftLogs ?? [],
     }
   } catch {
     return defaultState()

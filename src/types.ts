@@ -60,6 +60,34 @@ export interface Bonus {
   createdAt: string
 }
 
+/** Customer/employee bought from shop stash — owner must clear */
+export interface StashBuy {
+  id: string
+  employeeId: string
+  buyerName: string
+  productId: string
+  productName: string
+  qty: number
+  amount: number
+  status: 'pending' | 'cleared'
+  createdAt: string
+  clearedAt?: string
+  note?: string
+}
+
+/** Craft completed by an employee (even if not sold yet) */
+export interface CraftLog {
+  id: string
+  employeeId: string
+  recipeId: string
+  recipeName: string
+  qty: number
+  unitCost: number
+  totalCost: number
+  createdAt: string
+  note?: string
+}
+
 export interface AppSettings {
   businessName: string
   commissionRate: number
@@ -68,6 +96,8 @@ export interface AppSettings {
   discordWebhookUrl: string
   discordPostSales: boolean
   discordPostBonuses: boolean
+  discordPostCrafts: boolean
+  discordPostStash: boolean
 }
 
 export interface AppState {
@@ -77,6 +107,8 @@ export interface AppState {
   employees: Employee[]
   sales: Sale[]
   bonuses: Bonus[]
+  stashBuys: StashBuy[]
+  craftLogs: CraftLog[]
   settings: AppSettings
 }
 
@@ -84,6 +116,7 @@ export type TabId =
   | 'dashboard'
   | 'craft'
   | 'sales'
+  | 'stash'
   | 'employees'
   | 'inventory'
   | 'prices'

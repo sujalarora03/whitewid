@@ -10,6 +10,8 @@ export const defaultState = (): AppState => ({
     discordWebhookUrl: '',
     discordPostSales: true,
     discordPostBonuses: true,
+    discordPostCrafts: true,
+    discordPostStash: true,
   },
   materials: [
     { id: 'mat-water', name: 'Water', cost: 50, category: 'supplies', stock: 0 },
@@ -209,6 +211,8 @@ export const defaultState = (): AppState => ({
   ],
   sales: [],
   bonuses: [],
+  stashBuys: [],
+  craftLogs: [],
 })
 
 /** Production cost for one craft from current material prices */

@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   FlaskConical,
   Receipt,
+  PackageOpen,
   Users,
   Package,
   Tags,
@@ -13,6 +14,7 @@ const NAV: { id: TabId; label: string; icon: typeof LayoutDashboard }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'craft', label: 'Craft', icon: FlaskConical },
   { id: 'sales', label: 'Sales', icon: Receipt },
+  { id: 'stash', label: 'Stash', icon: PackageOpen },
   { id: 'employees', label: 'Crew', icon: Users },
   { id: 'inventory', label: 'Stock', icon: Package },
   { id: 'prices', label: 'Prices', icon: Tags },
@@ -22,10 +24,11 @@ interface Props {
   brand: string
   tab: TabId
   onTab: (t: TabId) => void
+  pendingStash?: number
   children: ReactNode
 }
 
-export function Shell({ brand, tab, onTab, children }: Props) {
+export function Shell({ brand, tab, onTab, pendingStash = 0, children }: Props) {
   return (
     <div className="shell">
       <aside className="sidebar">
@@ -47,7 +50,10 @@ export function Shell({ brand, tab, onTab, children }: Props) {
               onClick={() => onTab(id)}
             >
               <Icon size={18} strokeWidth={2} />
-              {label}
+              <span className="nav-label">{label}</span>
+              {id === 'stash' && pendingStash > 0 ? (
+                <span className="nav-badge">{pendingStash}</span>
+              ) : null}
             </button>
           ))}
         </nav>
@@ -72,7 +78,12 @@ export function Shell({ brand, tab, onTab, children }: Props) {
             onClick={() => onTab(id)}
             aria-label={label}
           >
-            <Icon size={20} strokeWidth={2} />
+            <span className="mobile-icon-wrap">
+              <Icon size={18} strokeWidth={2} />
+              {id === 'stash' && pendingStash > 0 ? (
+                <span className="nav-badge sm">{pendingStash}</span>
+              ) : null}
+            </span>
             <span>{label}</span>
           </button>
         ))}

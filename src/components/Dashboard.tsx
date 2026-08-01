@@ -1,15 +1,40 @@
 import { useState } from 'react'
-import { Trophy, TrendingUp, Wallet, Gift, Flame, Send } from 'lucide-react'
+import {
+  Trophy,
+  TrendingUp,
+  Wallet,
+  Gift,
+  Flame,
+  Send,
+  PackageOpen,
+  FlaskConical,
+} from 'lucide-react'
 import type { StoreApi } from '../hooks/useStore'
 import { buildWeekReport } from '../lib/stats'
 import { postToDiscord, weekReportEmbed } from '../lib/discord'
-import { formatWeekLabel, money, pct } from '../lib/utils'
+import {
+  formatWeekLabel,
+  inRange,
+  money,
+  pct,
+  weekEnd,
+  weekStart,
+} from '../lib/utils'
 
 export function Dashboard({ store }: { store: StoreApi }) {
   const { state } = store
   const report = buildWeekReport(state)
   const rate = state.settings.commissionRate
   const [discordMsg, setDiscordMsg] = useState<string | null>(null)
+
+  const start = weekStart(new Date(), state.settings.weekStartsOn)
+  const end = weekEnd(start)
+  const pendingStash = state.stashBuys.filter((b) => b.status === 'pending')
+  const pendingTotal = pendingStash.reduce((sum, b) => sum + b.amount, 0)
+  const craftsThisWeek = state.craftLogs.filter((c) =>
+    inRange(c.createdAt, start, end),
+  )
+  const craftUnits = craftsThisWeek.reduce((sum, c) => sum + c.qty, 0)
 
   async function postWeekly() {
     const result = await postToDiscord(
@@ -46,6 +71,22 @@ export function Dashboard({ store }: { store: StoreApi }) {
         </div>
       </section>
 
+      {pendingStash.length > 0 && (
+        <section className="panel warn-panel">
+          <header className="panel-head">
+            <h3>
+              <PackageOpen size={16} /> Stash buys waiting
+            </h3>
+            <span className="muted">{money(pendingTotal)}</span>
+          </header>
+          <p className="muted">
+            {pendingStash.length} purchase
+            {pendingStash.length === 1 ? '' : 's'} need owner clear — open the{' '}
+            <strong>Stash</strong> tab.
+          </p>
+        </section>
+      )}
+
       <div className="stat-grid">
         <article className="stat-card">
           <Wallet size={18} />
@@ -66,6 +107,16 @@ export function Dashboard({ store }: { store: StoreApi }) {
           <Gift size={18} />
           <span>Bonuses paid</span>
           <strong>{money(report.bonusTotal)}</strong>
+        </article>
+        <article className="stat-card">
+          <FlaskConical size={18} />
+          <span>Crafted (week)</span>
+          <strong>{craftUnits}</strong>
+        </article>
+        <article className="stat-card">
+          <PackageOpen size={18} />
+          <span>Stash pending</span>
+          <strong>{pendingStash.length}</strong>
         </article>
       </div>
 
@@ -133,10 +184,9 @@ export function Dashboard({ store }: { store: StoreApi }) {
       <section className="panel tip-panel">
         <h3>Ideas you can run next</h3>
         <ul className="tip-list">
-          <li>Connect Discord under Prices to auto-post sales and share weekly reports with the crew.</li>
-          <li>Log every sale so weekly MVP + most-sold stay accurate.</li>
-          <li>Set sale prices for crafted seeds — costs are already from recipes.</li>
-          <li>Use Craft to build a restock shopping list before a production run.</li>
+          <li>Log stash buys under <strong>Stash</strong> — clear them as owner when you settle.</li>
+          <li>Log crafts under <strong>Craft</strong> even if unsold — tracks who produced what.</li>
+          <li>Connect Discord under Prices to auto-post sales, crafts, and stash activity.</li>
           <li>Track bonuses separately so commission stays clean at {pct(rate)} of profit.</li>
         </ul>
       </section>

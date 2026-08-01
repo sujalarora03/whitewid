@@ -3,6 +3,7 @@ import { Shell } from './components/Shell'
 import { Dashboard } from './components/Dashboard'
 import { CraftCalc } from './components/CraftCalc'
 import { Sales } from './components/Sales'
+import { Stash } from './components/Stash'
 import { Employees } from './components/Employees'
 import { Inventory } from './components/Inventory'
 import { Prices } from './components/Prices'
@@ -13,16 +14,21 @@ import './index.css'
 export default function App() {
   const store = useStore()
   const [tab, setTab] = useState<TabId>('dashboard')
+  const pendingStash = store.state.stashBuys.filter(
+    (b) => b.status === 'pending',
+  ).length
 
   return (
     <Shell
       brand={store.state.settings.businessName}
       tab={tab}
       onTab={setTab}
+      pendingStash={pendingStash}
     >
       {tab === 'dashboard' && <Dashboard store={store} />}
       {tab === 'craft' && <CraftCalc store={store} />}
       {tab === 'sales' && <Sales store={store} />}
+      {tab === 'stash' && <Stash store={store} />}
       {tab === 'employees' && <Employees store={store} />}
       {tab === 'inventory' && <Inventory store={store} />}
       {tab === 'prices' && <Prices store={store} />}
