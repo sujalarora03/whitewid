@@ -62,9 +62,9 @@ Local D1 is separate from production until you deploy.
 
 ## D. Day-to-day
 
-**Owner (Pablo):** full app — clear stash, crew, prices, dashboard.
+**Owner (Pablo):** unlock with owner password (default `pablo`) — clear stash, create employee accounts, prices.
 
-**Employees:** open the same link → tap **Employee** (or `?role=employee`) → pick your name on **My desk** → log sales / stash / crafts / mat buys.
+**Employees:** `?role=employee` → login with name + password you created → log sales / stash / crafts / mats.
 
 1. **Crew** (owner) — add employees first  
 2. Employees use the web link themselves  
