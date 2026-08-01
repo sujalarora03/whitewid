@@ -166,8 +166,10 @@ export interface AppSettings {
   ownerPassword: string
   commissionRate: number
   weekStartsOn: 0 | 1
-  /** Discord channel incoming webhook URL */
+  /** Discord channel incoming webhook URL (sales, bonuses, crafts, etc.) */
   discordWebhookUrl: string
+  /** Separate Discord channel for material / restock resource requests */
+  discordResourcesWebhookUrl: string
   discordPostSales: boolean
   discordPostBonuses: boolean
   discordPostCrafts: boolean

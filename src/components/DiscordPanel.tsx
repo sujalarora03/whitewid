@@ -5,6 +5,7 @@ import { buildWeekReport } from '../lib/stats'
 import {
   discordReady,
   postToDiscord,
+  resourcesDiscordReady,
   weekReportEmbed,
 } from '../lib/discord'
 
@@ -16,6 +17,10 @@ export function DiscordPanel({ store }: { store: StoreApi }) {
   } | null>(null)
   const [busy, setBusy] = useState(false)
   const ready = discordReady(state.settings)
+  const resourcesReady = Boolean(
+    state.settings.discordResourcesWebhookUrl?.trim(),
+  )
+  const resourcesUsable = resourcesDiscordReady(state.settings)
 
   async function testWebhook() {
     setBusy(true)
@@ -27,6 +32,21 @@ export function DiscordPanel({ store }: { store: StoreApi }) {
     setStatus(
       result.ok
         ? { kind: 'ok', text: 'Test message sent — check Discord.' }
+        : { kind: 'err', text: result.error || 'Failed' },
+    )
+  }
+
+  async function testResourcesWebhook() {
+    setBusy(true)
+    setStatus(null)
+    const url = state.settings.discordResourcesWebhookUrl.trim()
+    const result = await postToDiscord(url, {
+      content: `📦 **${state.settings.businessName}** resource requests will post here.`,
+    })
+    setBusy(false)
+    setStatus(
+      result.ok
+        ? { kind: 'ok', text: 'Resources channel test sent — check Discord.' }
         : { kind: 'err', text: result.error || 'Failed' },
     )
   }
@@ -55,7 +75,7 @@ export function DiscordPanel({ store }: { store: StoreApi }) {
     <section className="panel">
       <header className="panel-head">
         <h3>
-          <MessageSquare size={16} /> Discord channel
+          <MessageSquare size={16} /> Discord channels
         </h3>
         {ready ? (
           <span className="discord-status ok">
@@ -67,14 +87,14 @@ export function DiscordPanel({ store }: { store: StoreApi }) {
       </header>
 
       <p className="muted panel-intro">
-        Create a webhook in your Discord server: Channel settings → Integrations
-        → Webhooks → New Webhook → copy URL. Sales, bonuses, and weekly reports
-        can post into that text channel.
+        Create webhooks in Discord: Channel settings → Integrations → Webhooks
+        → New Webhook → copy URL. Use one channel for ops (sales, bonuses,
+        crafts) and an optional second channel for material / restock requests.
       </p>
 
       <div className="form-stack">
         <label className="field">
-          <span>Webhook URL</span>
+          <span>Main channel webhook (sales, bonuses, crafts…)</span>
           <input
             type="password"
             autoComplete="off"
@@ -85,6 +105,24 @@ export function DiscordPanel({ store }: { store: StoreApi }) {
             }
           />
         </label>
+
+        <label className="field">
+          <span>Resources channel webhook (restock requests)</span>
+          <input
+            type="password"
+            autoComplete="off"
+            placeholder="https://discord.com/api/webhooks/… (optional)"
+            value={state.settings.discordResourcesWebhookUrl}
+            onChange={(e) =>
+              updateSettings({ discordResourcesWebhookUrl: e.target.value })
+            }
+          />
+        </label>
+        <p className="muted" style={{ marginTop: '-0.5rem', fontSize: '0.85rem' }}>
+          {resourcesReady
+            ? 'Craft “Request resources” posts go to this channel.'
+            : 'If empty, restock requests use the main channel above.'}
+        </p>
 
         <div className="form-row">
           <label className="check-field">
@@ -146,7 +184,15 @@ export function DiscordPanel({ store }: { store: StoreApi }) {
             disabled={!ready || busy}
             onClick={() => void testWebhook()}
           >
-            <Send size={16} /> Test webhook
+            <Send size={16} /> Test main
+          </button>
+          <button
+            type="button"
+            className="btn discord"
+            disabled={!resourcesReady || busy}
+            onClick={() => void testResourcesWebhook()}
+          >
+            <Send size={16} /> Test resources
           </button>
           <button
             type="button"
@@ -157,6 +203,12 @@ export function DiscordPanel({ store }: { store: StoreApi }) {
             Post weekly report
           </button>
         </div>
+
+        {!resourcesReady && resourcesUsable && (
+          <p className="muted" style={{ fontSize: '0.85rem' }}>
+            Resources channel not set — restock requests will use main for now.
+          </p>
+        )}
 
         {status && (
           <p className={`discord-status ${status.kind}`}>

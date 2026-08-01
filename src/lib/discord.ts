@@ -382,3 +382,16 @@ export function materialPurchaseEmbed(input: {
 export function discordReady(settings: AppSettings): boolean {
   return Boolean(settings.discordWebhookUrl?.trim())
 }
+
+/** Webhook for restock / material resource requests (falls back to main). */
+export function resourcesWebhookUrl(settings: AppSettings): string {
+  return (
+    settings.discordResourcesWebhookUrl?.trim() ||
+    settings.discordWebhookUrl?.trim() ||
+    ''
+  )
+}
+
+export function resourcesDiscordReady(settings: AppSettings): boolean {
+  return Boolean(resourcesWebhookUrl(settings))
+}

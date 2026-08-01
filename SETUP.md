@@ -53,7 +53,9 @@ Then open the app once as Owner → **Crew → Load / reset crew roster**.
 ## C. Discord
 
 1. Channel ⚙ → Integrations → Webhooks → New Webhook → copy URL  
-2. App → **Prices** → paste → **Test webhook**
+2. App → **Prices** → paste into **Main channel** → **Test main**  
+3. (Optional) Repeat for a second channel used for material restock requests → paste into **Resources channel** → **Test resources**  
+   Craft → **Request resources on Discord** posts there.
 
 ---
 

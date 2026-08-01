@@ -105,14 +105,11 @@ Buyer can be **Pablo the II Escobar** (owner) or an employee.
 ---
 
 ## Discord
-Paste a channel webhook under Prices. The app can post:
-- Sales
-- Bonuses
-- Crafts
-- Stash pending / cleared (**includes flow, profit, commission**)
-- Material purchases (who bought mats for the business)
-- Weekly report
-- Restock shopping lists
+Under **Prices** you can set **two** Discord webhooks:
+1. **Main channel** — sales, bonuses, crafts, stash, material buys, weekly report
+2. **Resources channel** — Craft “Request resources” restock lists (falls back to main if empty)
+
+Paste each channel’s webhook URL and use **Test main** / **Test resources**.
 
 ---
 

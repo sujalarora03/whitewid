@@ -10,6 +10,7 @@ export const defaultState = (): AppState => ({
     commissionRate: 0.15,
     weekStartsOn: 1,
     discordWebhookUrl: '',
+    discordResourcesWebhookUrl: '',
     discordPostSales: true,
     discordPostBonuses: true,
     discordPostCrafts: true,

@@ -6,6 +6,7 @@ import {
   craftLogEmbed,
   craftRestockEmbed,
   postToDiscord,
+  resourcesWebhookUrl,
 } from '../lib/discord'
 import { formatDate, money } from '../lib/utils'
 
@@ -335,12 +336,13 @@ export function CraftCalc({
               <button
                 type="button"
                 className="btn discord"
-                disabled={!state.settings.discordWebhookUrl.trim()}
+                disabled={!resourcesWebhookUrl(state.settings)}
                 onClick={() => {
                   void (async () => {
                     if (!recipe) return
+                    const webhook = resourcesWebhookUrl(state.settings)
                     const result = await postToDiscord(
-                      state.settings.discordWebhookUrl,
+                      webhook,
                       craftRestockEmbed({
                         businessName: state.settings.businessName,
                         recipeName: recipe.name,
@@ -357,13 +359,13 @@ export function CraftCalc({
                     )
                     setDiscordMsg(
                       result.ok
-                        ? 'Restock list posted to Discord'
+                        ? 'Restock request posted to resources channel'
                         : `Discord: ${result.error}`,
                     )
                   })()
                 }}
               >
-                <Send size={16} /> Post restock to Discord
+                <Send size={16} /> Request resources on Discord
               </button>
             </div>
           )}
