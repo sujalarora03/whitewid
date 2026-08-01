@@ -59,9 +59,12 @@ export function CraftCalc({
   const totalCost = unitCost * qty
   const materialsShort =
     deductStock && breakdown.some((b) => b.short > 0)
-  // Allow craft even if mats are short — stock still updates (mats floor at 0,
-  // finished products still increase for business crafts).
-  const canCraft = !!recipe && !!effectiveEmployeeId && qty > 0
+  // When deducting mats, require enough business stock before logging.
+  const canCraft =
+    !!recipe &&
+    !!effectiveEmployeeId &&
+    qty > 0 &&
+    (!deductStock || !materialsShort)
 
   const shoppingList = personal
     ? breakdown.map((b) => ({ ...b, short: b.need }))
@@ -115,11 +118,7 @@ export function CraftCalc({
         result.ok ? `${stockSummary} · Discord ok` : `${stockSummary} · Discord: ${result.error}`,
       )
     } else {
-      setDiscordMsg(
-        materialsShort && deductStock
-          ? `${stockSummary} · warning: some mats were already short (floored at 0)`
-          : stockSummary,
-      )
+      setDiscordMsg(stockSummary)
     }
     setNote('')
   }
@@ -271,11 +270,12 @@ export function CraftCalc({
               </tbody>
             </table>
 
-            {materialsShort && !personal && (
+            {materialsShort && (
               <p className="muted panel-intro">
-                Some materials are short in shared stock. You can still log the
-                craft — mats will floor at 0 and finished stock still goes up.
-                Restock under <strong>Stock</strong> when you can.
+                Not enough materials in business stock for this batch. Lower the
+                quantity, turn off deduct (if mats were handled outside the
+                app), or restock under <strong>Stock</strong> / request
+                resources on Discord.
               </p>
             )}
 
@@ -291,7 +291,13 @@ export function CraftCalc({
                   : `Log craft ${qty}× ${recipe.name}`}
               </button>
               {!canCraft && (
-                <span className="muted">Pick who crafted.</span>
+                <span className="muted">
+                  {!effectiveEmployeeId
+                    ? 'Pick who crafted.'
+                    : materialsShort
+                      ? 'Need more materials (or turn off deduct).'
+                      : 'Cannot log yet.'}
+                </span>
               )}
               {discordMsg && <span className="muted">{discordMsg}</span>}
             </div>

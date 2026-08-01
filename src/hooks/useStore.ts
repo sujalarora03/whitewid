@@ -18,6 +18,17 @@ import { fetchCloudState, saveCloudState, type SyncStatus } from '../lib/cloud'
 import { markDeleted, mergeAppStates } from '../lib/mergeState'
 import { loadState, saveState, uid } from '../lib/utils'
 
+function touchStock<T extends { stock: number; stockUpdatedAt?: string }>(
+  row: T,
+  stock: number,
+): T {
+  return {
+    ...row,
+    stock: Math.max(0, stock),
+    stockUpdatedAt: new Date().toISOString(),
+  }
+}
+
 export function useStore() {
   const [state, setState] = useState<AppState>(() => loadState())
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('booting')
@@ -326,7 +337,7 @@ export function useStore() {
           sales: [sale, ...s.sales],
           products: s.products.map((p) =>
             p.id === input.productId
-              ? { ...p, stock: Math.max(0, p.stock - input.qty) }
+              ? touchStock(p, p.stock - input.qty)
               : p,
           ),
         }
@@ -388,10 +399,7 @@ export function useStore() {
                   (i) => i.materialId === m.id,
                 )
                 if (!need) return m
-                return {
-                  ...m,
-                  stock: Math.max(0, m.stock - need.qty * input.qty),
-                }
+                return touchStock(m, m.stock - need.qty * input.qty)
               })
             }
 
@@ -417,7 +425,7 @@ export function useStore() {
           // Sold from existing finished stock
           products = s.products.map((p) =>
             p.id === input.productId
-              ? { ...p, stock: Math.max(0, p.stock - input.qty) }
+              ? touchStock(p, p.stock - input.qty)
               : p,
           )
         }
@@ -649,11 +657,20 @@ export function useStore() {
 
         const purpose = opts?.purpose ?? 'business'
         const deductStock = opts?.deductStock !== false
+
+        if (deductStock) {
+          const short = recipe.ingredients.some((ing) => {
+            const mat = s.materials.find((m) => m.id === ing.materialId)
+            return (mat?.stock ?? 0) < ing.qty * qty
+          })
+          if (short) return s
+        }
+
         const materials = deductStock
           ? s.materials.map((m) => {
               const need = recipe.ingredients.find((i) => i.materialId === m.id)
               if (!need) return m
-              return { ...m, stock: Math.max(0, m.stock - need.qty * qty) }
+              return touchStock(m, m.stock - need.qty * qty)
             })
           : s.materials
 
@@ -665,7 +682,7 @@ export function useStore() {
           if (existing) {
             products = products.map((p) =>
               p.recipeId === recipeId
-                ? { ...p, stock: p.stock + qty, cost: unitCost }
+                ? { ...touchStock(p, p.stock + qty), cost: unitCost }
                 : p,
             )
           } else {
@@ -679,6 +696,7 @@ export function useStore() {
                 cost: unitCost,
                 salePrice: recipe.salePrice,
                 stock: qty,
+                stockUpdatedAt: new Date().toISOString(),
                 recipeId: recipe.id,
               },
             ]
@@ -746,7 +764,7 @@ export function useStore() {
           ...s,
           materialPurchases: [purchase, ...s.materialPurchases],
           materials: s.materials.map((m) =>
-            m.id === mat.id ? { ...m, stock: m.stock + input.qty } : m,
+            m.id === mat.id ? touchStock(m, m.stock + input.qty) : m,
           ),
         }
       })
@@ -771,7 +789,7 @@ export function useStore() {
         deletedIds,
         materials: s.materials.map((m) =>
           m.id === purchase.materialId
-            ? { ...m, stock: Math.max(0, m.stock - purchase.qty) }
+            ? touchStock(m, m.stock - purchase.qty)
             : m,
         ),
       }
@@ -782,7 +800,7 @@ export function useStore() {
     setState((s) => ({
       ...s,
       materials: s.materials.map((m) =>
-        m.id === id ? { ...m, stock: Math.max(0, stock) } : m,
+        m.id === id ? touchStock(m, stock) : m,
       ),
     }))
   }, [])
@@ -829,7 +847,7 @@ export function useStore() {
     setState((s) => ({
       ...s,
       products: s.products.map((p) =>
-        p.id === id ? { ...p, stock: Math.max(0, stock) } : p,
+        p.id === id ? touchStock(p, stock) : p,
       ),
     }))
   }, [])

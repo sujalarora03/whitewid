@@ -23,10 +23,10 @@ Crafters log **production** (who made what). Separate from selling.
 | You do | What happens |
 |---|---|
 | Log business craft | **Finished products** stock goes up (see Stock tab) |
-| “Deduct from business material stock” ON | **Shared materials** stock goes down (floors at 0) |
+| “Deduct from business material stock” ON | Needs enough **shared materials**; stock goes down |
 | Checkbox OFF | Finished stock still up; materials unchanged |
 
-You can craft even if mats are short. Restock materials under **Stock**.
+If mats are short with deduct ON, logging is blocked — restock under **Stock** or use **Request resources on Discord**.
 
 ---
 

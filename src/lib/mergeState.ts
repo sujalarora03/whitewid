@@ -78,9 +78,14 @@ export function mergeById<T extends WithId>(
   })
 }
 
-function mergeStockRows<
-  T extends { id: string; stock: number },
->(remote: T[], local: T[]): T[] {
+type StockRow = { id: string; stock: number; stockUpdatedAt?: string }
+
+/**
+ * Merge inventory rows. Prefer the stock with the newer stockUpdatedAt.
+ * Never use Math.max — that made deductions undo themselves across browsers
+ * and inflated material counts.
+ */
+function mergeStockRows<T extends StockRow>(remote: T[], local: T[]): T[] {
   const map = byId(remote)
   for (const item of local) {
     const prev = map.get(item.id)
@@ -88,10 +93,35 @@ function mergeStockRows<
       map.set(item.id, item)
       continue
     }
+    const tr = prev.stockUpdatedAt ?? ''
+    const tl = item.stockUpdatedAt ?? ''
+    let stock: number
+    let stockUpdatedAt: string | undefined
+    if (tl && tr) {
+      if (tl >= tr) {
+        stock = item.stock ?? 0
+        stockUpdatedAt = item.stockUpdatedAt
+      } else {
+        stock = prev.stock ?? 0
+        stockUpdatedAt = prev.stockUpdatedAt
+      }
+    } else if (tl) {
+      stock = item.stock ?? 0
+      stockUpdatedAt = item.stockUpdatedAt
+    } else if (tr) {
+      stock = prev.stock ?? 0
+      stockUpdatedAt = prev.stockUpdatedAt
+    } else {
+      // Legacy unstamped rows (both sides): prefer local write so a craft
+      // deduction in this save is not overwritten by an older cloud copy.
+      stock = item.stock ?? 0
+      stockUpdatedAt = undefined
+    }
     map.set(item.id, {
       ...prev,
       ...item,
-      stock: Math.max(prev.stock ?? 0, item.stock ?? 0),
+      stock,
+      stockUpdatedAt,
     })
   }
   const seen = new Set<string>()

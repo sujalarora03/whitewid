@@ -11,6 +11,8 @@ export interface Material {
   cost: number
   category: Category
   stock: number
+  /** Last time stock changed — used so sync does not revive old higher counts */
+  stockUpdatedAt?: string
 }
 
 export interface Recipe {
@@ -29,6 +31,8 @@ export interface Product {
   cost: number
   salePrice: number
   stock: number
+  /** Last time stock changed — used so sync does not revive old higher counts */
+  stockUpdatedAt?: string
   /** If from a recipe, link for COGS calc */
   recipeId?: string
 }
