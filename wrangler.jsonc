@@ -11,7 +11,7 @@
     {
       "binding": "DB",
       "database_name": "white-widow",
-      "database_id": "local-white-widow-db",
+      "database_id": "8a3afe15-e1cd-4687-8076-bce4d8414245",
       "migrations_dir": "migrations"
     }
   ]
