@@ -47,13 +47,19 @@ Optional Discord post when a sale is saved.
 ---
 
 ## Stash
-When someone buys from the **shop stash** and you still need to settle it as owner.
+When a customer buys from the **shop stash**.
 
-1. Employee logs the stash buy → status **pending**
-2. You open **Stash** and hit **Clear** (or Clear all)
-3. Cleared history is kept for records
+This is a **pending sale** until you (Pablo) clear it.
 
-Dashboard warns you when clears are waiting. Can post pending/cleared to Discord.
+| Step | What happens |
+|---|---|
+| Log stash purchase | Pending sale created (stock or craft handled) |
+| Optional: “Crafted then sold” | Also logs the craft for that employee in the same step |
+| You hit **Clear → confirm sale** | Real sale is created → profit + 15% commission count on Dashboard / Crew |
+
+So stash purchase = sold (and optionally crafted) → waits for owner clear → then counts as a confirmed sale.
+
+Use normal **Sales** tab only for sells that don’t need owner clear.
 
 ---
 

@@ -60,7 +60,7 @@ export interface Bonus {
   createdAt: string
 }
 
-/** Customer/employee bought from shop stash — owner must clear */
+/** Customer bought from shop stash — pending until owner clears (= confirms sale) */
 export interface StashBuy {
   id: string
   employeeId: string
@@ -68,7 +68,15 @@ export interface StashBuy {
   productId: string
   productName: string
   qty: number
+  /** Total paid by customer */
   amount: number
+  /** Unit production cost at time of log (for profit when cleared) */
+  unitCost: number
+  /** Sold from finished stock, or crafted in the same step then sold */
+  source: 'from_stock' | 'crafted_then_sold'
+  craftLogId?: string
+  /** Set when owner clears — the confirmed sale */
+  saleId?: string
   status: 'pending' | 'cleared'
   createdAt: string
   clearedAt?: string

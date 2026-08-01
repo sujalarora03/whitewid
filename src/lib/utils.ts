@@ -17,7 +17,11 @@ export function loadState(): AppState {
       employees: parsed.employees ?? base.employees,
       sales: parsed.sales ?? [],
       bonuses: parsed.bonuses ?? [],
-      stashBuys: parsed.stashBuys ?? [],
+      stashBuys: (parsed.stashBuys ?? []).map((b) => ({
+        ...b,
+        unitCost: b.unitCost ?? 0,
+        source: b.source ?? ('from_stock' as const),
+      })),
       craftLogs: parsed.craftLogs ?? [],
       materialPurchases: parsed.materialPurchases ?? [],
     }

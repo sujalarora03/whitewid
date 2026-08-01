@@ -233,9 +233,9 @@ export function stashPendingEmbed(input: {
   return {
     embeds: [
       {
-        title: `${input.businessName} · Stash buy (pending)`,
+        title: `${input.businessName} · Pending stash sale`,
         color: 0xf0c14a,
-        description: 'Waiting for owner to clear',
+        description: 'Awaiting owner clear — then sale + commission confirm',
         fields: [
           { name: 'Employee', value: input.employeeName, inline: true },
           { name: 'Buyer', value: input.buyerName, inline: true },
@@ -263,8 +263,9 @@ export function stashClearedEmbed(input: {
   return {
     embeds: [
       {
-        title: `${input.businessName} · Stash buy cleared`,
+        title: `${input.businessName} · Stash sale confirmed`,
         color: GREEN,
+        description: 'Owner cleared — sale counts for profit & commission',
         fields: [
           { name: 'Employee', value: input.employeeName, inline: true },
           { name: 'Buyer', value: input.buyerName, inline: true },

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { CheckCheck, PackageOpen, Trash2 } from 'lucide-react'
 import type { StoreApi } from '../hooks/useStore'
 import {
@@ -6,6 +6,7 @@ import {
   stashClearedEmbed,
   stashPendingEmbed,
 } from '../lib/discord'
+import { recipeUnitCost } from '../data/seed'
 import { formatDate, money } from '../lib/utils'
 
 export function Stash({ store }: { store: StoreApi }) {
@@ -25,7 +26,23 @@ export function Stash({ store }: { store: StoreApi }) {
     state.products[0]?.salePrice || state.products[0]?.cost || 0,
   )
   const [note, setNote] = useState('')
+  const [craftedThenSold, setCraftedThenSold] = useState(true)
+  const [deductMaterials, setDeductMaterials] = useState(true)
   const [discordMsg, setDiscordMsg] = useState<string | null>(null)
+
+  const product = state.products.find((p) => p.id === productId)
+  const isCraftable = Boolean(product?.recipeId)
+
+  const unitCost = useMemo(() => {
+    if (!product) return 0
+    if (product.recipeId) {
+      return recipeUnitCost(product.recipeId, state.materials, state.recipes)
+    }
+    return product.cost
+  }, [product, state.materials, state.recipes])
+
+  const previewProfit = amount - unitCost * qty
+  const previewComm = Math.max(0, previewProfit) * state.settings.commissionRate
 
   const pending = state.stashBuys.filter((b) => b.status === 'pending')
   const cleared = state.stashBuys.filter((b) => b.status === 'cleared')
@@ -34,7 +51,10 @@ export function Stash({ store }: { store: StoreApi }) {
   function onProductChange(id: string) {
     setProductId(id)
     const p = state.products.find((x) => x.id === id)
-    if (p) setAmount((p.salePrice || p.cost || 0) * qty)
+    if (p) {
+      setAmount((p.salePrice || p.cost || 0) * qty)
+      setCraftedThenSold(Boolean(p.recipeId))
+    }
   }
 
   async function submit(e: React.FormEvent) {
@@ -50,6 +70,8 @@ export function Stash({ store }: { store: StoreApi }) {
       qty,
       amount,
       note: note || undefined,
+      craftedThenSold: isCraftable && craftedThenSold,
+      deductMaterials,
     })
 
     if (
@@ -70,10 +92,12 @@ export function Stash({ store }: { store: StoreApi }) {
         }),
       )
       setDiscordMsg(
-        result.ok ? 'Logged + posted to Discord' : `Discord: ${result.error}`,
+        result.ok
+          ? 'Pending sale logged + Discord'
+          : `Discord: ${result.error}`,
       )
     } else {
-      setDiscordMsg(null)
+      setDiscordMsg('Pending sale logged — clear to confirm commission')
     }
 
     setBuyerName('')
@@ -106,14 +130,20 @@ export function Stash({ store }: { store: StoreApi }) {
 
   async function onClearAll() {
     if (pending.length === 0) return
-    if (!confirm(`Clear all ${pending.length} pending stash buys?`)) return
+    if (
+      !confirm(
+        `Clear all ${pending.length} pending stash sales? This confirms them as real sales (commission counts).`,
+      )
+    ) {
+      return
+    }
     clearAllPendingStash()
     if (
       state.settings.discordPostStash &&
       state.settings.discordWebhookUrl.trim()
     ) {
       await postToDiscord(state.settings.discordWebhookUrl, {
-        content: `✅ **${state.settings.businessName}** — owner cleared **${pending.length}** stash buys (${money(pendingTotal)}).`,
+        content: `✅ **${state.settings.businessName}** — owner cleared **${pending.length}** stash sales (${money(pendingTotal)}). Sales + commissions confirmed.`,
       })
     }
   }
@@ -127,8 +157,9 @@ export function Stash({ store }: { store: StoreApi }) {
           </h3>
         </header>
         <p className="muted panel-intro">
-          When someone buys from the shop stash, log it here. It stays{' '}
-          <strong>pending</strong> until you (owner) clear it.
+          Customer bought from stash → logged as a <strong>pending sale</strong>.
+          When you clear it, the sale is confirmed (profit + 15% commission). For
+          craftable items you can also log the craft in the same step.
         </p>
         <form className="form-stack" onSubmit={(e) => void submit(e)}>
           <div className="form-row">
@@ -166,6 +197,7 @@ export function Stash({ store }: { store: StoreApi }) {
                 {state.products.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
+                    {p.recipeId ? ' (craftable)' : ''}
                   </option>
                 ))}
               </select>
@@ -202,9 +234,57 @@ export function Stash({ store }: { store: StoreApi }) {
               />
             </label>
           </div>
+
+          {isCraftable && (
+            <>
+              <label className="check-field">
+                <input
+                  type="checkbox"
+                  checked={craftedThenSold}
+                  onChange={(e) => setCraftedThenSold(e.target.checked)}
+                />
+                Crafted then sold (log craft + pending sale together)
+              </label>
+              {craftedThenSold && (
+                <label className="check-field">
+                  <input
+                    type="checkbox"
+                    checked={deductMaterials}
+                    onChange={(e) => setDeductMaterials(e.target.checked)}
+                  />
+                  Deduct business materials for that craft
+                </label>
+              )}
+              {!craftedThenSold && (
+                <p className="muted">
+                  Selling from finished stock only (no new craft log).
+                </p>
+              )}
+            </>
+          )}
+
+          <div className="preview-grid">
+            <div>
+              <span className="muted">Pending revenue</span>
+              <strong>{money(amount)}</strong>
+            </div>
+            <div>
+              <span className="muted">Cost basis</span>
+              <strong>{money(unitCost * qty)}</strong>
+            </div>
+            <div>
+              <span className="muted">Profit (when cleared)</span>
+              <strong>{money(previewProfit)}</strong>
+            </div>
+            <div>
+              <span className="muted">Commission (when cleared)</span>
+              <strong>{money(previewComm)}</strong>
+            </div>
+          </div>
+
           <div className="actions">
             <button type="submit" className="btn primary" disabled={!employeeId}>
-              Log pending buy
+              Log pending sale
             </button>
             {discordMsg && <span className="muted">{discordMsg}</span>}
           </div>
@@ -213,11 +293,11 @@ export function Stash({ store }: { store: StoreApi }) {
 
       <section className="panel">
         <header className="panel-head">
-          <h3>Pending — needs owner clear</h3>
+          <h3>Pending sales — await owner clear</h3>
           <span className="muted">{money(pendingTotal)} waiting</span>
         </header>
         {pending.length === 0 ? (
-          <p className="empty">No pending stash buys.</p>
+          <p className="empty">No pending stash sales.</p>
         ) : (
           <>
             <div className="table-scroll">
@@ -228,13 +308,19 @@ export function Stash({ store }: { store: StoreApi }) {
                     <th>Employee</th>
                     <th>Buyer</th>
                     <th>Item</th>
+                    <th>Flow</th>
                     <th>Amount</th>
+                    <th>Est. profit</th>
                     <th />
                   </tr>
                 </thead>
                 <tbody>
                   {pending.map((b) => {
-                    const emp = state.employees.find((e) => e.id === b.employeeId)
+                    const emp = state.employees.find(
+                      (e) => e.id === b.employeeId,
+                    )
+                    const cost = (b.unitCost ?? 0) * b.qty
+                    const profit = b.amount - cost
                     return (
                       <tr key={b.id} className="warn-row">
                         <td>{formatDate(b.createdAt)}</td>
@@ -247,15 +333,23 @@ export function Stash({ store }: { store: StoreApi }) {
                           ) : null}
                         </td>
                         <td>
+                          <span className="note-tag">
+                            {b.source === 'crafted_then_sold'
+                              ? 'crafted + sold'
+                              : 'from stock'}
+                          </span>
+                        </td>
+                        <td>
                           <strong>{money(b.amount)}</strong>
                         </td>
+                        <td>{money(profit)}</td>
                         <td className="row-actions">
                           <button
                             type="button"
                             className="btn primary sm"
                             onClick={() => void onClear(b.id)}
                           >
-                            Clear
+                            Clear → confirm sale
                           </button>
                           <button
                             type="button"
@@ -278,7 +372,7 @@ export function Stash({ store }: { store: StoreApi }) {
                 className="btn discord"
                 onClick={() => void onClearAll()}
               >
-                <CheckCheck size={16} /> Clear all pending
+                <CheckCheck size={16} /> Clear all → confirm sales
               </button>
             </div>
           </>
@@ -287,10 +381,10 @@ export function Stash({ store }: { store: StoreApi }) {
 
       <section className="panel">
         <header className="panel-head">
-          <h3>Cleared history</h3>
+          <h3>Cleared / confirmed sales</h3>
         </header>
         {cleared.length === 0 ? (
-          <p className="empty">Cleared buys will show here.</p>
+          <p className="empty">Cleared stash sales will show here.</p>
         ) : (
           <div className="table-scroll">
             <table className="data-table">
@@ -301,6 +395,7 @@ export function Stash({ store }: { store: StoreApi }) {
                   <th>Employee</th>
                   <th>Buyer</th>
                   <th>Item</th>
+                  <th>Flow</th>
                   <th>Amount</th>
                 </tr>
               </thead>
@@ -315,6 +410,13 @@ export function Stash({ store }: { store: StoreApi }) {
                       <td>{b.buyerName}</td>
                       <td>
                         {b.qty}× {b.productName}
+                      </td>
+                      <td>
+                        <span className="note-tag">
+                          {b.source === 'crafted_then_sold'
+                            ? 'crafted + sold'
+                            : 'from stock'}
+                        </span>
                       </td>
                       <td>{money(b.amount)}</td>
                     </tr>

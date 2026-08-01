@@ -80,9 +80,9 @@ export function Dashboard({ store }: { store: StoreApi }) {
             <span className="muted">{money(pendingTotal)}</span>
           </header>
           <p className="muted">
-            {pendingStash.length} purchase
-            {pendingStash.length === 1 ? '' : 's'} need owner clear — open the{' '}
-            <strong>Stash</strong> tab.
+            {pendingStash.length} pending sale
+            {pendingStash.length === 1 ? '' : 's'} need your clear — open{' '}
+            <strong>Stash</strong> to confirm sales &amp; commission.
           </p>
         </section>
       )}

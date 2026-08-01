@@ -229,10 +229,68 @@ export function useStore() {
       qty: number
       amount: number
       note?: string
+      /** If product is craftable: log craft + pending sale in one step */
+      craftedThenSold?: boolean
+      deductMaterials?: boolean
     }) => {
       setState((s) => {
         const product = s.products.find((p) => p.id === input.productId)
         if (!product) return s
+
+        const craftedThenSold = Boolean(
+          input.craftedThenSold && product.recipeId,
+        )
+        let materials = s.materials
+        let products = s.products
+        let craftLogs = s.craftLogs
+        let craftLogId: string | undefined
+        let unitCost = product.cost
+
+        if (product.recipeId) {
+          unitCost = recipeUnitCost(product.recipeId, s.materials, s.recipes)
+        }
+
+        if (craftedThenSold && product.recipeId) {
+          const recipe = s.recipes.find((r) => r.id === product.recipeId)
+          if (recipe) {
+            const deductMaterials = input.deductMaterials !== false
+            if (deductMaterials) {
+              materials = s.materials.map((m) => {
+                const need = recipe.ingredients.find(
+                  (i) => i.materialId === m.id,
+                )
+                if (!need) return m
+                return {
+                  ...m,
+                  stock: Math.max(0, m.stock - need.qty * input.qty),
+                }
+              })
+            }
+
+            craftLogId = uid('craft')
+            const log: CraftLog = {
+              id: craftLogId,
+              employeeId: input.employeeId,
+              recipeId: recipe.id,
+              recipeName: recipe.name,
+              qty: input.qty,
+              unitCost,
+              totalCost: unitCost * input.qty,
+              deductedStock: deductMaterials,
+              createdAt: new Date().toISOString(),
+              note: `Stash sale → ${input.buyerName.trim() || 'Customer'}`,
+            }
+            craftLogs = [log, ...s.craftLogs]
+            // Crafted and sold in one step — finished stock unchanged
+          }
+        } else {
+          // Sold from existing finished stock
+          products = s.products.map((p) =>
+            p.id === input.productId
+              ? { ...p, stock: Math.max(0, p.stock - input.qty) }
+              : p,
+          )
+        }
 
         const buy: StashBuy = {
           id: uid('stash'),
@@ -242,6 +300,9 @@ export function useStore() {
           productName: product.name,
           qty: input.qty,
           amount: input.amount,
+          unitCost,
+          source: craftedThenSold ? 'crafted_then_sold' : 'from_stock',
+          craftLogId,
           status: 'pending',
           createdAt: new Date().toISOString(),
           note: input.note,
@@ -249,12 +310,10 @@ export function useStore() {
 
         return {
           ...s,
+          materials,
+          products,
+          craftLogs,
           stashBuys: [buy, ...s.stashBuys],
-          products: s.products.map((p) =>
-            p.id === input.productId
-              ? { ...p, stock: Math.max(0, p.stock - input.qty) }
-              : p,
-          ),
         }
       })
     },
@@ -262,26 +321,74 @@ export function useStore() {
   )
 
   const clearStashBuy = useCallback((id: string) => {
-    setState((s) => ({
-      ...s,
-      stashBuys: s.stashBuys.map((b) =>
-        b.id === id
-          ? { ...b, status: 'cleared', clearedAt: new Date().toISOString() }
-          : b,
-      ),
-    }))
+    setState((s) => {
+      const buy = s.stashBuys.find((b) => b.id === id)
+      if (!buy || buy.status !== 'pending') return s
+
+      const unitPrice = buy.qty > 0 ? buy.amount / buy.qty : buy.amount
+      const saleId = uid('sale')
+      const sale: Sale = {
+        id: saleId,
+        employeeId: buy.employeeId,
+        productId: buy.productId,
+        productName: buy.productName,
+        qty: buy.qty,
+        unitPrice,
+        unitCost: buy.unitCost ?? 0,
+        createdAt: new Date().toISOString(),
+        note: `Stash cleared · ${buy.buyerName}${buy.note ? ` · ${buy.note}` : ''}`,
+      }
+
+      return {
+        ...s,
+        sales: [sale, ...s.sales],
+        stashBuys: s.stashBuys.map((b) =>
+          b.id === id
+            ? {
+                ...b,
+                status: 'cleared',
+                clearedAt: new Date().toISOString(),
+                saleId,
+              }
+            : b,
+        ),
+      }
+    })
   }, [])
 
   const clearAllPendingStash = useCallback(() => {
-    const now = new Date().toISOString()
-    setState((s) => ({
-      ...s,
-      stashBuys: s.stashBuys.map((b) =>
-        b.status === 'pending'
-          ? { ...b, status: 'cleared', clearedAt: now }
-          : b,
-      ),
-    }))
+    setState((s) => {
+      const now = new Date().toISOString()
+      const newSales: Sale[] = []
+      const stashBuys = s.stashBuys.map((buy) => {
+        if (buy.status !== 'pending') return buy
+        const saleId = uid('sale')
+        const unitPrice = buy.qty > 0 ? buy.amount / buy.qty : buy.amount
+        newSales.push({
+          id: saleId,
+          employeeId: buy.employeeId,
+          productId: buy.productId,
+          productName: buy.productName,
+          qty: buy.qty,
+          unitPrice,
+          unitCost: buy.unitCost ?? 0,
+          createdAt: now,
+          note: `Stash cleared · ${buy.buyerName}${buy.note ? ` · ${buy.note}` : ''}`,
+        })
+        return {
+          ...buy,
+          status: 'cleared' as const,
+          clearedAt: now,
+          saleId,
+        }
+      })
+
+      return {
+        ...s,
+        sales: [...newSales, ...s.sales],
+        stashBuys,
+      }
+    })
   }, [])
 
   const removeStashBuy = useCallback((id: string) => {
