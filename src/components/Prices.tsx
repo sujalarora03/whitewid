@@ -31,6 +31,13 @@ export function Prices({ store }: { store: StoreApi }) {
               }
             />
           </label>
+          <label className="field grow">
+            <span>Owner</span>
+            <input
+              value={state.settings.ownerName}
+              onChange={(e) => updateSettings({ ownerName: e.target.value })}
+            />
+          </label>
           <label className="field">
             <span>Commission %</span>
             <input

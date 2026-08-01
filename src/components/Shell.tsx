@@ -22,13 +22,21 @@ const NAV: { id: TabId; label: string; icon: typeof LayoutDashboard }[] = [
 
 interface Props {
   brand: string
+  ownerName: string
   tab: TabId
   onTab: (t: TabId) => void
   pendingStash?: number
   children: ReactNode
 }
 
-export function Shell({ brand, tab, onTab, pendingStash = 0, children }: Props) {
+export function Shell({
+  brand,
+  ownerName,
+  tab,
+  onTab,
+  pendingStash = 0,
+  children,
+}: Props) {
   return (
     <div className="shell">
       <aside className="sidebar">
@@ -38,7 +46,7 @@ export function Shell({ brand, tab, onTab, pendingStash = 0, children }: Props) 
           </div>
           <div>
             <p className="brand-name">{brand}</p>
-            <p className="brand-sub">Business Manager</p>
+            <p className="brand-sub">Owner · {ownerName}</p>
           </div>
         </div>
         <nav className="nav">

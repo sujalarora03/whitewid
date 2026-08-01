@@ -107,6 +107,7 @@ export interface MaterialPurchase {
 
 export interface AppSettings {
   businessName: string
+  ownerName: string
   commissionRate: number
   weekStartsOn: 0 | 1
   /** Discord channel incoming webhook URL */

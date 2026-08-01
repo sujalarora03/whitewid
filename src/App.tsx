@@ -21,6 +21,7 @@ export default function App() {
   return (
     <Shell
       brand={store.state.settings.businessName}
+      ownerName={store.state.settings.ownerName}
       tab={tab}
       onTab={setTab}
       pendingStash={pendingStash}

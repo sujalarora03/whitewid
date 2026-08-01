@@ -5,6 +5,7 @@ export const STORAGE_KEY = 'white-widow-manager-v1'
 export const defaultState = (): AppState => ({
   settings: {
     businessName: 'White Widow',
+    ownerName: 'Pablo the II Escobar',
     commissionRate: 0.15,
     weekStartsOn: 1,
     discordWebhookUrl: '',

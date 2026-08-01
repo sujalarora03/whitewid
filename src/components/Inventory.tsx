@@ -63,7 +63,9 @@ export function Inventory({ store }: { store: StoreApi }) {
                 value={buyerId}
                 onChange={(e) => setBuyerId(e.target.value)}
               >
-                <option value="">Owner / business</option>
+                <option value="">
+                  {state.settings.ownerName || 'Owner / business'}
+                </option>
                 {activeEmps.map((e) => (
                   <option key={e.id} value={e.id}>
                     {e.name}
@@ -141,7 +143,11 @@ export function Inventory({ store }: { store: StoreApi }) {
                   return (
                     <tr key={p.id}>
                       <td>{formatDate(p.createdAt)}</td>
-                      <td>{emp?.name ?? 'Owner / business'}</td>
+                      <td>
+                        {p.employeeId
+                          ? (emp?.name ?? '—')
+                          : state.settings.ownerName || 'Owner / business'}
+                      </td>
                       <td>
                         {p.materialName}
                         {p.note ? (
