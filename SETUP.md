@@ -15,11 +15,29 @@ git clone https://github.com/sujalarora03/whitewid.git
 cd whitewid
 git checkout cursor/white-widow-manager-f14d
 npm install
-npx wrangler login
+npx wrangler login --browser=false
 npm run deploy
 ```
 
-Copy the `*.workers.dev` URL Wrangler prints. That’s your app — bookmark it.
+**If no browser opens:** `--browser=false` prints a URL in the terminal — copy it and open it yourself, then click **Allow**.
+
+**Still stuck?** Skip OAuth and use an API token instead:
+
+1. Open https://dash.cloudflare.com/profile/api-tokens  
+2. **Create Token** → use template **Edit Cloudflare Workers** → Create  
+3. Copy the token, then in your terminal:
+
+```bash
+# Windows (PowerShell)
+$env:CLOUDFLARE_API_TOKEN="paste_token_here"
+npm run deploy
+
+# Mac / Linux
+export CLOUDFLARE_API_TOKEN="paste_token_here"
+npm run deploy
+```
+
+Copy the `*.workers.dev` URL Wrangler prints after deploy. That’s your app — bookmark it.
 
 ### Option 2 — Local only
 
