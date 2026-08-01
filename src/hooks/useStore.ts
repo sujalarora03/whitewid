@@ -15,7 +15,7 @@ import type {
 } from '../types'
 import { defaultState, recipeUnitCost } from '../data/seed'
 import { fetchCloudState, saveCloudState, type SyncStatus } from '../lib/cloud'
-import { mergeAppStates } from '../lib/mergeState'
+import { markDeleted, mergeAppStates } from '../lib/mergeState'
 import { loadState, saveState, uid } from '../lib/utils'
 
 export function useStore() {
@@ -266,6 +266,7 @@ export function useStore() {
     setState((s) => ({
       ...s,
       employees: s.employees.filter((e) => e.id !== id),
+      deletedIds: markDeleted(s, 'employees', id),
     }))
   }, [])
 
@@ -287,6 +288,7 @@ export function useStore() {
     setState((s) => ({
       ...s,
       bonuses: s.bonuses.filter((b) => b.id !== id),
+      deletedIds: markDeleted(s, 'bonuses', id),
     }))
   }, [])
 
@@ -337,6 +339,7 @@ export function useStore() {
     setState((s) => ({
       ...s,
       sales: s.sales.filter((x) => x.id !== id),
+      deletedIds: markDeleted(s, 'sales', id),
     }))
   }, [])
 
@@ -548,6 +551,7 @@ export function useStore() {
     setState((s) => ({
       ...s,
       stashBuys: s.stashBuys.filter((b) => b.id !== id),
+      deletedIds: markDeleted(s, 'stashBuys', id),
     }))
   }, [])
 
@@ -624,6 +628,7 @@ export function useStore() {
     setState((s) => ({
       ...s,
       pendingOrders: s.pendingOrders.filter((o) => o.id !== id),
+      deletedIds: markDeleted(s, 'pendingOrders', id),
     }))
   }, [])
 
@@ -709,6 +714,7 @@ export function useStore() {
     setState((s) => ({
       ...s,
       craftLogs: s.craftLogs.filter((c) => c.id !== id),
+      deletedIds: markDeleted(s, 'craftLogs', id),
     }))
   }, [])
 
@@ -751,15 +757,18 @@ export function useStore() {
   const removeMaterialPurchase = useCallback((id: string) => {
     setState((s) => {
       const purchase = s.materialPurchases.find((p) => p.id === id)
+      const deletedIds = markDeleted(s, 'materialPurchases', id)
       if (!purchase) {
         return {
           ...s,
           materialPurchases: s.materialPurchases.filter((p) => p.id !== id),
+          deletedIds,
         }
       }
       return {
         ...s,
         materialPurchases: s.materialPurchases.filter((p) => p.id !== id),
+        deletedIds,
         materials: s.materials.map((m) =>
           m.id === purchase.materialId
             ? { ...m, stock: Math.max(0, m.stock - purchase.qty) }

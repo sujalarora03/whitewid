@@ -268,6 +268,15 @@ export const defaultState = (): AppState => ({
   pendingOrders: [],
   craftLogs: [],
   materialPurchases: [],
+  deletedIds: {
+    sales: [],
+    bonuses: [],
+    stashBuys: [],
+    pendingOrders: [],
+    craftLogs: [],
+    materialPurchases: [],
+    employees: [],
+  },
 })
 
 /** Production cost for one craft from current material prices */

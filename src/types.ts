@@ -175,6 +175,17 @@ export interface AppSettings {
   discordPostMaterials: boolean
 }
 
+/** Ids removed on any client — kept so merge-sync does not revive them */
+export interface DeletedIds {
+  sales: string[]
+  bonuses: string[]
+  stashBuys: string[]
+  pendingOrders: string[]
+  craftLogs: string[]
+  materialPurchases: string[]
+  employees: string[]
+}
+
 export interface AppState {
   materials: Material[]
   recipes: Recipe[]
@@ -187,6 +198,7 @@ export interface AppState {
   craftLogs: CraftLog[]
   materialPurchases: MaterialPurchase[]
   settings: AppSettings
+  deletedIds: DeletedIds
 }
 
 export type TabId =

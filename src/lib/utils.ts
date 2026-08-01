@@ -1,5 +1,6 @@
 import type { AppState, Sale } from '../types'
 import { STORAGE_KEY, defaultState } from '../data/seed'
+import { normalizeDeletedIds, stripDeletedRows } from './mergeState'
 
 export function loadState(): AppState {
   try {
@@ -7,7 +8,7 @@ export function loadState(): AppState {
     if (!raw) return defaultState()
     const parsed = JSON.parse(raw) as Partial<AppState>
     const base = defaultState()
-    return {
+    return stripDeletedRows({
       ...base,
       ...parsed,
       settings: { ...base.settings, ...parsed.settings },
@@ -33,7 +34,8 @@ export function loadState(): AppState {
         purpose: c.purpose ?? ('business' as const),
       })),
       materialPurchases: parsed.materialPurchases ?? [],
-    }
+      deletedIds: normalizeDeletedIds(parsed.deletedIds),
+    })
   } catch {
     return defaultState()
   }

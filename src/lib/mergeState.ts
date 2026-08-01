@@ -1,6 +1,16 @@
-import type { AppState } from '../types'
+import type { AppState, DeletedIds } from '../types'
 
 type WithId = { id: string }
+
+const EMPTY_DELETED: DeletedIds = {
+  sales: [],
+  bonuses: [],
+  stashBuys: [],
+  pendingOrders: [],
+  craftLogs: [],
+  materialPurchases: [],
+  employees: [],
+}
 
 function byId<T extends WithId>(items: T[]): Map<string, T> {
   const map = new Map<string, T>()
@@ -10,15 +20,48 @@ function byId<T extends WithId>(items: T[]): Map<string, T> {
   return map
 }
 
+function unionIds(a: string[] = [], b: string[] = []): string[] {
+  return [...new Set([...a, ...b])]
+}
+
+function mergeDeleted(
+  remote?: DeletedIds,
+  local?: DeletedIds,
+): DeletedIds {
+  const r = remote ?? EMPTY_DELETED
+  const l = local ?? EMPTY_DELETED
+  return {
+    sales: unionIds(r.sales, l.sales),
+    bonuses: unionIds(r.bonuses, l.bonuses),
+    stashBuys: unionIds(r.stashBuys, l.stashBuys),
+    pendingOrders: unionIds(r.pendingOrders, l.pendingOrders),
+    craftLogs: unionIds(r.craftLogs, l.craftLogs),
+    materialPurchases: unionIds(r.materialPurchases, l.materialPurchases),
+    employees: unionIds(r.employees, l.employees),
+  }
+}
+
+function defaultTime(item: WithId): string | undefined {
+  const row = item as WithId & {
+    updatedAt?: string
+    clearedAt?: string
+    fulfilledAt?: string
+    createdAt?: string
+  }
+  return row.updatedAt || row.clearedAt || row.fulfilledAt || row.createdAt
+}
+
 /** Union log rows by id. Prefer the copy with the later activity timestamp. */
 export function mergeById<T extends WithId>(
   a: T[],
   b: T[],
   timeKey: (item: T) => string | undefined = defaultTime,
+  deleted: string[] = [],
 ): T[] {
-  const map = byId(a)
+  const dead = new Set(deleted)
+  const map = byId(a.filter((x) => x?.id && !dead.has(x.id)))
   for (const item of b) {
-    if (!item?.id) continue
+    if (!item?.id || dead.has(item.id)) continue
     const prev = map.get(item.id)
     if (!prev) {
       map.set(item.id, item)
@@ -35,15 +78,6 @@ export function mergeById<T extends WithId>(
   })
 }
 
-function defaultTime(item: WithId & Record<string, unknown>): string | undefined {
-  return (
-    (item.updatedAt as string | undefined) ||
-    (item.clearedAt as string | undefined) ||
-    (item.fulfilledAt as string | undefined) ||
-    (item.createdAt as string | undefined)
-  )
-}
-
 function mergeStockRows<
   T extends { id: string; stock: number },
 >(remote: T[], local: T[]): T[] {
@@ -54,15 +88,12 @@ function mergeStockRows<
       map.set(item.id, item)
       continue
     }
-    // Keep richer metadata from local/remote blend; stock takes the higher
-    // value so concurrent crafts/buys don't wipe each other down to an old 0.
     map.set(item.id, {
       ...prev,
       ...item,
       stock: Math.max(prev.stock ?? 0, item.stock ?? 0),
     })
   }
-  // Preserve remote order, then any local-only rows
   const seen = new Set<string>()
   const out: T[] = []
   for (const r of remote) {
@@ -81,15 +112,17 @@ function mergeStockRows<
 function mergeEmployees(
   remote: AppState['employees'],
   local: AppState['employees'],
+  deleted: string[],
 ): AppState['employees'] {
-  const map = byId(remote)
+  const dead = new Set(deleted)
+  const map = byId(remote.filter((e) => !dead.has(e.id)))
   for (const e of local) {
+    if (dead.has(e.id)) continue
     const prev = map.get(e.id)
     if (!prev) {
       map.set(e.id, e)
       continue
     }
-    // Prefer local field updates (grade/password/active) when both exist
     map.set(e.id, { ...prev, ...e })
   }
   const byName = new Map<string, (typeof remote)[0]>()
@@ -100,23 +133,110 @@ function mergeEmployees(
 /**
  * Merge two full app states for multiplayer sync.
  * `local` is this browser's state; `remote` is what is already in D1.
- * Log collections are unioned by id so concurrent sales/crafts are kept.
+ * Log collections are unioned by id; `deletedIds` keep removals from reviving.
  */
 export function mergeAppStates(remote: AppState, local: AppState): AppState {
+  const deletedIds = mergeDeleted(remote.deletedIds, local.deletedIds)
   return {
     settings: { ...remote.settings, ...local.settings },
     materials: mergeStockRows(remote.materials, local.materials),
     recipes: mergeById(remote.recipes, local.recipes, () => ''),
     products: mergeStockRows(remote.products, local.products),
-    employees: mergeEmployees(remote.employees, local.employees),
-    sales: mergeById(remote.sales, local.sales),
-    bonuses: mergeById(remote.bonuses, local.bonuses),
-    stashBuys: mergeById(remote.stashBuys, local.stashBuys),
-    pendingOrders: mergeById(remote.pendingOrders ?? [], local.pendingOrders ?? []),
-    craftLogs: mergeById(remote.craftLogs, local.craftLogs),
+    employees: mergeEmployees(
+      remote.employees,
+      local.employees,
+      deletedIds.employees,
+    ),
+    sales: mergeById(remote.sales, local.sales, defaultTime, deletedIds.sales),
+    bonuses: mergeById(
+      remote.bonuses,
+      local.bonuses,
+      defaultTime,
+      deletedIds.bonuses,
+    ),
+    stashBuys: mergeById(
+      remote.stashBuys,
+      local.stashBuys,
+      defaultTime,
+      deletedIds.stashBuys,
+    ),
+    pendingOrders: mergeById(
+      remote.pendingOrders ?? [],
+      local.pendingOrders ?? [],
+      defaultTime,
+      deletedIds.pendingOrders,
+    ),
+    craftLogs: mergeById(
+      remote.craftLogs,
+      local.craftLogs,
+      defaultTime,
+      deletedIds.craftLogs,
+    ),
     materialPurchases: mergeById(
       remote.materialPurchases,
       local.materialPurchases,
+      defaultTime,
+      deletedIds.materialPurchases,
     ),
+    deletedIds,
+  }
+}
+
+export function emptyDeletedIds(): DeletedIds {
+  return {
+    sales: [],
+    bonuses: [],
+    stashBuys: [],
+    pendingOrders: [],
+    craftLogs: [],
+    materialPurchases: [],
+    employees: [],
+  }
+}
+
+export function markDeleted(
+  state: AppState,
+  collection: keyof DeletedIds,
+  id: string,
+): DeletedIds {
+  const base = state.deletedIds ?? emptyDeletedIds()
+  const list = base[collection] ?? []
+  if (list.includes(id)) return base
+  return { ...base, [collection]: [...list, id] }
+}
+
+/** Ensure deletedIds shape exists (older saved states omit it). */
+export function normalizeDeletedIds(raw?: Partial<DeletedIds> | null): DeletedIds {
+  const base = emptyDeletedIds()
+  if (!raw) return base
+  return {
+    sales: unionIds(base.sales, raw.sales),
+    bonuses: unionIds(base.bonuses, raw.bonuses),
+    stashBuys: unionIds(base.stashBuys, raw.stashBuys),
+    pendingOrders: unionIds(base.pendingOrders, raw.pendingOrders),
+    craftLogs: unionIds(base.craftLogs, raw.craftLogs),
+    materialPurchases: unionIds(base.materialPurchases, raw.materialPurchases),
+    employees: unionIds(base.employees, raw.employees),
+  }
+}
+
+/** Drop any rows whose ids are in deletedIds (local hydrate / cloud load). */
+export function stripDeletedRows(state: AppState): AppState {
+  const deletedIds = normalizeDeletedIds(state.deletedIds)
+  const dead = (key: keyof DeletedIds) => new Set(deletedIds[key])
+  return {
+    ...state,
+    deletedIds,
+    sales: state.sales.filter((x) => !dead('sales').has(x.id)),
+    bonuses: state.bonuses.filter((x) => !dead('bonuses').has(x.id)),
+    stashBuys: state.stashBuys.filter((x) => !dead('stashBuys').has(x.id)),
+    pendingOrders: (state.pendingOrders ?? []).filter(
+      (x) => !dead('pendingOrders').has(x.id),
+    ),
+    craftLogs: state.craftLogs.filter((x) => !dead('craftLogs').has(x.id)),
+    materialPurchases: state.materialPurchases.filter(
+      (x) => !dead('materialPurchases').has(x.id),
+    ),
+    employees: state.employees.filter((x) => !dead('employees').has(x.id)),
   }
 }

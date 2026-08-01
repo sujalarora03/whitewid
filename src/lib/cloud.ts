@@ -1,6 +1,10 @@
 import type { AppState } from '../types'
 import { defaultState } from '../data/seed'
-import { mergeAppStates } from './mergeState'
+import {
+  mergeAppStates,
+  normalizeDeletedIds,
+  stripDeletedRows,
+} from './mergeState'
 
 export type SyncStatus =
   | 'booting'
@@ -195,6 +199,7 @@ function mergeWithDefaults(parsed: Partial<AppState>): AppState {
       purpose: c.purpose ?? ('business' as const),
     })),
     materialPurchases: parsed.materialPurchases ?? [],
+    deletedIds: normalizeDeletedIds(parsed.deletedIds),
   }
-  return ensureCrewRoster(merged)
+  return ensureCrewRoster(stripDeletedRows(merged))
 }

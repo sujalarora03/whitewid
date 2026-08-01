@@ -2,7 +2,7 @@
 
 Owner: **Pablo the II Escobar** · Business: **White Widow**
 
-Everyone who opens the deployed app shares the **same Cloudflare D1 database**. Changes sync to the cloud within about a second.
+Everyone who opens the deployed app shares the **same Cloudflare D1 database**. Changes sync within about a second; the server **merges** sales/crafts by id so two people logging at once don’t wipe each other. **Deletes stay deleted** (tombstone ids) so a teammate’s older copy can’t bring a removed sale/craft back. Sidebar should say **Cloud synced** (not Offline). Hit **Refresh** if a teammate’s entry is missing.
 
 ---
 
