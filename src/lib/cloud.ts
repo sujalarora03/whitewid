@@ -66,9 +66,60 @@ export async function saveCloudState(
   }
 }
 
+const STALE_OWNER_PASSWORDS = new Set([
+  'owner',
+  'Owner',
+  'pablo',
+  'Pablo',
+  '',
+])
+
+/** Ensure in-game roster + passwords exist on shared cloud state. */
+function ensureCrewRoster(state: AppState): AppState {
+  const baseCrew = defaultState().employees
+  const names = new Set(state.employees.map((e) => e.name))
+  const missing = baseCrew.some((d) => !names.has(d.name))
+  const ownerPw = state.settings.ownerPassword
+  const staleOwner = STALE_OWNER_PASSWORDS.has(ownerPw)
+  if (!missing && !staleOwner) return state
+
+  const byName = new Map(state.employees.map((e) => [e.name, e]))
+  const employees = baseCrew.map((d) => {
+    const existing = byName.get(d.name)
+    if (existing) {
+      return {
+        ...existing,
+        grade: d.grade,
+        password: d.password,
+        active: true,
+      }
+    }
+    return { ...d }
+  })
+  for (const e of state.employees) {
+    if (!baseCrew.some((d) => d.name === e.name)) {
+      employees.push({
+        ...e,
+        password: e.password ?? '1234',
+        grade: e.grade ?? 'Junior Seller',
+      })
+    }
+  }
+
+  return {
+    ...state,
+    employees,
+    settings: {
+      ...state.settings,
+      ownerPassword: 'sujal@3301',
+      ownerName: state.settings.ownerName || 'Pablo the II Escobar',
+    },
+  }
+}
+
 function mergeWithDefaults(parsed: Partial<AppState>): AppState {
   const base = defaultState()
-  return {
+  const merged: AppState = {
     ...base,
     ...parsed,
     settings: { ...base.settings, ...parsed.settings },
@@ -90,4 +141,5 @@ function mergeWithDefaults(parsed: Partial<AppState>): AppState {
     craftLogs: parsed.craftLogs ?? [],
     materialPurchases: parsed.materialPurchases ?? [],
   }
+  return ensureCrewRoster(merged)
 }
