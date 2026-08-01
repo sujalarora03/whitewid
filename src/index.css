@@ -120,10 +120,26 @@ p {
   font-size: 0.78rem;
 }
 
-.nav {
-  display: flex;
-  flex-direction: column;
+.role-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 0.35rem;
+  padding: 0 0.35rem;
+}
+
+.role-btn {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 10px;
+  padding: 0.45rem 0.5rem;
+  font-size: 0.82rem;
+}
+
+.role-btn.active {
+  color: var(--accent);
+  border-color: var(--line-strong);
+  background: var(--accent-glow);
 }
 
 .nav-btn {
@@ -837,8 +853,8 @@ p {
     left: 0;
     right: 0;
     bottom: 0;
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    display: flex;
+    justify-content: space-around;
     gap: 0.15rem;
     padding: 0.45rem 0.35rem calc(0.45rem + env(safe-area-inset-bottom));
     background: rgba(7, 13, 9, 0.94);

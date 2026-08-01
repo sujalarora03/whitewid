@@ -142,6 +142,7 @@ export interface AppState {
 
 export type TabId =
   | 'dashboard'
+  | 'desk'
   | 'craft'
   | 'sales'
   | 'stash'

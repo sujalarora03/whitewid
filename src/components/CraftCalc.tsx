@@ -9,15 +9,25 @@ import {
 } from '../lib/discord'
 import { formatDate, money } from '../lib/utils'
 
-export function CraftCalc({ store }: { store: StoreApi }) {
+export function CraftCalc({
+  store,
+  lockedEmployeeId,
+}: {
+  store: StoreApi
+  lockedEmployeeId?: string
+}) {
   const { state, craft, removeCraftLog } = store
   const activeEmps = state.employees.filter((e) => e.active)
   const [recipeId, setRecipeId] = useState(state.recipes[0]?.id ?? '')
-  const [employeeId, setEmployeeId] = useState(activeEmps[0]?.id ?? '')
+  const [employeeId, setEmployeeId] = useState(
+    lockedEmployeeId || activeEmps[0]?.id || '',
+  )
   const [qty, setQty] = useState(1)
   const [note, setNote] = useState('')
   const [deductStock, setDeductStock] = useState(true)
   const [discordMsg, setDiscordMsg] = useState<string | null>(null)
+
+  const effectiveEmployeeId = lockedEmployeeId || employeeId
 
   const recipe = state.recipes.find((r) => r.id === recipeId)
 
@@ -43,7 +53,7 @@ export function CraftCalc({ store }: { store: StoreApi }) {
     : 0
   const totalCost = unitCost * qty
   const stockOk = !deductStock || breakdown.every((b) => b.short === 0)
-  const canCraft = !!recipe && !!employeeId && qty > 0 && stockOk
+  const canCraft = !!recipe && !!effectiveEmployeeId && qty > 0 && stockOk
 
   const shoppingList = breakdown.filter((b) => b.short > 0)
   const shopTotal = shoppingList.reduce((sum, b) => {
@@ -52,9 +62,9 @@ export function CraftCalc({ store }: { store: StoreApi }) {
   }, 0)
 
   async function doCraft() {
-    if (!recipe || !employeeId) return
-    const emp = state.employees.find((e) => e.id === employeeId)
-    craft(recipe.id, qty, employeeId, {
+    if (!recipe || !effectiveEmployeeId) return
+    const emp = state.employees.find((e) => e.id === effectiveEmployeeId)
+    craft(recipe.id, qty, effectiveEmployeeId, {
       note: note || undefined,
       deductStock,
     })
@@ -104,19 +114,29 @@ export function CraftCalc({ store }: { store: StoreApi }) {
         <div className="form-row">
           <label className="field grow">
             <span>Who crafted</span>
-            <select
-              value={employeeId}
-              onChange={(e) => setEmployeeId(e.target.value)}
-            >
-              {activeEmps.length === 0 && (
-                <option value="">Add an employee first</option>
-              )}
-              {activeEmps.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.name}
-                </option>
-              ))}
-            </select>
+            {lockedEmployeeId ? (
+              <input
+                value={
+                  activeEmps.find((e) => e.id === lockedEmployeeId)?.name ??
+                  'Select yourself on My desk'
+                }
+                disabled
+              />
+            ) : (
+              <select
+                value={employeeId}
+                onChange={(e) => setEmployeeId(e.target.value)}
+              >
+                {activeEmps.length === 0 && (
+                  <option value="">Add an employee first</option>
+                )}
+                {activeEmps.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.name}
+                  </option>
+                ))}
+              </select>
+            )}
           </label>
           <label className="field grow">
             <span>Recipe</span>
@@ -215,7 +235,7 @@ export function CraftCalc({ store }: { store: StoreApi }) {
               </button>
               {!canCraft && (
                 <span className="muted">
-                  {!employeeId
+                  {!effectiveEmployeeId
                     ? 'Pick who crafted.'
                     : 'Business stock is short — buy mats under Stock, or uncheck deduct.'}
                 </span>

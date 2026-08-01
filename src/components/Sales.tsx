@@ -10,10 +10,18 @@ import {
   saleRevenue,
 } from '../lib/utils'
 
-export function Sales({ store }: { store: StoreApi }) {
+export function Sales({
+  store,
+  lockedEmployeeId,
+}: {
+  store: StoreApi
+  lockedEmployeeId?: string
+}) {
   const { state, addSale, removeSale } = store
   const activeEmps = state.employees.filter((e) => e.active)
-  const [employeeId, setEmployeeId] = useState(activeEmps[0]?.id ?? '')
+  const [employeeId, setEmployeeId] = useState(
+    lockedEmployeeId || activeEmps[0]?.id || '',
+  )
   const [productId, setProductId] = useState(state.products[0]?.id ?? '')
   const [qty, setQty] = useState(1)
   const [unitPrice, setUnitPrice] = useState(
@@ -21,6 +29,8 @@ export function Sales({ store }: { store: StoreApi }) {
   )
   const [note, setNote] = useState('')
   const [discordMsg, setDiscordMsg] = useState<string | null>(null)
+
+  const effectiveEmployeeId = lockedEmployeeId || employeeId
 
   const product = state.products.find((p) => p.id === productId)
   const rate = state.settings.commissionRate
@@ -41,11 +51,17 @@ export function Sales({ store }: { store: StoreApi }) {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!employeeId || !productId || qty < 1) return
+    if (!effectiveEmployeeId || !productId || qty < 1) return
 
-    const emp = state.employees.find((x) => x.id === employeeId)
+    const emp = state.employees.find((x) => x.id === effectiveEmployeeId)
     const prod = state.products.find((x) => x.id === productId)
-    addSale({ employeeId, productId, qty, unitPrice, note: note || undefined })
+    addSale({
+      employeeId: effectiveEmployeeId,
+      productId,
+      qty,
+      unitPrice,
+      note: note || undefined,
+    })
 
     if (
       state.settings.discordPostSales &&
@@ -93,20 +109,30 @@ export function Sales({ store }: { store: StoreApi }) {
           <div className="form-row">
             <label className="field grow">
               <span>Employee</span>
-              <select
-                value={employeeId}
-                onChange={(e) => setEmployeeId(e.target.value)}
-                required
-              >
-                {activeEmps.length === 0 && (
-                  <option value="">Add an employee first</option>
-                )}
-                {activeEmps.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.name}
-                  </option>
-                ))}
-              </select>
+              {lockedEmployeeId ? (
+                <input
+                  value={
+                    activeEmps.find((e) => e.id === lockedEmployeeId)?.name ??
+                    'Select yourself on My desk'
+                  }
+                  disabled
+                />
+              ) : (
+                <select
+                  value={employeeId}
+                  onChange={(e) => setEmployeeId(e.target.value)}
+                  required
+                >
+                  {activeEmps.length === 0 && (
+                    <option value="">Add an employee first</option>
+                  )}
+                  {activeEmps.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </label>
             <label className="field grow">
               <span>Product</span>
@@ -179,7 +205,11 @@ export function Sales({ store }: { store: StoreApi }) {
           </div>
 
           <div className="actions">
-            <button type="submit" className="btn primary" disabled={!employeeId}>
+            <button
+              type="submit"
+              className="btn primary"
+              disabled={!effectiveEmployeeId}
+            >
               Save sale
             </button>
             {discordMsg && <span className="muted">{discordMsg}</span>}

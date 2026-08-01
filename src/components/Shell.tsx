@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import type { AppRole } from '../lib/session'
 import type { TabId } from '../types'
 import {
   LayoutDashboard,
@@ -8,21 +9,34 @@ import {
   Users,
   Package,
   Tags,
+  UserRound,
 } from 'lucide-react'
 
-const NAV: { id: TabId; label: string; icon: typeof LayoutDashboard }[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+const OWNER_NAV: { id: TabId; label: string; icon: typeof LayoutDashboard }[] =
+  [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'craft', label: 'Craft', icon: FlaskConical },
+    { id: 'sales', label: 'Sales', icon: Receipt },
+    { id: 'stash', label: 'Stash', icon: PackageOpen },
+    { id: 'employees', label: 'Crew', icon: Users },
+    { id: 'inventory', label: 'Stock', icon: Package },
+    { id: 'prices', label: 'Prices', icon: Tags },
+  ]
+
+const EMP_NAV: { id: TabId; label: string; icon: typeof LayoutDashboard }[] = [
+  { id: 'desk', label: 'My desk', icon: UserRound },
   { id: 'craft', label: 'Craft', icon: FlaskConical },
   { id: 'sales', label: 'Sales', icon: Receipt },
   { id: 'stash', label: 'Stash', icon: PackageOpen },
-  { id: 'employees', label: 'Crew', icon: Users },
   { id: 'inventory', label: 'Stock', icon: Package },
-  { id: 'prices', label: 'Prices', icon: Tags },
 ]
 
 interface Props {
   brand: string
   ownerName: string
+  role: AppRole
+  onRole: (role: AppRole) => void
+  employeeLabel?: string
   tab: TabId
   onTab: (t: TabId) => void
   pendingStash?: number
@@ -35,6 +49,9 @@ interface Props {
 export function Shell({
   brand,
   ownerName,
+  role,
+  onRole,
+  employeeLabel,
   tab,
   onTab,
   pendingStash = 0,
@@ -43,6 +60,9 @@ export function Shell({
   onRefresh,
   children,
 }: Props) {
+  const nav = role === 'owner' ? OWNER_NAV : EMP_NAV
+  const title = nav.find((n) => n.id === tab)?.label ?? 'Desk'
+
   return (
     <div className="shell">
       <aside className="sidebar">
@@ -52,11 +72,35 @@ export function Shell({
           </div>
           <div>
             <p className="brand-name">{brand}</p>
-            <p className="brand-sub">Owner · {ownerName}</p>
+            <p className="brand-sub">
+              {role === 'owner'
+                ? `Owner · ${ownerName}`
+                : employeeLabel
+                  ? `Crew · ${employeeLabel}`
+                  : 'Crew desk'}
+            </p>
           </div>
         </div>
+
+        <div className="role-switch">
+          <button
+            type="button"
+            className={`role-btn ${role === 'owner' ? 'active' : ''}`}
+            onClick={() => onRole('owner')}
+          >
+            Owner
+          </button>
+          <button
+            type="button"
+            className={`role-btn ${role === 'employee' ? 'active' : ''}`}
+            onClick={() => onRole('employee')}
+          >
+            Employee
+          </button>
+        </div>
+
         <nav className="nav">
-          {NAV.map(({ id, label, icon: Icon }) => (
+          {nav.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               type="button"
@@ -65,7 +109,7 @@ export function Shell({
             >
               <Icon size={18} strokeWidth={2} />
               <span className="nav-label">{label}</span>
-              {id === 'stash' && pendingStash > 0 ? (
+              {id === 'stash' && pendingStash > 0 && role === 'owner' ? (
                 <span className="nav-badge">{pendingStash}</span>
               ) : null}
             </button>
@@ -84,15 +128,13 @@ export function Shell({
 
       <div className="main-wrap">
         <header className="topbar">
-          <h1 className="page-title">
-            {NAV.find((n) => n.id === tab)?.label ?? 'Dashboard'}
-          </h1>
+          <h1 className="page-title">{title}</h1>
         </header>
         <main className="content">{children}</main>
       </div>
 
       <nav className="mobile-nav">
-        {NAV.map(({ id, label, icon: Icon }) => (
+        {nav.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             type="button"
@@ -102,7 +144,7 @@ export function Shell({
           >
             <span className="mobile-icon-wrap">
               <Icon size={18} strokeWidth={2} />
-              {id === 'stash' && pendingStash > 0 ? (
+              {id === 'stash' && pendingStash > 0 && role === 'owner' ? (
                 <span className="nav-badge sm">{pendingStash}</span>
               ) : null}
             </span>

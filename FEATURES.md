@@ -63,10 +63,16 @@ Use normal **Sales** tab only for sells that don’t need owner clear.
 
 ---
 
-## Crew
-- Add / disable employees
-- See this week’s sales, profit, commission, bonuses, **payout**
-- Give bonuses (extra money on top of commission — not part of cost)
+## Crew / Employee web link
+
+Same deployed URL for everyone.
+
+1. Open the app → switch to **Employee** (top of sidebar)
+2. Or share: `https://your-app.workers.dev/?role=employee`
+3. On **My desk**, pick your name
+4. Log **Sales**, **Stash**, **Craft**, **Stock** (mat buys)
+
+Employees cannot clear stash, edit prices, manage crew, or change stock numbers manually — that’s owner-only.
 
 ---
 

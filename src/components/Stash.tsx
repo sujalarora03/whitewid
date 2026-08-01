@@ -9,7 +9,16 @@ import {
 import { recipeUnitCost } from '../data/seed'
 import { formatDate, money } from '../lib/utils'
 
-export function Stash({ store }: { store: StoreApi }) {
+export function Stash({
+  store,
+  lockedEmployeeId,
+  employeeMode = false,
+}: {
+  store: StoreApi
+  lockedEmployeeId?: string
+  /** Employees can log pending sales but not clear them */
+  employeeMode?: boolean
+}) {
   const {
     state,
     addStashBuy,
@@ -18,7 +27,9 @@ export function Stash({ store }: { store: StoreApi }) {
     removeStashBuy,
   } = store
   const activeEmps = state.employees.filter((e) => e.active)
-  const [employeeId, setEmployeeId] = useState(activeEmps[0]?.id ?? '')
+  const [employeeId, setEmployeeId] = useState(
+    lockedEmployeeId || activeEmps[0]?.id || '',
+  )
   const [buyerName, setBuyerName] = useState('')
   const [productId, setProductId] = useState(state.products[0]?.id ?? '')
   const [qty, setQty] = useState(1)
@@ -30,6 +41,7 @@ export function Stash({ store }: { store: StoreApi }) {
   const [deductMaterials, setDeductMaterials] = useState(true)
   const [discordMsg, setDiscordMsg] = useState<string | null>(null)
 
+  const effectiveEmployeeId = lockedEmployeeId || employeeId
   const product = state.products.find((p) => p.id === productId)
   const isCraftable = Boolean(product?.recipeId)
 
@@ -44,8 +56,20 @@ export function Stash({ store }: { store: StoreApi }) {
   const previewProfit = amount - unitCost * qty
   const previewComm = Math.max(0, previewProfit) * state.settings.commissionRate
 
-  const pending = state.stashBuys.filter((b) => b.status === 'pending')
-  const cleared = state.stashBuys.filter((b) => b.status === 'cleared')
+  const pending = state.stashBuys.filter(
+    (b) =>
+      b.status === 'pending' &&
+      (!employeeMode ||
+        !lockedEmployeeId ||
+        b.employeeId === lockedEmployeeId),
+  )
+  const cleared = state.stashBuys.filter(
+    (b) =>
+      b.status === 'cleared' &&
+      (!employeeMode ||
+        !lockedEmployeeId ||
+        b.employeeId === lockedEmployeeId),
+  )
   const pendingTotal = pending.reduce((sum, b) => sum + b.amount, 0)
 
   function onProductChange(id: string) {
@@ -59,12 +83,12 @@ export function Stash({ store }: { store: StoreApi }) {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!employeeId || !productId || qty < 1) return
+    if (!effectiveEmployeeId || !productId || qty < 1) return
 
-    const emp = state.employees.find((x) => x.id === employeeId)
+    const emp = state.employees.find((x) => x.id === effectiveEmployeeId)
     const prod = state.products.find((x) => x.id === productId)
     addStashBuy({
-      employeeId,
+      employeeId: effectiveEmployeeId,
       buyerName,
       productId,
       qty,
@@ -180,17 +204,27 @@ export function Stash({ store }: { store: StoreApi }) {
           <div className="form-row">
             <label className="field grow">
               <span>Employee / who sold</span>
-              <select
-                value={employeeId}
-                onChange={(e) => setEmployeeId(e.target.value)}
-                required
-              >
-                {activeEmps.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.name}
-                  </option>
-                ))}
-              </select>
+              {lockedEmployeeId ? (
+                <input
+                  value={
+                    activeEmps.find((e) => e.id === lockedEmployeeId)?.name ??
+                    'Select yourself on My desk'
+                  }
+                  disabled
+                />
+              ) : (
+                <select
+                  value={employeeId}
+                  onChange={(e) => setEmployeeId(e.target.value)}
+                  required
+                >
+                  {activeEmps.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </label>
             <label className="field grow">
               <span>Buyer name</span>
@@ -298,7 +332,11 @@ export function Stash({ store }: { store: StoreApi }) {
           </div>
 
           <div className="actions">
-            <button type="submit" className="btn primary" disabled={!employeeId}>
+            <button
+              type="submit"
+              className="btn primary"
+              disabled={!effectiveEmployeeId}
+            >
               Log pending sale
             </button>
             {discordMsg && <span className="muted">{discordMsg}</span>}
@@ -308,9 +346,19 @@ export function Stash({ store }: { store: StoreApi }) {
 
       <section className="panel">
         <header className="panel-head">
-          <h3>Pending sales — await owner clear</h3>
+          <h3>
+            {employeeMode
+              ? 'Your pending sales (owner clears)'
+              : 'Pending sales — await owner clear'}
+          </h3>
           <span className="muted">{money(pendingTotal)} waiting</span>
         </header>
+        {employeeMode && (
+          <p className="muted panel-intro">
+            You can log stash buys here. Only the owner can clear / confirm
+            them for commission.
+          </p>
+        )}
         {pending.length === 0 ? (
           <p className="empty">No pending stash sales.</p>
         ) : (
@@ -359,21 +407,28 @@ export function Stash({ store }: { store: StoreApi }) {
                         </td>
                         <td>{money(profit)}</td>
                         <td className="row-actions">
-                          <button
-                            type="button"
-                            className="btn primary sm"
-                            onClick={() => void onClear(b.id)}
-                          >
-                            Clear → confirm sale
-                          </button>
-                          <button
-                            type="button"
-                            className="icon-btn"
-                            aria-label="Delete"
-                            onClick={() => removeStashBuy(b.id)}
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          {!employeeMode && (
+                            <>
+                              <button
+                                type="button"
+                                className="btn primary sm"
+                                onClick={() => void onClear(b.id)}
+                              >
+                                Clear → confirm sale
+                              </button>
+                              <button
+                                type="button"
+                                className="icon-btn"
+                                aria-label="Delete"
+                                onClick={() => removeStashBuy(b.id)}
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </>
+                          )}
+                          {employeeMode && (
+                            <span className="note-tag">waiting on owner</span>
+                          )}
                         </td>
                       </tr>
                     )
@@ -381,15 +436,17 @@ export function Stash({ store }: { store: StoreApi }) {
                 </tbody>
               </table>
             </div>
-            <div className="actions">
-              <button
-                type="button"
-                className="btn discord"
-                onClick={() => void onClearAll()}
-              >
-                <CheckCheck size={16} /> Clear all → confirm sales
-              </button>
-            </div>
+            {!employeeMode && (
+              <div className="actions">
+                <button
+                  type="button"
+                  className="btn discord"
+                  onClick={() => void onClearAll()}
+                >
+                  <CheckCheck size={16} /> Clear all → confirm sales
+                </button>
+              </div>
+            )}
           </>
         )}
       </section>

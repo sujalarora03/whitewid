@@ -4,7 +4,15 @@ import type { StoreApi } from '../hooks/useStore'
 import { materialPurchaseEmbed, postToDiscord } from '../lib/discord'
 import { formatDate, money } from '../lib/utils'
 
-export function Inventory({ store }: { store: StoreApi }) {
+export function Inventory({
+  store,
+  lockedEmployeeId,
+  employeeMode = false,
+}: {
+  store: StoreApi
+  lockedEmployeeId?: string
+  employeeMode?: boolean
+}) {
   const {
     state,
     setMaterialStock,
@@ -14,12 +22,14 @@ export function Inventory({ store }: { store: StoreApi }) {
   } = store
 
   const activeEmps = state.employees.filter((e) => e.active)
-  const [buyerId, setBuyerId] = useState('')
+  const [buyerId, setBuyerId] = useState(lockedEmployeeId || '')
   const [materialId, setMaterialId] = useState(state.materials[0]?.id ?? '')
   const [qty, setQty] = useState(1)
   const [totalPaid, setTotalPaid] = useState(state.materials[0]?.cost ?? 0)
   const [note, setNote] = useState('')
   const [discordMsg, setDiscordMsg] = useState<string | null>(null)
+
+  const effectiveBuyerId = lockedEmployeeId || buyerId
 
   function onMaterialChange(id: string) {
     setMaterialId(id)
@@ -32,12 +42,12 @@ export function Inventory({ store }: { store: StoreApi }) {
     if (!materialId || qty < 1) return
 
     const mat = state.materials.find((m) => m.id === materialId)
-    const emp = state.employees.find((x) => x.id === buyerId)
+    const emp = state.employees.find((x) => x.id === effectiveBuyerId)
     const buyerName =
       emp?.name || state.settings.ownerName || 'Owner / business'
 
     addMaterialPurchase({
-      employeeId: buyerId,
+      employeeId: effectiveBuyerId,
       materialId,
       qty,
       totalPaid,
@@ -91,19 +101,29 @@ export function Inventory({ store }: { store: StoreApi }) {
           <div className="form-row">
             <label className="field grow">
               <span>Who bought</span>
-              <select
-                value={buyerId}
-                onChange={(e) => setBuyerId(e.target.value)}
-              >
-                <option value="">
-                  {state.settings.ownerName || 'Owner / business'}
-                </option>
-                {activeEmps.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.name}
+              {lockedEmployeeId ? (
+                <input
+                  value={
+                    activeEmps.find((e) => e.id === lockedEmployeeId)?.name ??
+                    'Select yourself on My desk'
+                  }
+                  disabled
+                />
+              ) : (
+                <select
+                  value={buyerId}
+                  onChange={(e) => setBuyerId(e.target.value)}
+                >
+                  <option value="">
+                    {state.settings.ownerName || 'Owner / business'}
                   </option>
-                ))}
-              </select>
+                  {activeEmps.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </label>
             <label className="field grow">
               <span>Material</span>
@@ -210,86 +230,110 @@ export function Inventory({ store }: { store: StoreApi }) {
         )}
       </section>
 
-      <section className="panel">
-        <header className="panel-head">
-          <h3>Materials</h3>
-          <span className="muted">Business shared stock</span>
-        </header>
-        <div className="table-scroll">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Material</th>
-                <th>Unit cost</th>
-                <th>Stock</th>
-              </tr>
-            </thead>
-            <tbody>
-              {state.materials.map((m) => (
-                <tr key={m.id}>
-                  <td>{m.name}</td>
-                  <td>{money(m.cost)}</td>
-                  <td>
-                    <input
-                      className="stock-input"
-                      type="number"
-                      min={0}
-                      value={m.stock}
-                      onChange={(e) =>
-                        setMaterialStock(m.id, Number(e.target.value) || 0)
-                      }
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      {employeeMode ? (
+        <section className="panel">
+          <header className="panel-head">
+            <h3>Business stock (view)</h3>
+          </header>
+          <p className="muted panel-intro">
+            Stock edits are owner-only. Log material purchases above to add
+            mats.
+          </p>
+          <ul className="rank-list">
+            {state.materials.map((m) => (
+              <li key={m.id}>
+                <span className="grow">{m.name}</span>
+                <span>
+                  {m.stock} in stock · {money(m.cost)}/ea
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : (
+        <>
+          <section className="panel">
+            <header className="panel-head">
+              <h3>Materials</h3>
+              <span className="muted">Business shared stock</span>
+            </header>
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Material</th>
+                    <th>Unit cost</th>
+                    <th>Stock</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {state.materials.map((m) => (
+                    <tr key={m.id}>
+                      <td>{m.name}</td>
+                      <td>{money(m.cost)}</td>
+                      <td>
+                        <input
+                          className="stock-input"
+                          type="number"
+                          min={0}
+                          value={m.stock}
+                          onChange={(e) =>
+                            setMaterialStock(m.id, Number(e.target.value) || 0)
+                          }
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
 
-      <section className="panel">
-        <header className="panel-head">
-          <h3>Finished products</h3>
-          <span className="muted">Crafted items + resale goods</span>
-        </header>
-        <div className="table-scroll">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Cost</th>
-                <th>Sale price</th>
-                <th>Stock</th>
-              </tr>
-            </thead>
-            <tbody>
-              {state.products.map((p) => (
-                <tr key={p.id}>
-                  <td>
-                    {p.name}
-                    {p.recipeId ? (
-                      <span className="note-tag"> craftable</span>
-                    ) : null}
-                  </td>
-                  <td>{money(p.cost)}</td>
-                  <td>{p.salePrice ? money(p.salePrice) : '—'}</td>
-                  <td>
-                    <input
-                      className="stock-input"
-                      type="number"
-                      min={0}
-                      value={p.stock}
-                      onChange={(e) =>
-                        setProductStock(p.id, Number(e.target.value) || 0)
-                      }
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+          <section className="panel">
+            <header className="panel-head">
+              <h3>Finished products</h3>
+              <span className="muted">Crafted items + resale goods</span>
+            </header>
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Cost</th>
+                    <th>Sale price</th>
+                    <th>Stock</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {state.products.map((p) => (
+                    <tr key={p.id}>
+                      <td>
+                        {p.name}
+                        {p.recipeId ? (
+                          <span className="note-tag"> craftable</span>
+                        ) : null}
+                      </td>
+                      <td>{money(p.cost)}</td>
+                      <td>{p.salePrice ? money(p.salePrice) : '—'}</td>
+                      <td>
+                        <input
+                          className="stock-input"
+                          type="number"
+                          min={0}
+                          value={p.stock}
+                          onChange={(e) =>
+                            setProductStock(p.id, Number(e.target.value) || 0)
+                          }
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </>
+      )}
     </div>
   )
 }

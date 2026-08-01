@@ -62,10 +62,10 @@ Local D1 is separate from production until you deploy.
 
 ## D. Day-to-day
 
-1. **Crew** — add employees  
-2. **Stock** — log material purchases when someone buys mats  
-3. **Craft** — log who crafted (not who bought mats)  
-4. **Sales** / **Stash** — log sells; clear stash as owner  
-5. **Dashboard** — weekly numbers + Discord post  
+**Owner (Pablo):** full app — clear stash, crew, prices, dashboard.
 
-Full feature guide: [FEATURES.md](./FEATURES.md)
+**Employees:** open the same link → tap **Employee** (or `?role=employee`) → pick your name on **My desk** → log sales / stash / crafts / mat buys.
+
+1. **Crew** (owner) — add employees first  
+2. Employees use the web link themselves  
+3. You clear pending stash sales when you settle  
