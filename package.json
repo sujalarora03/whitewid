@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "preview": "npm run build && vite preview",
     "deploy": "npm run build && wrangler deploy",
+    "deploy:temporary": "node -e \"console.error('Forbidden: do not create temporary preview URLs. See DEPLOY.md'); process.exit(1)\"",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
     "start": "node server.mjs"
