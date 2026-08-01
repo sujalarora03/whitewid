@@ -62,10 +62,22 @@ Local D1 is separate from production until you deploy.
 
 ## D. Day-to-day
 
-**Owner (Pablo):** unlock with owner password (default `pablo`) — clear stash, create employee accounts, prices.
+**Owner (Pablo):** unlock with owner password `sujal@3301` — clear stash, Crew grades, prices.
 
-**Employees:** `?role=employee` → login with name + password you created → log sales / stash / crafts / mats.
+**Employees:** `?role=employee` → login with name + first-name password → log sales / stash / crafts / mats.
 
-1. **Crew** (owner) — add employees first  
+| Name | Grade | Password |
+|---|---|---|
+| Sergio Rodriguez | CEO | Sergio |
+| Aaron Shore | Junior Seller | Aaron |
+| Lovish Raj | Junior Seller | Lovish |
+| Pablo The II Escobar | Owner | sujal@3301 |
+| andres rodriguez | Junior Seller | andres |
+| BITTU DON | Junior Seller | BITTU |
+| Love Ryohei | Junior Seller | Love |
+
+Grades (promote / demote in Crew): Recruit → Junior Seller → Senior Seller → Manager → CEO → Owner
+
+1. **Crew** (owner) — roster is seeded; use Promote / Demote or the grade dropdown  
 2. Employees use the web link themselves  
-3. You clear pending stash sales when you settle  
+3. You clear pending stash sales when you settle 
