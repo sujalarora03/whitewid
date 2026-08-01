@@ -97,7 +97,8 @@ Paste a channel webhook under Prices. The app can post:
 - Sales
 - Bonuses
 - Crafts
-- Stash pending / cleared
+- Stash pending / cleared (**includes flow, profit, commission**)
+- Material purchases (who bought mats for the business)
 - Weekly report
 - Restock shopping lists
 

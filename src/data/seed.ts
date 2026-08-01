@@ -13,6 +13,7 @@ export const defaultState = (): AppState => ({
     discordPostBonuses: true,
     discordPostCrafts: true,
     discordPostStash: true,
+    discordPostMaterials: true,
   },
   materials: [
     { id: 'mat-water', name: 'Water', cost: 50, category: 'supplies', stock: 0 },

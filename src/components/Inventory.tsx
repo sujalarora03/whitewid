@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ShoppingBag, Trash2 } from 'lucide-react'
 import type { StoreApi } from '../hooks/useStore'
+import { materialPurchaseEmbed, postToDiscord } from '../lib/discord'
 import { formatDate, money } from '../lib/utils'
 
 export function Inventory({ store }: { store: StoreApi }) {
@@ -16,10 +17,9 @@ export function Inventory({ store }: { store: StoreApi }) {
   const [buyerId, setBuyerId] = useState('')
   const [materialId, setMaterialId] = useState(state.materials[0]?.id ?? '')
   const [qty, setQty] = useState(1)
-  const [totalPaid, setTotalPaid] = useState(
-    state.materials[0]?.cost ?? 0,
-  )
+  const [totalPaid, setTotalPaid] = useState(state.materials[0]?.cost ?? 0)
   const [note, setNote] = useState('')
+  const [discordMsg, setDiscordMsg] = useState<string | null>(null)
 
   function onMaterialChange(id: string) {
     setMaterialId(id)
@@ -27,9 +27,15 @@ export function Inventory({ store }: { store: StoreApi }) {
     if (mat) setTotalPaid(mat.cost * qty)
   }
 
-  function submitPurchase(e: React.FormEvent) {
+  async function submitPurchase(e: React.FormEvent) {
     e.preventDefault()
     if (!materialId || qty < 1) return
+
+    const mat = state.materials.find((m) => m.id === materialId)
+    const emp = state.employees.find((x) => x.id === buyerId)
+    const buyerName =
+      emp?.name || state.settings.ownerName || 'Owner / business'
+
     addMaterialPurchase({
       employeeId: buyerId,
       materialId,
@@ -37,9 +43,32 @@ export function Inventory({ store }: { store: StoreApi }) {
       totalPaid,
       note: note || undefined,
     })
+
+    if (
+      state.settings.discordPostMaterials &&
+      state.settings.discordWebhookUrl.trim() &&
+      mat
+    ) {
+      const result = await postToDiscord(
+        state.settings.discordWebhookUrl,
+        materialPurchaseEmbed({
+          businessName: state.settings.businessName,
+          buyerName,
+          materialName: mat.name,
+          qty,
+          totalPaid,
+          note: note || undefined,
+        }),
+      )
+      setDiscordMsg(
+        result.ok ? 'Logged + posted to Discord' : `Discord: ${result.error}`,
+      )
+    } else {
+      setDiscordMsg(null)
+    }
+
     setNote('')
     setQty(1)
-    const mat = state.materials.find((m) => m.id === materialId)
     if (mat) setTotalPaid(mat.cost)
   }
 
@@ -55,7 +84,10 @@ export function Inventory({ store }: { store: StoreApi }) {
           Who bought mats for the business from the store. Separate from
           crafting — the person who crafts is not assumed to be the buyer.
         </p>
-        <form className="form-stack" onSubmit={submitPurchase}>
+        <form
+          className="form-stack"
+          onSubmit={(e) => void submitPurchase(e)}
+        >
           <div className="form-row">
             <label className="field grow">
               <span>Who bought</span>
@@ -96,8 +128,8 @@ export function Inventory({ store }: { store: StoreApi }) {
                 onChange={(e) => {
                   const q = Math.max(1, Number(e.target.value) || 1)
                   setQty(q)
-                  const mat = state.materials.find((m) => m.id === materialId)
-                  if (mat) setTotalPaid(mat.cost * q)
+                  const m = state.materials.find((x) => x.id === materialId)
+                  if (m) setTotalPaid(m.cost * q)
                 }}
               />
             </label>
@@ -119,9 +151,12 @@ export function Inventory({ store }: { store: StoreApi }) {
               />
             </label>
           </div>
-          <button type="submit" className="btn primary">
-            Add to business stock
-          </button>
+          <div className="actions">
+            <button type="submit" className="btn primary">
+              Add to business stock
+            </button>
+            {discordMsg && <span className="muted">{discordMsg}</span>}
+          </div>
         </form>
 
         {state.materialPurchases.length > 0 && (

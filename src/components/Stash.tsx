@@ -89,6 +89,12 @@ export function Stash({ store }: { store: StoreApi }) {
           productName: prod.name,
           qty,
           amount,
+          unitCost,
+          source:
+            isCraftable && craftedThenSold
+              ? 'crafted_then_sold'
+              : 'from_stock',
+          commissionRate: state.settings.commissionRate,
         }),
       )
       setDiscordMsg(
@@ -123,6 +129,9 @@ export function Stash({ store }: { store: StoreApi }) {
           productName: buy.productName,
           qty: buy.qty,
           amount: buy.amount,
+          unitCost: buy.unitCost ?? 0,
+          source: buy.source ?? 'from_stock',
+          commissionRate: state.settings.commissionRate,
         }),
       )
     }
@@ -142,8 +151,14 @@ export function Stash({ store }: { store: StoreApi }) {
       state.settings.discordPostStash &&
       state.settings.discordWebhookUrl.trim()
     ) {
+      const estProfit = pending.reduce(
+        (sum, b) => sum + (b.amount - (b.unitCost ?? 0) * b.qty),
+        0,
+      )
+      const estComm =
+        Math.max(0, estProfit) * state.settings.commissionRate
       await postToDiscord(state.settings.discordWebhookUrl, {
-        content: `✅ **${state.settings.businessName}** — owner cleared **${pending.length}** stash sales (${money(pendingTotal)}). Sales + commissions confirmed.`,
+        content: `✅ **${state.settings.businessName}** — owner cleared **${pending.length}** stash sales.\nRevenue ${money(pendingTotal)} · Profit ${money(estProfit)} · Commission ${money(estComm)}.`,
       })
     }
   }

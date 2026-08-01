@@ -229,7 +229,18 @@ export function stashPendingEmbed(input: {
   productName: string
   qty: number
   amount: number
+  unitCost: number
+  source: 'from_stock' | 'crafted_then_sold'
+  commissionRate: number
 }): DiscordPayload {
+  const cost = input.unitCost * input.qty
+  const profit = input.amount - cost
+  const commission = Math.max(0, profit) * input.commissionRate
+  const flow =
+    input.source === 'crafted_then_sold'
+      ? 'Crafted then sold'
+      : 'Sold from finished stock'
+
   return {
     embeds: [
       {
@@ -239,12 +250,16 @@ export function stashPendingEmbed(input: {
         fields: [
           { name: 'Employee', value: input.employeeName, inline: true },
           { name: 'Buyer', value: input.buyerName, inline: true },
+          { name: 'Flow', value: flow, inline: true },
           {
             name: 'Item',
             value: `${input.qty}× ${input.productName}`,
             inline: true,
           },
           { name: 'Amount', value: money(input.amount), inline: true },
+          { name: 'Cost basis', value: money(cost), inline: true },
+          { name: 'Est. profit', value: money(profit), inline: true },
+          { name: 'Est. commission', value: money(commission), inline: true },
         ],
         timestamp: new Date().toISOString(),
       },
@@ -259,7 +274,18 @@ export function stashClearedEmbed(input: {
   productName: string
   qty: number
   amount: number
+  unitCost: number
+  source: 'from_stock' | 'crafted_then_sold'
+  commissionRate: number
 }): DiscordPayload {
+  const cost = input.unitCost * input.qty
+  const profit = input.amount - cost
+  const commission = Math.max(0, profit) * input.commissionRate
+  const flow =
+    input.source === 'crafted_then_sold'
+      ? 'Crafted then sold'
+      : 'Sold from finished stock'
+
   return {
     embeds: [
       {
@@ -269,12 +295,53 @@ export function stashClearedEmbed(input: {
         fields: [
           { name: 'Employee', value: input.employeeName, inline: true },
           { name: 'Buyer', value: input.buyerName, inline: true },
+          { name: 'Flow', value: flow, inline: true },
           {
             name: 'Item',
             value: `${input.qty}× ${input.productName}`,
             inline: true,
           },
           { name: 'Amount', value: money(input.amount), inline: true },
+          { name: 'Cost basis', value: money(cost), inline: true },
+          { name: 'Profit', value: money(profit), inline: true },
+          { name: 'Commission', value: money(commission), inline: true },
+          {
+            name: 'Owner keeps',
+            value: money(profit - commission),
+            inline: true,
+          },
+        ],
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  }
+}
+
+export function materialPurchaseEmbed(input: {
+  businessName: string
+  buyerName: string
+  materialName: string
+  qty: number
+  totalPaid: number
+  note?: string
+}): DiscordPayload {
+  return {
+    embeds: [
+      {
+        title: `${input.businessName} · Material purchase`,
+        color: 0x5b8def,
+        description: 'Store buy for business stock (not a craft)',
+        fields: [
+          { name: 'Who bought', value: input.buyerName, inline: true },
+          {
+            name: 'Material',
+            value: `${input.qty}× ${input.materialName}`,
+            inline: true,
+          },
+          { name: 'Paid', value: money(input.totalPaid), inline: true },
+          ...(input.note
+            ? [{ name: 'Note', value: input.note, inline: true }]
+            : []),
         ],
         timestamp: new Date().toISOString(),
       },

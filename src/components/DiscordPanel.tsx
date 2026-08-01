@@ -127,6 +127,16 @@ export function DiscordPanel({ store }: { store: StoreApi }) {
             />
             Auto-post stash
           </label>
+          <label className="check-field">
+            <input
+              type="checkbox"
+              checked={state.settings.discordPostMaterials}
+              onChange={(e) =>
+                updateSettings({ discordPostMaterials: e.target.checked })
+              }
+            />
+            Auto-post material buys
+          </label>
         </div>
 
         <div className="actions">

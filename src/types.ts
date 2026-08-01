@@ -124,6 +124,7 @@ export interface AppSettings {
   discordPostBonuses: boolean
   discordPostCrafts: boolean
   discordPostStash: boolean
+  discordPostMaterials: boolean
 }
 
 export interface AppState {
