@@ -26,6 +26,9 @@ interface Props {
   tab: TabId
   onTab: (t: TabId) => void
   pendingStash?: number
+  syncLabel?: string
+  syncTone?: 'ok' | 'warn' | 'err' | 'muted'
+  onRefresh?: () => void
   children: ReactNode
 }
 
@@ -35,6 +38,9 @@ export function Shell({
   tab,
   onTab,
   pendingStash = 0,
+  syncLabel = 'Local',
+  syncTone = 'muted',
+  onRefresh,
   children,
 }: Props) {
   return (
@@ -65,7 +71,15 @@ export function Shell({
             </button>
           ))}
         </nav>
-        <p className="sidebar-foot">Local save · Spirit City</p>
+        <div className="sidebar-foot">
+          <p className={`sync-pill ${syncTone}`}>{syncLabel}</p>
+          {onRefresh ? (
+            <button type="button" className="btn ghost sm" onClick={onRefresh}>
+              Refresh
+            </button>
+          ) : null}
+          <p className="sidebar-foot-note">Shared D1 · Spirit City</p>
+        </div>
       </aside>
 
       <div className="main-wrap">

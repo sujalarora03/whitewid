@@ -1,51 +1,30 @@
 # White Widow Manager
 
-Small business manager for your GTA V RP shop (**White Widow**).
+Business manager for **White Widow** (GTA V RP) — owner **Pablo the II Escobar**.
 
 ## Features
 
-- **Craft calculator** — materials needed for batch crafts + restock shopping list
-- **Sales log** — who sold what, price, profit, **15% commission**
-- **Crew** — employees, weekly leaderboard, bonuses
-- **Stock & prices** — materials, finished goods, editable store costs
-- **Dashboard** — weekly revenue, profit, top performer, most sold
-- **Discord** — channel webhook for sales, bonuses, weekly reports, restock lists
+See **[FEATURES.md](./FEATURES.md)** for what each tab does (Craft, Sales, Stash, Crew, Stock, Prices, Discord).
 
-Data saves in your browser (`localStorage`).
+Shared data: **Cloudflare D1** (free). Deploy once; whole crew uses the same URL/database.
 
-## Free hosting (recommended): Cloudflare Workers
-
-**Cost: $0** on Cloudflare’s free plan — enough for this app.
+## Deploy
 
 ```bash
 npm install
-npx wrangler login          # once — opens browser to link your Cloudflare account
-npm run deploy              # builds + deploys
+npx wrangler login --browser=false
+npx wrangler d1 create white-widow
+# put the printed database_id into wrangler.jsonc
+npm run db:migrate:remote
+npm run deploy
 ```
 
-You’ll get a URL like `https://white-widow-manager.<your-subdomain>.workers.dev`.
+Details: **[SETUP.md](./SETUP.md)**
 
-Open that link on phone or PC → paste your Discord webhook under **Prices** → use Discord from anywhere. No need to leave your computer on.
-
-### Discord setup (same as before)
-
-1. Discord channel ⚙ → **Integrations** → **Webhooks** → **New Webhook** → copy URL  
-2. In the hosted app: **Prices** → paste URL → **Test webhook**
-
-## Local development
+## Local
 
 ```bash
 npm install
+npm run db:migrate:local
 npm run dev
 ```
-
-Optional Node server (if you don’t use Cloudflare):
-
-```bash
-npm run build
-npm start
-```
-
-## Note on data
-
-Sales/stock still live in **each browser’s localStorage**. Hosting makes the app + Discord always available; it does not sync a shared database yet. Use one main browser/device for logging, or we can add free Cloudflare D1 sync later if you want shared crew data.

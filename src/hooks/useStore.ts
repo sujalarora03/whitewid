@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type {
   AppState,
   Bonus,
@@ -12,17 +12,112 @@ import type {
   StashBuy,
 } from '../types'
 import { defaultState, recipeUnitCost } from '../data/seed'
+import { fetchCloudState, saveCloudState, type SyncStatus } from '../lib/cloud'
 import { loadState, saveState, uid } from '../lib/utils'
 
 export function useStore() {
   const [state, setState] = useState<AppState>(() => loadState())
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('booting')
+  const [syncError, setSyncError] = useState<string | null>(null)
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null)
+  const readyToSave = useRef(false)
+  const skipNextSave = useRef(false)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      setSyncStatus('loading')
+      const result = await fetchCloudState()
+      if (cancelled) return
+
+      if (!result.ok) {
+        setSyncStatus('offline')
+        setSyncError(result.error ?? 'Could not reach cloud DB')
+        readyToSave.current = true
+        return
+      }
+
+      if (result.state) {
+        skipNextSave.current = true
+        setState(result.state)
+        saveState(result.state)
+        setLastSyncedAt(result.updatedAt)
+        setSyncStatus('synced')
+        setSyncError(null)
+      } else {
+        const seed = loadState()
+        const save = await saveCloudState(seed)
+        if (cancelled) return
+        if (save.ok) {
+          setLastSyncedAt(save.updatedAt ?? null)
+          setSyncStatus('synced')
+          setSyncError(null)
+        } else {
+          setSyncStatus('error')
+          setSyncError(save.error ?? 'Failed to seed cloud DB')
+        }
+      }
+      readyToSave.current = true
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     saveState(state)
+    if (!readyToSave.current) return
+    if (skipNextSave.current) {
+      skipNextSave.current = false
+      return
+    }
+
+    setSyncStatus('saving')
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        const result = await saveCloudState(state)
+        if (result.ok) {
+          setLastSyncedAt(result.updatedAt ?? new Date().toISOString())
+          setSyncStatus('synced')
+          setSyncError(null)
+        } else {
+          setSyncStatus('error')
+          setSyncError(result.error ?? 'Save failed')
+        }
+      })()
+    }, 600)
+
+    return () => window.clearTimeout(timer)
   }, [state])
 
+  const refreshFromCloud = useCallback(async () => {
+    setSyncStatus('loading')
+    const result = await fetchCloudState()
+    if (!result.ok) {
+      setSyncStatus('offline')
+      setSyncError(result.error ?? 'Could not reach cloud DB')
+      return
+    }
+    if (result.state) {
+      skipNextSave.current = true
+      setState(result.state)
+      saveState(result.state)
+      setLastSyncedAt(result.updatedAt)
+    }
+    setSyncStatus('synced')
+    setSyncError(null)
+  }, [])
+
   const hardReset = useCallback(() => {
-    setState(defaultState())
+    const fresh = defaultState()
+    setState(fresh)
+    void saveCloudState(fresh).then((r) => {
+      if (r.ok) {
+        setLastSyncedAt(r.updatedAt ?? null)
+        setSyncStatus('synced')
+      }
+    })
   }, [])
 
   const updateSettings = useCallback((patch: Partial<AppState['settings']>) => {
@@ -421,6 +516,10 @@ export function useStore() {
 
   return {
     state,
+    syncStatus,
+    syncError,
+    lastSyncedAt,
+    refreshFromCloud,
     updateSettings,
     addEmployee,
     toggleEmployee,

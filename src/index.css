@@ -189,9 +189,46 @@ p {
 
 .sidebar-foot {
   margin-top: auto;
+  display: grid;
+  gap: 0.45rem;
+  padding: 0 0.5rem;
+}
+
+.sidebar-foot-note {
   color: var(--muted);
   font-size: 0.75rem;
-  padding: 0 0.5rem;
+}
+
+.sync-pill {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 0.75rem;
+}
+
+.sync-pill.ok {
+  color: var(--accent);
+  border-color: var(--line-strong);
+  background: var(--accent-glow);
+}
+
+.sync-pill.warn {
+  color: var(--warn);
+  border-color: rgba(240, 193, 74, 0.35);
+  background: rgba(240, 193, 74, 0.08);
+}
+
+.sync-pill.err {
+  color: #ffb4b4;
+  border-color: rgba(255, 107, 107, 0.35);
+  background: rgba(255, 107, 107, 0.1);
+}
+
+.sync-pill.muted {
+  color: var(--muted);
 }
 
 .main-wrap {
