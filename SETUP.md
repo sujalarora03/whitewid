@@ -2,45 +2,37 @@
 
 Owner: **Pablo the II Escobar**
 
-Shared data uses free **Cloudflare D1**. One account → one stable URL forever.
+Shared data uses free **Cloudflare D1**. **One permanent URL** — see **[DEPLOY.md](./DEPLOY.md)**.
 
 ---
 
-## A. Make the URL permanent (do this once)
-
-Preview deploys get random subdomains and expire unless claimed.
-
-1. Open the **claim** link for the current preview account (agent will paste it; also in the PR).
-2. Sign in / create a Cloudflare account and **claim** it.
-3. Bookmark this forever:
+## A. Production URL (already chosen)
 
 **https://white-widow-manager.incandescent-impatiens.workers.dev**
 
-Employee link:
+Employee: **https://white-widow-manager.incandescent-impatiens.workers.dev/?role=employee**
 
-**https://white-widow-manager.incandescent-impatiens.workers.dev/?role=employee**
+Claim this Cloudflare preview account if you have not already (then ignore all older `*.workers.dev` links).
 
-After claim, `npm run deploy` (or GitHub Actions) **updates that same URL** — it does not create a new one.
+**Agents / CI must never create a new temporary deploy or new workers.dev link.**
 
-### Future deploys from your PC
+### Deploy updates (same URL)
 
 ```bash
 git clone https://github.com/sujalarora03/whitewid.git
 cd whitewid
 npm install
-npx wrangler login --browser=false   # open the printed URL, approve
-npm run deploy                       # same URL every time
+npx wrangler login   # use the Cloudflare account that owns Incandescent Impatiens
+npm run deploy       # updates the same URL only
 ```
 
 ### Auto-deploy from GitHub
 
-1. Cloudflare dashboard → **Manage account → Account API tokens → Create** → template **Edit Cloudflare Workers**
-2. Repo → **Settings → Secrets and variables → Actions** → add:
-   - `CLOUDFLARE_API_TOKEN`
-   - `CLOUDFLARE_ACCOUNT_ID` (from `npx wrangler whoami` or the dashboard URL)
-3. Push to `main` or `cursor/white-widow-manager-f14d` → workflow **Deploy White Widow** updates the same Worker
+1. Cloudflare dashboard → API tokens → **Edit Cloudflare Workers**
+2. Repo → **Settings → Secrets** → `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`
+3. Push → workflow **Deploy White Widow** updates the same Worker
 
-Do **not** use `wrangler deploy --temporary` after you have a claimed/permanent account — that is what was minting new URLs.
+Forbidden: `wrangler deploy --temporary`, new D1 databases, renaming the Worker.
 
 ---
 
