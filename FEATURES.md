@@ -22,11 +22,11 @@ Crafters log **production** (who made what). Separate from selling.
 
 | You do | What happens |
 |---|---|
-| Pick who crafted + recipe + qty → Log craft | Finished product stock goes up |
-| “Deduct from business material stock” ON | Shared materials drop |
-| Checkbox OFF | Log only |
+| Log business craft | **Finished products** stock goes up (see Stock tab) |
+| “Deduct from business material stock” ON | **Shared materials** stock goes down (floors at 0) |
+| Checkbox OFF | Finished stock still up; materials unchanged |
 
-Material store buys are under **Stock**, not Craft.
+You can craft even if mats are short. Restock materials under **Stock**.
 
 ---
 

@@ -230,110 +230,104 @@ export function Inventory({
         )}
       </section>
 
-      {employeeMode ? (
-        <section className="panel">
-          <header className="panel-head">
-            <h3>Business stock (view)</h3>
-          </header>
-          <p className="muted panel-intro">
-            Stock edits are owner-only. Log material purchases above to add
-            mats.
-          </p>
-          <ul className="rank-list">
-            {state.materials.map((m) => (
-              <li key={m.id}>
-                <span className="grow">{m.name}</span>
-                <span>
-                  {m.stock} in stock · {money(m.cost)}/ea
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : (
-        <>
-          <section className="panel">
-            <header className="panel-head">
-              <h3>Materials</h3>
-              <span className="muted">Business shared stock</span>
-            </header>
-            <div className="table-scroll">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Material</th>
-                    <th>Unit cost</th>
-                    <th>Stock</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {state.materials.map((m) => (
-                    <tr key={m.id}>
-                      <td>{m.name}</td>
-                      <td>{money(m.cost)}</td>
-                      <td>
-                        <input
-                          className="stock-input"
-                          type="number"
-                          min={0}
-                          value={m.stock}
-                          onChange={(e) =>
-                            setMaterialStock(m.id, Number(e.target.value) || 0)
-                          }
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
+      <section className="panel">
+        <header className="panel-head">
+          <h3>Materials · shared stock</h3>
+          <span className="muted">
+            {employeeMode ? 'View only · updates when crafts/buys sync' : 'Editable'}
+          </span>
+        </header>
+        <p className="muted panel-intro">
+          Crafting with “Deduct from business material stock” lowers these
+          numbers. Material purchases raise them.
+        </p>
+        <div className="table-scroll">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Material</th>
+                <th>Unit cost</th>
+                <th>Stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              {state.materials.map((m) => (
+                <tr key={m.id}>
+                  <td>{m.name}</td>
+                  <td>{money(m.cost)}</td>
+                  <td>
+                    {employeeMode ? (
+                      <strong>{m.stock}</strong>
+                    ) : (
+                      <input
+                        className="stock-input"
+                        type="number"
+                        min={0}
+                        value={m.stock}
+                        onChange={(e) =>
+                          setMaterialStock(m.id, Number(e.target.value) || 0)
+                        }
+                      />
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-          <section className="panel">
-            <header className="panel-head">
-              <h3>Finished products</h3>
-              <span className="muted">Crafted items + resale goods</span>
-            </header>
-            <div className="table-scroll">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>Cost</th>
-                    <th>Sale price</th>
-                    <th>Stock</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {state.products.map((p) => (
-                    <tr key={p.id}>
-                      <td>
-                        {p.name}
-                        {p.recipeId ? (
-                          <span className="note-tag"> craftable</span>
-                        ) : null}
-                      </td>
-                      <td>{money(p.cost)}</td>
-                      <td>{p.salePrice ? money(p.salePrice) : '—'}</td>
-                      <td>
-                        <input
-                          className="stock-input"
-                          type="number"
-                          min={0}
-                          value={p.stock}
-                          onChange={(e) =>
-                            setProductStock(p.id, Number(e.target.value) || 0)
-                          }
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </>
-      )}
+      <section className="panel">
+        <header className="panel-head">
+          <h3>Finished products</h3>
+          <span className="muted">
+            {employeeMode
+              ? 'Goes up when someone logs a business craft'
+              : 'Crafted items + resale goods'}
+          </span>
+        </header>
+        <div className="table-scroll">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Cost</th>
+                <th>Sale price</th>
+                <th>Stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              {state.products.map((p) => (
+                <tr key={p.id}>
+                  <td>
+                    {p.name}
+                    {p.recipeId ? (
+                      <span className="note-tag"> craftable</span>
+                    ) : null}
+                  </td>
+                  <td>{money(p.cost)}</td>
+                  <td>{p.salePrice ? money(p.salePrice) : '—'}</td>
+                  <td>
+                    {employeeMode ? (
+                      <strong>{p.stock}</strong>
+                    ) : (
+                      <input
+                        className="stock-input"
+                        type="number"
+                        min={0}
+                        value={p.stock}
+                        onChange={(e) =>
+                          setProductStock(p.id, Number(e.target.value) || 0)
+                        }
+                      />
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   )
 }

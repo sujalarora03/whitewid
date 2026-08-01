@@ -573,7 +573,7 @@ export function useStore() {
 
         const unitCost = recipeUnitCost(recipeId, s.materials, s.recipes)
         let products = s.products
-        // Personal crafts keep the item — do not add to business finished stock
+        // Business crafts always bump finished stock for the matching product
         if (purpose === 'business') {
           const existing = products.find((p) => p.recipeId === recipeId)
           if (existing) {
@@ -582,6 +582,20 @@ export function useStore() {
                 ? { ...p, stock: p.stock + qty, cost: unitCost }
                 : p,
             )
+          } else {
+            // Recipe has no linked product yet — create one so stock is visible
+            products = [
+              ...products,
+              {
+                id: uid('prod'),
+                name: recipe.name,
+                category: recipe.category,
+                cost: unitCost,
+                salePrice: recipe.salePrice,
+                stock: qty,
+                recipeId: recipe.id,
+              },
+            ]
           }
         }
 

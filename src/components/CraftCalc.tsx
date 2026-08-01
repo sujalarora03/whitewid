@@ -56,8 +56,11 @@ export function CraftCalc({
     ? recipeUnitCost(recipe.id, state.materials, state.recipes)
     : 0
   const totalCost = unitCost * qty
-  const stockOk = !deductStock || breakdown.every((b) => b.short === 0)
-  const canCraft = !!recipe && !!effectiveEmployeeId && qty > 0 && stockOk
+  const materialsShort =
+    deductStock && breakdown.some((b) => b.short > 0)
+  // Allow craft even if mats are short — stock still updates (mats floor at 0,
+  // finished products still increase for business crafts).
+  const canCraft = !!recipe && !!effectiveEmployeeId && qty > 0
 
   const shoppingList = personal
     ? breakdown.map((b) => ({ ...b, short: b.need }))
@@ -83,6 +86,14 @@ export function CraftCalc({
       purpose: personal ? 'personal' : 'business',
     })
 
+    const stockSummary = personal
+      ? deductStock
+        ? 'Personal craft logged — business mats reduced; finished stock unchanged'
+        : 'Personal craft logged — no stock changes'
+      : deductStock
+        ? `Craft logged — mats deducted · finished stock +${qty}× ${recipe.name}`
+        : `Craft logged — finished stock +${qty}× ${recipe.name} (mats not deducted)`
+
     if (
       state.settings.discordPostCrafts &&
       state.settings.discordWebhookUrl.trim() &&
@@ -100,21 +111,13 @@ export function CraftCalc({
         }),
       )
       setDiscordMsg(
-        result.ok
-          ? personal
-            ? 'Personal craft logged + posted to Discord'
-            : 'Craft logged + posted to Discord'
-          : `Discord: ${result.error}`,
+        result.ok ? `${stockSummary} · Discord ok` : `${stockSummary} · Discord: ${result.error}`,
       )
     } else {
       setDiscordMsg(
-        personal
-          ? deductStock
-            ? 'Personal craft logged — used business materials; item kept by crafter'
-            : 'Personal craft logged — requirements only / own mats'
-          : deductStock
-            ? 'Craft logged — used business materials (not a purchase)'
-            : 'Craft logged — no stock deducted',
+        materialsShort && deductStock
+          ? `${stockSummary} · warning: some mats were already short (floored at 0)`
+          : stockSummary,
       )
     }
     setNote('')
@@ -267,6 +270,14 @@ export function CraftCalc({
               </tbody>
             </table>
 
+            {materialsShort && !personal && (
+              <p className="muted panel-intro">
+                Some materials are short in shared stock. You can still log the
+                craft — mats will floor at 0 and finished stock still goes up.
+                Restock under <strong>Stock</strong> when you can.
+              </p>
+            )}
+
             <div className="actions">
               <button
                 type="button"
@@ -279,11 +290,7 @@ export function CraftCalc({
                   : `Log craft ${qty}× ${recipe.name}`}
               </button>
               {!canCraft && (
-                <span className="muted">
-                  {!effectiveEmployeeId
-                    ? 'Pick who crafted.'
-                    : 'Business stock is short — buy mats under Stock, or uncheck deduct.'}
-                </span>
+                <span className="muted">Pick who crafted.</span>
               )}
               {discordMsg && <span className="muted">{discordMsg}</span>}
             </div>
