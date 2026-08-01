@@ -2,59 +2,70 @@
 
 Owner: **Pablo the II Escobar**
 
-Do these once. Shared data uses free **Cloudflare D1**.
+Shared data uses free **Cloudflare D1**. One account → one stable URL forever.
 
 ---
 
-## A. Deploy with shared database (recommended)
+## A. Make the URL permanent (do this once)
+
+Preview deploys get random subdomains and expire unless claimed.
+
+1. Open the **claim** link for the current preview account (agent will paste it; also in the PR).
+2. Sign in / create a Cloudflare account and **claim** it.
+3. Bookmark this forever:
+
+**https://white-widow-manager.diligent-stew.workers.dev**
+
+Employee link:
+
+**https://white-widow-manager.diligent-stew.workers.dev/?role=employee**
+
+After claim, `npm run deploy` (or GitHub Actions) **updates that same URL** — it does not create a new one.
+
+### Future deploys from your PC
 
 ```bash
 git clone https://github.com/sujalarora03/whitewid.git
 cd whitewid
-git checkout cursor/white-widow-manager-f14d
 npm install
-
-# Login (prints a URL if browser does not open)
-npx wrangler login --browser=false
-
-# Create the free D1 database (copy the database_id it prints)
-npx wrangler d1 create white-widow
+npx wrangler login --browser=false   # open the printed URL, approve
+npm run deploy                       # same URL every time
 ```
 
-1. Open `wrangler.jsonc`
-2. Replace `"database_id": "local-white-widow-db"` with the **real id** from the create command
-3. Then:
+### Auto-deploy from GitHub
+
+1. Cloudflare dashboard → **Manage account → Account API tokens → Create** → template **Edit Cloudflare Workers**
+2. Repo → **Settings → Secrets and variables → Actions** → add:
+   - `CLOUDFLARE_API_TOKEN`
+   - `CLOUDFLARE_ACCOUNT_ID` (from `npx wrangler whoami` or the dashboard URL)
+3. Push to `main` or `cursor/white-widow-manager-f14d` → workflow **Deploy White Widow** updates the same Worker
+
+Do **not** use `wrangler deploy --temporary` after you have a claimed/permanent account — that is what was minting new URLs.
+
+---
+
+## B. First-time DB on a brand-new account (only if starting fresh)
 
 ```bash
+npx wrangler login --browser=false
+npx wrangler d1 create white-widow
+# paste the printed database_id into wrangler.jsonc → d1_databases[0].database_id
 npm run db:migrate:remote
 npm run deploy
 ```
 
-Bookmark the `*.workers.dev` URL — everyone on the crew uses this same link and same database.
-
-**“Offline (local only)”** means the browser could not reach `/api/state` on that host. Common causes:
-1. You’re on an **expired Cloudflare preview** URL (temporary accounts die ~1 hour unless claimed)
-2. You’re on **localhost** without `wrangler`/Vite Cloudflare plugin serving the Worker
-3. A Cloudflare bot challenge blocked the API response
-
-Fix: open the latest deployed URL, click **Refresh**, and **claim** the preview account so it stays online.
-
-**Stuck on login?** API token method:
-
-1. https://dash.cloudflare.com/profile/api-tokens → Create → **Edit Cloudflare Workers**
-2. PowerShell: `$env:CLOUDFLARE_API_TOKEN="your_token"`
-3. Re-run create / migrate / deploy
+Then open the app once as Owner → **Crew → Load / reset crew roster**.
 
 ---
 
-## B. Discord
+## C. Discord
 
 1. Channel ⚙ → Integrations → Webhooks → New Webhook → copy URL  
 2. App → **Prices** → paste → **Test webhook**
 
 ---
 
-## C. Local development
+## D. Local development
 
 ```bash
 npm install
@@ -67,11 +78,11 @@ Local D1 is separate from production until you deploy.
 
 ---
 
-## D. Day-to-day
+## E. Day-to-day
 
-**Owner (Pablo):** unlock with owner password `sujal@3301` — clear stash, Crew grades, prices.
+**Owner (Pablo):** unlock with `sujal@3301` — clear stash, Crew grades, prices, Personal tab.
 
-**Employees:** `?role=employee` → login with name + first-name password → log sales / stash / crafts / mats.
+**Employees:** `?role=employee` → first-name password → log sales / stash / crafts / personal / mats.
 
 | Name | Grade | Password |
 |---|---|---|
@@ -83,8 +94,6 @@ Local D1 is separate from production until you deploy.
 | BITTU DON | Junior Seller | BITTU |
 | Love Ryohei | Junior Seller | Love |
 
-Grades (promote / demote in Crew): Recruit → Junior Seller → Senior Seller → Manager → CEO → Owner
+Grades: Recruit → Junior Seller → Senior Seller → Manager → CEO → Owner
 
-1. **Crew** (owner) — roster is seeded; use Promote / Demote or the grade dropdown  
-2. Employees use the web link themselves  
-3. You clear pending stash sales when you settle 
+**“Offline (local only)”** = browser could not reach `/api/state` (wrong/expired URL, or local Vite without the Worker). Use the bookmarked workers.dev link and hit **Refresh**.

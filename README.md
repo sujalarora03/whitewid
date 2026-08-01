@@ -2,24 +2,30 @@
 
 Business manager for **White Widow** (GTA V RP) — owner **Pablo the II Escobar**.
 
+## Live (stable after claim)
+
+**https://white-widow-manager.diligent-stew.workers.dev**
+
+Employee: **https://white-widow-manager.diligent-stew.workers.dev/?role=employee**
+
+**Claim once** (locks this URL forever — do not skip):  
+https://dash.cloudflare.com/claim-preview?claimToken=3mW4HzvrFRS9iAG3_RLfJxe7FbuyHuNSAFzR4emuofc  
+
+After claim, every `npm run deploy` / GitHub Action updates **that same link**.
+
 ## Features
 
-See **[FEATURES.md](./FEATURES.md)** for what each tab does (Craft, Sales, Stash, Crew, Stock, Prices, Discord).
+See **[FEATURES.md](./FEATURES.md)** (Craft, Personal, Sales, Stash, Crew, Stock, Prices, Discord).
 
-Shared data: **Cloudflare D1** (free). Deploy once; whole crew uses the same URL/database.
+Setup details: **[SETUP.md](./SETUP.md)**
 
-## Deploy
+## Deploy (same URL)
 
 ```bash
 npm install
 npx wrangler login --browser=false
-npx wrangler d1 create white-widow
-# put the printed database_id into wrangler.jsonc
-npm run db:migrate:remote
 npm run deploy
 ```
-
-Details: **[SETUP.md](./SETUP.md)**
 
 ## Local
 
