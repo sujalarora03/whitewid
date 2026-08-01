@@ -75,7 +75,10 @@ function mergeWithDefaults(parsed: Partial<AppState>): AppState {
     materials: parsed.materials ?? base.materials,
     recipes: parsed.recipes ?? base.recipes,
     products: parsed.products ?? base.products,
-    employees: parsed.employees ?? base.employees,
+    employees: (parsed.employees ?? base.employees).map((e) => ({
+      ...e,
+      password: e.password ?? '1234',
+    })),
     sales: parsed.sales ?? [],
     bonuses: parsed.bonuses ?? [],
     stashBuys: (parsed.stashBuys ?? []).map((b) => ({

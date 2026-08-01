@@ -38,6 +38,17 @@ export function Prices({ store }: { store: StoreApi }) {
               onChange={(e) => updateSettings({ ownerName: e.target.value })}
             />
           </label>
+          <label className="field grow">
+            <span>Owner password</span>
+            <input
+              type="text"
+              value={state.settings.ownerPassword}
+              onChange={(e) =>
+                updateSettings({ ownerPassword: e.target.value })
+              }
+              placeholder="Static owner PIN"
+            />
+          </label>
           <label className="field">
             <span>Commission %</span>
             <input
@@ -55,8 +66,8 @@ export function Prices({ store }: { store: StoreApi }) {
         </div>
         <p className="muted panel-intro">
           Commission is {pct(state.settings.commissionRate)} of profit (sale −
-          material cost). Bonuses are tracked separately and added to employee
-          payout.
+          material cost). Owner password unlocks Owner mode (default:{' '}
+          <code>pablo</code>). Create employee accounts under Crew.
         </p>
       </section>
 

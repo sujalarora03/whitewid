@@ -8,17 +8,18 @@ import type { TabId } from '../types'
 export function EmployeeDesk({
   store,
   employeeId,
-  onPickEmployee,
   onGo,
+  onLogout,
 }: {
   store: StoreApi
   employeeId: string
   onPickEmployee: (id: string) => void
   onGo: (tab: TabId) => void
+  locked?: boolean
+  onLogout?: () => void
 }) {
   const { state } = store
-  const active = state.employees.filter((e) => e.active)
-  const me = active.find((e) => e.id === employeeId)
+  const me = state.employees.find((e) => e.id === employeeId)
   const report = buildWeekReport(state)
   const myStats = report.employees.find((e) => e.employeeId === employeeId)
 
@@ -37,50 +38,23 @@ export function EmployeeDesk({
           <p className="eyebrow">Crew desk</p>
           <h2 className="hero-brand">{state.settings.businessName}</h2>
           <p className="hero-copy">
-            Owner: {state.settings.ownerName}. Log your crafts, sales, stash
-            buys, and mat purchases — same shared cloud data.
+            Signed in as <strong>{me?.name ?? 'Employee'}</strong>. Log your
+            work — it syncs for {state.settings.ownerName}.
           </p>
+          {onLogout && (
+            <div className="actions" style={{ marginTop: '0.75rem' }}>
+              <button type="button" className="btn ghost" onClick={onLogout}>
+                Log out
+              </button>
+            </div>
+          )}
         </div>
-      </section>
-
-      <section className="panel">
-        <header className="panel-head">
-          <h3>
-            <UserRound size={16} /> Who are you?
-          </h3>
-        </header>
-        {active.length === 0 ? (
-          <p className="empty">
-            No employees yet — ask {state.settings.ownerName} to add you under
-            Crew.
-          </p>
-        ) : (
-          <label className="field">
-            <span>Select your name</span>
-            <select
-              value={employeeId}
-              onChange={(e) => onPickEmployee(e.target.value)}
-            >
-              <option value="">Choose…</option>
-              {active.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-        {me && (
-          <p className="muted panel-intro" style={{ marginTop: '0.75rem' }}>
-            Signed in as <strong>{me.name}</strong>. Your entries sync for the
-            whole business.
-          </p>
-        )}
       </section>
 
       {me && myStats && (
         <div className="stat-grid">
           <article className="stat-card">
+            <UserRound size={18} />
             <span>Your sales (week)</span>
             <strong>{myStats.salesCount}</strong>
           </article>

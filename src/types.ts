@@ -36,6 +36,8 @@ export interface Product {
 export interface Employee {
   id: string
   name: string
+  /** Static plaintext password set by owner (simple shop PIN) */
+  password: string
   active: boolean
   createdAt: string
 }
@@ -116,6 +118,8 @@ export interface MaterialPurchase {
 export interface AppSettings {
   businessName: string
   ownerName: string
+  /** Static plaintext owner PIN to open Owner mode */
+  ownerPassword: string
   commissionRate: number
   weekStartsOn: 0 | 1
   /** Discord channel incoming webhook URL */

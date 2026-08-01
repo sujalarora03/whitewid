@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Gift, UserPlus, Trash2 } from 'lucide-react'
+import { Gift, UserPlus, Trash2, KeyRound } from 'lucide-react'
 import type { StoreApi } from '../hooks/useStore'
 import { buildWeekReport } from '../lib/stats'
 import { bonusEmbed, postToDiscord } from '../lib/discord'
@@ -9,24 +9,28 @@ export function Employees({ store }: { store: StoreApi }) {
   const {
     state,
     addEmployee,
+    setEmployeePassword,
     toggleEmployee,
     removeEmployee,
     addBonus,
     removeBonus,
   } = store
   const [name, setName] = useState('')
+  const [password, setPassword] = useState('')
   const [bonusEmp, setBonusEmp] = useState(state.employees[0]?.id ?? '')
   const [bonusAmt, setBonusAmt] = useState(0)
   const [bonusReason, setBonusReason] = useState('')
   const [discordMsg, setDiscordMsg] = useState<string | null>(null)
+  const [pwEdits, setPwEdits] = useState<Record<string, string>>({})
   const report = buildWeekReport(state)
   const rate = state.settings.commissionRate
 
   function onAddEmp(e: React.FormEvent) {
     e.preventDefault()
-    if (!name.trim()) return
-    addEmployee(name)
+    if (!name.trim() || !password.trim()) return
+    addEmployee(name, password)
     setName('')
+    setPassword('')
   }
 
   async function onBonus(e: React.FormEvent) {
@@ -65,23 +69,117 @@ export function Employees({ store }: { store: StoreApi }) {
       <section className="panel">
         <header className="panel-head">
           <h3>
-            <UserPlus size={16} /> Add employee
+            <UserPlus size={16} /> Create employee account
           </h3>
         </header>
-        <form className="form-row" onSubmit={onAddEmp}>
-          <label className="field grow">
-            <span>Name</span>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Sergio Rodriguez"
-              required
-            />
-          </label>
-          <button type="submit" className="btn primary align-end">
-            Add
-          </button>
+        <p className="muted panel-intro">
+          Give each crew member a name + static password. They sign in on the
+          employee web link with those details.
+        </p>
+        <form className="form-stack" onSubmit={onAddEmp}>
+          <div className="form-row">
+            <label className="field grow">
+              <span>Name</span>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Sergio Rodriguez"
+                required
+              />
+            </label>
+            <label className="field grow">
+              <span>Password</span>
+              <input
+                type="text"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Static password / PIN"
+                required
+              />
+            </label>
+            <button type="submit" className="btn primary align-end">
+              Create account
+            </button>
+          </div>
         </form>
+      </section>
+
+      <section className="panel">
+        <header className="panel-head">
+          <h3>
+            <KeyRound size={16} /> Accounts &amp; passwords
+          </h3>
+        </header>
+        <div className="table-scroll">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Password</th>
+                <th>Status</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {state.employees.map((e) => (
+                <tr key={e.id} className={!e.active ? 'dim' : ''}>
+                  <td>{e.name}</td>
+                  <td>
+                    <div className="form-row">
+                      <input
+                        className="stock-input"
+                        style={{ width: 140 }}
+                        type="text"
+                        value={pwEdits[e.id] ?? e.password}
+                        onChange={(ev) =>
+                          setPwEdits((m) => ({
+                            ...m,
+                            [e.id]: ev.target.value,
+                          }))
+                        }
+                      />
+                      <button
+                        type="button"
+                        className="btn ghost sm"
+                        onClick={() => {
+                          const next = pwEdits[e.id] ?? e.password
+                          setEmployeePassword(e.id, next)
+                          setPwEdits((m) => {
+                            const copy = { ...m }
+                            delete copy[e.id]
+                            return copy
+                          })
+                        }}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </td>
+                  <td>{e.active ? 'Active' : 'Disabled'}</td>
+                  <td className="row-actions">
+                    <button
+                      type="button"
+                      className="btn ghost sm"
+                      onClick={() => toggleEmployee(e.id)}
+                    >
+                      {e.active ? 'Disable' : 'Enable'}
+                    </button>
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      aria-label="Remove"
+                      onClick={() => {
+                        if (confirm(`Remove ${e.name}?`)) removeEmployee(e.id)
+                      }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section className="panel">
@@ -100,55 +198,22 @@ export function Employees({ store }: { store: StoreApi }) {
                 <th>Commission</th>
                 <th>Bonuses</th>
                 <th>Payout</th>
-                <th />
               </tr>
             </thead>
             <tbody>
-              {report.employees.map((e) => {
-                const emp = state.employees.find((x) => x.id === e.employeeId)
-                return (
-                  <tr
-                    key={e.employeeId}
-                    className={emp && !emp.active ? 'dim' : ''}
-                  >
-                    <td>
-                      {e.name}
-                      {emp && !emp.active ? (
-                        <span className="note-tag"> inactive</span>
-                      ) : null}
-                    </td>
-                    <td>{e.salesCount}</td>
-                    <td>{money(e.revenue)}</td>
-                    <td>{money(e.profit)}</td>
-                    <td>{money(e.commission)}</td>
-                    <td>{money(e.bonuses)}</td>
-                    <td>
-                      <strong>{money(e.payout)}</strong>
-                    </td>
-                    <td className="row-actions">
-                      <button
-                        type="button"
-                        className="btn ghost sm"
-                        onClick={() => toggleEmployee(e.employeeId)}
-                      >
-                        {emp?.active ? 'Disable' : 'Enable'}
-                      </button>
-                      <button
-                        type="button"
-                        className="icon-btn"
-                        aria-label="Remove"
-                        onClick={() => {
-                          if (confirm(`Remove ${e.name}?`)) {
-                            removeEmployee(e.employeeId)
-                          }
-                        }}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                )
-              })}
+              {report.employees.map((e) => (
+                <tr key={e.employeeId}>
+                  <td>{e.name}</td>
+                  <td>{e.salesCount}</td>
+                  <td>{money(e.revenue)}</td>
+                  <td>{money(e.profit)}</td>
+                  <td>{money(e.commission)}</td>
+                  <td>{money(e.bonuses)}</td>
+                  <td>
+                    <strong>{money(e.payout)}</strong>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

@@ -43,6 +43,7 @@ interface Props {
   syncLabel?: string
   syncTone?: 'ok' | 'warn' | 'err' | 'muted'
   onRefresh?: () => void
+  onLogout?: () => void
   children: ReactNode
 }
 
@@ -58,6 +59,7 @@ export function Shell({
   syncLabel = 'Local',
   syncTone = 'muted',
   onRefresh,
+  onLogout,
   children,
 }: Props) {
   const nav = role === 'owner' ? OWNER_NAV : EMP_NAV
@@ -117,11 +119,18 @@ export function Shell({
         </nav>
         <div className="sidebar-foot">
           <p className={`sync-pill ${syncTone}`}>{syncLabel}</p>
-          {onRefresh ? (
-            <button type="button" className="btn ghost sm" onClick={onRefresh}>
-              Refresh
-            </button>
-          ) : null}
+          <div className="form-row">
+            {onRefresh ? (
+              <button type="button" className="btn ghost sm" onClick={onRefresh}>
+                Refresh
+              </button>
+            ) : null}
+            {onLogout ? (
+              <button type="button" className="btn ghost sm" onClick={onLogout}>
+                Log out
+              </button>
+            ) : null}
+          </div>
           <p className="sidebar-foot-note">Shared D1 · Spirit City</p>
         </div>
       </aside>

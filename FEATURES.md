@@ -63,16 +63,16 @@ Use normal **Sales** tab only for sells that don’t need owner clear.
 
 ---
 
-## Crew / Employee web link
+## Crew / Employee accounts
 
-Same deployed URL for everyone.
+1. **Owner** unlocks with owner password (default `pablo`, change in Prices)
+2. **Crew** → Create employee account (name + static password)
+3. Share: `https://your-app.workers.dev/?role=employee`
+4. Employee signs in with name + password → logs sales / stash / craft / mats
 
-1. Open the app → switch to **Employee** (top of sidebar)
-2. Or share: `https://your-app.workers.dev/?role=employee`
-3. On **My desk**, pick your name
-4. Log **Sales**, **Stash**, **Craft**, **Stock** (mat buys)
+Default sample account: **Sergio Rodriguez** / password `sergio`
 
-Employees cannot clear stash, edit prices, manage crew, or change stock numbers manually — that’s owner-only.
+Passwords are stored as plain text on purpose (simple shop PINs).
 
 ---
 

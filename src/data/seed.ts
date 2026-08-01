@@ -6,6 +6,7 @@ export const defaultState = (): AppState => ({
   settings: {
     businessName: 'White Widow',
     ownerName: 'Pablo the II Escobar',
+    ownerPassword: 'pablo',
     commissionRate: 0.15,
     weekStartsOn: 1,
     discordWebhookUrl: '',
@@ -207,6 +208,7 @@ export const defaultState = (): AppState => ({
     {
       id: 'emp-sergio',
       name: 'Sergio Rodriguez',
+      password: 'sergio',
       active: true,
       createdAt: new Date().toISOString(),
     },

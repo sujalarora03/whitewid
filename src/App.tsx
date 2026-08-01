@@ -8,12 +8,17 @@ import { Employees } from './components/Employees'
 import { Inventory } from './components/Inventory'
 import { Prices } from './components/Prices'
 import { EmployeeDesk } from './components/EmployeeDesk'
+import { EmployeeLogin, OwnerGate } from './components/AuthGates'
 import { useStore } from './hooks/useStore'
 import {
+  clearEmployeeAuth,
+  isEmployeeAuthed,
+  isOwnerAuthed,
   loadRole,
   loadSelectedEmployeeId,
   saveRole,
-  saveSelectedEmployeeId,
+  setEmployeeAuthed,
+  setOwnerAuthed,
   type AppRole,
 } from './lib/session'
 import type { TabId } from './types'
@@ -43,7 +48,11 @@ function syncUi(
 export default function App() {
   const store = useStore()
   const [role, setRole] = useState<AppRole>(() => loadRole())
-  const [employeeId, setEmployeeId] = useState(() => loadSelectedEmployeeId())
+  const [employeeId, setEmployeeId] = useState(() => {
+    const id = loadSelectedEmployeeId()
+    return id && isEmployeeAuthed(id) ? id : ''
+  })
+  const [ownerUnlocked, setOwnerUnlocked] = useState(() => isOwnerAuthed())
   const [tab, setTab] = useState<TabId>(() =>
     loadRole() === 'employee' ? 'desk' : 'dashboard',
   )
@@ -56,18 +65,39 @@ export default function App() {
     (e) => e.id === employeeId,
   )?.name
 
+  const employeeLoggedIn =
+    role === 'employee' &&
+    Boolean(employeeId) &&
+    isEmployeeAuthed(employeeId)
+
   function switchRole(next: AppRole) {
     saveRole(next)
     setRole(next)
-    setTab(next === 'employee' ? 'desk' : 'dashboard')
+    if (next === 'employee') {
+      setTab('desk')
+    } else {
+      setTab('dashboard')
+    }
   }
 
-  function pickEmployee(id: string) {
-    saveSelectedEmployeeId(id)
+  function onEmployeeLogin(id: string) {
+    setEmployeeAuthed(id)
     setEmployeeId(id)
+    setTab('desk')
   }
 
-  const locked = role === 'employee' ? employeeId : undefined
+  function onEmployeeLogout() {
+    clearEmployeeAuth()
+    setEmployeeId('')
+    setTab('desk')
+  }
+
+  function onOwnerUnlock() {
+    setOwnerAuthed(true)
+    setOwnerUnlocked(true)
+  }
+
+  const locked = role === 'employee' && employeeLoggedIn ? employeeId : undefined
 
   return (
     <Shell
@@ -75,43 +105,78 @@ export default function App() {
       ownerName={store.state.settings.ownerName}
       role={role}
       onRole={switchRole}
-      employeeLabel={employeeName}
+      employeeLabel={employeeLoggedIn ? employeeName : undefined}
       tab={tab}
       onTab={setTab}
       pendingStash={pendingStash}
       syncLabel={sync.label}
       syncTone={sync.tone}
       onRefresh={() => void store.refreshFromCloud()}
+      onLogout={
+        role === 'employee' && employeeLoggedIn ? onEmployeeLogout : undefined
+      }
     >
-      {role === 'owner' && tab === 'dashboard' && <Dashboard store={store} />}
-      {role === 'employee' && tab === 'desk' && (
+      {role === 'owner' && !ownerUnlocked && (
+        <OwnerGate store={store} onUnlock={onOwnerUnlock} />
+      )}
+
+      {role === 'owner' && ownerUnlocked && tab === 'dashboard' && (
+        <Dashboard store={store} />
+      )}
+      {role === 'owner' && ownerUnlocked && tab === 'employees' && (
+        <Employees store={store} />
+      )}
+      {role === 'owner' && ownerUnlocked && tab === 'prices' && (
+        <Prices store={store} />
+      )}
+      {role === 'owner' &&
+        ownerUnlocked &&
+        (tab === 'craft' ||
+          tab === 'sales' ||
+          tab === 'stash' ||
+          tab === 'inventory') && (
+          <>
+            {tab === 'craft' && <CraftCalc store={store} />}
+            {tab === 'sales' && <Sales store={store} />}
+            {tab === 'stash' && <Stash store={store} />}
+            {tab === 'inventory' && <Inventory store={store} />}
+          </>
+        )}
+
+      {role === 'employee' && !employeeLoggedIn && (
+        <EmployeeLogin store={store} onLogin={onEmployeeLogin} />
+      )}
+
+      {role === 'employee' && employeeLoggedIn && tab === 'desk' && (
         <EmployeeDesk
           store={store}
           employeeId={employeeId}
-          onPickEmployee={pickEmployee}
+          onPickEmployee={() => undefined}
           onGo={setTab}
+          locked
+          onLogout={onEmployeeLogout}
         />
       )}
-      {tab === 'craft' && (
+      {role === 'employee' && employeeLoggedIn && tab === 'craft' && (
         <CraftCalc store={store} lockedEmployeeId={locked} />
       )}
-      {tab === 'sales' && <Sales store={store} lockedEmployeeId={locked} />}
-      {tab === 'stash' && (
+      {role === 'employee' && employeeLoggedIn && tab === 'sales' && (
+        <Sales store={store} lockedEmployeeId={locked} />
+      )}
+      {role === 'employee' && employeeLoggedIn && tab === 'stash' && (
         <Stash
           store={store}
           lockedEmployeeId={locked}
-          employeeMode={role === 'employee'}
+          employeeMode
         />
       )}
-      {role === 'owner' && tab === 'employees' && <Employees store={store} />}
-      {tab === 'inventory' && (
+      {role === 'employee' && employeeLoggedIn && tab === 'inventory' && (
         <Inventory
           store={store}
           lockedEmployeeId={locked}
-          employeeMode={role === 'employee'}
+          employeeMode
         />
       )}
-      {role === 'owner' && tab === 'prices' && <Prices store={store} />}
     </Shell>
   )
 }
