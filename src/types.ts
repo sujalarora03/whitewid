@@ -38,6 +38,8 @@ export interface Employee {
   name: string
   /** Static plaintext password set by owner (simple shop PIN) */
   password: string
+  /** Role / grade for promote-demote */
+  grade: string
   active: boolean
   createdAt: string
 }

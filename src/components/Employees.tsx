@@ -1,8 +1,17 @@
 import { useState } from 'react'
-import { Gift, UserPlus, Trash2, KeyRound } from 'lucide-react'
+import {
+  Gift,
+  UserPlus,
+  Trash2,
+  KeyRound,
+  ChevronUp,
+  ChevronDown,
+  Users,
+} from 'lucide-react'
 import type { StoreApi } from '../hooks/useStore'
 import { buildWeekReport } from '../lib/stats'
 import { bonusEmbed, postToDiscord } from '../lib/discord'
+import { EMPLOYEE_GRADES, demoteGrade, promoteGrade } from '../lib/grades'
 import { formatDate, money, pct } from '../lib/utils'
 
 export function Employees({ store }: { store: StoreApi }) {
@@ -10,6 +19,8 @@ export function Employees({ store }: { store: StoreApi }) {
     state,
     addEmployee,
     setEmployeePassword,
+    setEmployeeGrade,
+    seedCrewRoster,
     toggleEmployee,
     removeEmployee,
     addBonus,
@@ -17,6 +28,7 @@ export function Employees({ store }: { store: StoreApi }) {
   } = store
   const [name, setName] = useState('')
   const [password, setPassword] = useState('')
+  const [grade, setGrade] = useState<string>('Junior Seller')
   const [bonusEmp, setBonusEmp] = useState(state.employees[0]?.id ?? '')
   const [bonusAmt, setBonusAmt] = useState(0)
   const [bonusReason, setBonusReason] = useState('')
@@ -28,9 +40,10 @@ export function Employees({ store }: { store: StoreApi }) {
   function onAddEmp(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim() || !password.trim()) return
-    addEmployee(name, password)
+    addEmployee(name, password, grade)
     setName('')
     setPassword('')
+    setGrade('Junior Seller')
   }
 
   async function onBonus(e: React.FormEvent) {
@@ -69,13 +82,37 @@ export function Employees({ store }: { store: StoreApi }) {
       <section className="panel">
         <header className="panel-head">
           <h3>
+            <Users size={16} /> White Widow roster
+          </h3>
+          <span className="muted">{state.employees.length} employees</span>
+        </header>
+        <p className="muted panel-intro">
+          Load the full crew (grades + passwords) and set owner password to{' '}
+          <code>sujal@3301</code>.
+        </p>
+        <button
+          type="button"
+          className="btn primary"
+          onClick={() => {
+            if (
+              confirm(
+                'Replace all employee accounts with the White Widow roster and set owner password to sujal@3301?',
+              )
+            ) {
+              seedCrewRoster()
+            }
+          }}
+        >
+          Load / reset crew roster
+        </button>
+      </section>
+
+      <section className="panel">
+        <header className="panel-head">
+          <h3>
             <UserPlus size={16} /> Create employee account
           </h3>
         </header>
-        <p className="muted panel-intro">
-          Give each crew member a name + static password. They sign in on the
-          employee web link with those details.
-        </p>
         <form className="form-stack" onSubmit={onAddEmp}>
           <div className="form-row">
             <label className="field grow">
@@ -83,7 +120,7 @@ export function Employees({ store }: { store: StoreApi }) {
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Sergio Rodriguez"
+                placeholder="e.g. Aaron Shore"
                 required
               />
             </label>
@@ -93,9 +130,19 @@ export function Employees({ store }: { store: StoreApi }) {
                 type="text"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Static password / PIN"
+                placeholder="First name / PIN"
                 required
               />
+            </label>
+            <label className="field grow">
+              <span>Grade</span>
+              <select value={grade} onChange={(e) => setGrade(e.target.value)}>
+                {EMPLOYEE_GRADES.map((g) => (
+                  <option key={g} value={g}>
+                    {g}
+                  </option>
+                ))}
+              </select>
             </label>
             <button type="submit" className="btn primary align-end">
               Create account
@@ -107,7 +154,7 @@ export function Employees({ store }: { store: StoreApi }) {
       <section className="panel">
         <header className="panel-head">
           <h3>
-            <KeyRound size={16} /> Accounts &amp; passwords
+            <KeyRound size={16} /> Accounts · grade · passwords
           </h3>
         </header>
         <div className="table-scroll">
@@ -115,6 +162,8 @@ export function Employees({ store }: { store: StoreApi }) {
             <thead>
               <tr>
                 <th>Name</th>
+                <th>Grade</th>
+                <th>Promote / Demote</th>
                 <th>Password</th>
                 <th>Status</th>
                 <th />
@@ -124,6 +173,55 @@ export function Employees({ store }: { store: StoreApi }) {
               {state.employees.map((e) => (
                 <tr key={e.id} className={!e.active ? 'dim' : ''}>
                   <td>{e.name}</td>
+                  <td>
+                    <select
+                      value={e.grade || 'Junior Seller'}
+                      onChange={(ev) =>
+                        setEmployeeGrade(e.id, ev.target.value)
+                      }
+                    >
+                      {EMPLOYEE_GRADES.map((g) => (
+                        <option key={g} value={g}>
+                          {g}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="row-actions">
+                    <button
+                      type="button"
+                      className="btn ghost sm"
+                      title="Promote"
+                      disabled={
+                        (e.grade || 'Junior Seller') ===
+                        EMPLOYEE_GRADES[EMPLOYEE_GRADES.length - 1]
+                      }
+                      onClick={() =>
+                        setEmployeeGrade(
+                          e.id,
+                          promoteGrade(e.grade || 'Junior Seller'),
+                        )
+                      }
+                    >
+                      <ChevronUp size={16} /> Promote
+                    </button>
+                    <button
+                      type="button"
+                      className="btn ghost sm"
+                      title="Demote"
+                      disabled={
+                        (e.grade || 'Junior Seller') === EMPLOYEE_GRADES[0]
+                      }
+                      onClick={() =>
+                        setEmployeeGrade(
+                          e.id,
+                          demoteGrade(e.grade || 'Junior Seller'),
+                        )
+                      }
+                    >
+                      <ChevronDown size={16} /> Demote
+                    </button>
+                  </td>
                   <td>
                     <div className="form-row">
                       <input
@@ -192,6 +290,7 @@ export function Employees({ store }: { store: StoreApi }) {
             <thead>
               <tr>
                 <th>Name</th>
+                <th>Grade</th>
                 <th>Sales</th>
                 <th>Revenue</th>
                 <th>Profit</th>
@@ -201,19 +300,27 @@ export function Employees({ store }: { store: StoreApi }) {
               </tr>
             </thead>
             <tbody>
-              {report.employees.map((e) => (
-                <tr key={e.employeeId}>
-                  <td>{e.name}</td>
-                  <td>{e.salesCount}</td>
-                  <td>{money(e.revenue)}</td>
-                  <td>{money(e.profit)}</td>
-                  <td>{money(e.commission)}</td>
-                  <td>{money(e.bonuses)}</td>
-                  <td>
-                    <strong>{money(e.payout)}</strong>
-                  </td>
-                </tr>
-              ))}
+              {report.employees.map((e) => {
+                const emp = state.employees.find((x) => x.id === e.employeeId)
+                return (
+                  <tr key={e.employeeId}>
+                    <td>{e.name}</td>
+                    <td>
+                      <span className="note-tag">
+                        {emp?.grade ?? 'Junior Seller'}
+                      </span>
+                    </td>
+                    <td>{e.salesCount}</td>
+                    <td>{money(e.revenue)}</td>
+                    <td>{money(e.profit)}</td>
+                    <td>{money(e.commission)}</td>
+                    <td>{money(e.bonuses)}</td>
+                    <td>
+                      <strong>{money(e.payout)}</strong>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -235,7 +342,7 @@ export function Employees({ store }: { store: StoreApi }) {
               >
                 {state.employees.map((e) => (
                   <option key={e.id} value={e.id}>
-                    {e.name}
+                    {e.name} · {e.grade}
                   </option>
                 ))}
               </select>

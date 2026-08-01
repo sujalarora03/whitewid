@@ -17,6 +17,7 @@ export function loadState(): AppState {
       employees: (parsed.employees ?? base.employees).map((e) => ({
         ...e,
         password: e.password ?? '1234',
+        grade: e.grade ?? 'Junior Seller',
       })),
       sales: parsed.sales ?? [],
       bonuses: parsed.bonuses ?? [],

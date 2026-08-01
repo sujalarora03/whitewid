@@ -66,8 +66,8 @@ export function Prices({ store }: { store: StoreApi }) {
         </div>
         <p className="muted panel-intro">
           Commission is {pct(state.settings.commissionRate)} of profit (sale −
-          material cost). Owner password unlocks Owner mode (default:{' '}
-          <code>pablo</code>). Create employee accounts under Crew.
+          material cost). Owner password unlocks Owner mode. Create employee
+          accounts under Crew (promote / demote grades there).
         </p>
       </section>
 

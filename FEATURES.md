@@ -65,14 +65,22 @@ Use normal **Sales** tab only for sells that don’t need owner clear.
 
 ## Crew / Employee accounts
 
-1. **Owner** unlocks with owner password (default `pablo`, change in Prices)
-2. **Crew** → Create employee account (name + static password)
+1. **Owner** unlocks with owner password (`sujal@3301`)
+2. **Crew** → create accounts, set passwords, **promote / demote** grades:
+   Recruit → Junior Seller → Senior Seller → Manager → CEO → Owner
 3. Share: `https://your-app.workers.dev/?role=employee`
-4. Employee signs in with name + password → logs sales / stash / craft / mats
 
-Default sample account: **Sergio Rodriguez** / password `sergio`
+| Name | Grade | Password |
+|---|---|---|
+| Sergio Rodriguez | CEO | Sergio |
+| Aaron Shore | Junior Seller | Aaron |
+| Lovish Raj | Junior Seller | Lovish |
+| Pablo The II Escobar | Owner | sujal@3301 |
+| andres rodriguez | Junior Seller | andres |
+| BITTU DON | Junior Seller | BITTU |
+| Love Ryohei | Junior Seller | Love |
 
-Passwords are stored as plain text on purpose (simple shop PINs).
+Use **Load / reset crew roster** under Crew to apply this list to the shared DB.
 
 ---
 

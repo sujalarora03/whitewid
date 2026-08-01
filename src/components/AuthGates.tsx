@@ -64,7 +64,7 @@ export function EmployeeLogin({
               >
                 {active.map((e) => (
                   <option key={e.id} value={e.id}>
-                    {e.name}
+                    {e.name} · {e.grade || 'Junior Seller'}
                   </option>
                 ))}
               </select>

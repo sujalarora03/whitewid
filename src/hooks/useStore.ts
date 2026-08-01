@@ -124,16 +124,20 @@ export function useStore() {
     setState((s) => ({ ...s, settings: { ...s.settings, ...patch } }))
   }, [])
 
-  const addEmployee = useCallback((name: string, password: string) => {
-    const emp: Employee = {
-      id: uid('emp'),
-      name: name.trim(),
-      password: password.trim() || '1234',
-      active: true,
-      createdAt: new Date().toISOString(),
-    }
-    setState((s) => ({ ...s, employees: [...s.employees, emp] }))
-  }, [])
+  const addEmployee = useCallback(
+    (name: string, password: string, grade = 'Junior Seller') => {
+      const emp: Employee = {
+        id: uid('emp'),
+        name: name.trim(),
+        password: password.trim() || '1234',
+        grade,
+        active: true,
+        createdAt: new Date().toISOString(),
+      }
+      setState((s) => ({ ...s, employees: [...s.employees, emp] }))
+    },
+    [],
+  )
 
   const setEmployeePassword = useCallback((id: string, password: string) => {
     setState((s) => ({
@@ -141,6 +145,28 @@ export function useStore() {
       employees: s.employees.map((e) =>
         e.id === id ? { ...e, password: password.trim() || e.password } : e,
       ),
+    }))
+  }, [])
+
+  const setEmployeeGrade = useCallback((id: string, grade: string) => {
+    setState((s) => ({
+      ...s,
+      employees: s.employees.map((e) =>
+        e.id === id ? { ...e, grade } : e,
+      ),
+    }))
+  }, [])
+
+  const seedCrewRoster = useCallback(() => {
+    const seed = defaultState()
+    setState((s) => ({
+      ...s,
+      employees: seed.employees,
+      settings: {
+        ...s.settings,
+        ownerName: seed.settings.ownerName,
+        ownerPassword: seed.settings.ownerPassword,
+      },
     }))
   }, [])
 
@@ -640,6 +666,8 @@ export function useStore() {
     updateSettings,
     addEmployee,
     setEmployeePassword,
+    setEmployeeGrade,
+    seedCrewRoster,
     toggleEmployee,
     removeEmployee,
     addBonus,
