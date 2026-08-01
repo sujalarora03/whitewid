@@ -9,6 +9,21 @@ export type SyncStatus =
   | 'offline'
   | 'error'
 
+function describeFetchFailure(status: number, text: string): string {
+  const looksLikeChallenge =
+    text.includes('Just a moment') ||
+    text.includes('cf-mitigated') ||
+    text.includes('challenge-platform')
+  if (looksLikeChallenge) {
+    return 'Cloudflare blocked /api/state (bot check). Refresh the page, or the preview worker may have expired.'
+  }
+  if (status === 0 || !status) {
+    return 'Could not reach /api/state — preview worker may be offline/expired.'
+  }
+  const short = text.replace(/\s+/g, ' ').trim().slice(0, 160)
+  return `Cloud API HTTP ${status}${short ? `: ${short}` : ''}`
+}
+
 export async function fetchCloudState(): Promise<{
   state: AppState | null
   updatedAt: string | null
@@ -17,11 +32,24 @@ export async function fetchCloudState(): Promise<{
 }> {
   try {
     const res = await fetch('/api/state')
+    const text = await res.text()
     if (!res.ok) {
-      const text = await res.text()
-      return { state: null, updatedAt: null, ok: false, error: text }
+      return {
+        state: null,
+        updatedAt: null,
+        ok: false,
+        error: describeFetchFailure(res.status, text),
+      }
     }
-    const data = (await res.json()) as {
+    if (text.trimStart().startsWith('<')) {
+      return {
+        state: null,
+        updatedAt: null,
+        ok: false,
+        error: describeFetchFailure(res.status, text),
+      }
+    }
+    const data = JSON.parse(text) as {
       state: AppState | null
       updatedAt: string | null
     }
@@ -38,7 +66,10 @@ export async function fetchCloudState(): Promise<{
       state: null,
       updatedAt: null,
       ok: false,
-      error: err instanceof Error ? err.message : 'Network error',
+      error:
+        err instanceof Error
+          ? `${err.message} (preview worker may be offline/expired)`
+          : 'Network error',
     }
   }
 }

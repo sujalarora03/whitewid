@@ -42,6 +42,8 @@ interface Props {
   pendingStash?: number
   syncLabel?: string
   syncTone?: 'ok' | 'warn' | 'err' | 'muted'
+  /** Extra sync error/detail under the status pill */
+  syncDetail?: string | null
   onRefresh?: () => void
   onLogout?: () => void
   children: ReactNode
@@ -58,6 +60,7 @@ export function Shell({
   pendingStash = 0,
   syncLabel = 'Local',
   syncTone = 'muted',
+  syncDetail = null,
   onRefresh,
   onLogout,
   children,
@@ -119,6 +122,11 @@ export function Shell({
         </nav>
         <div className="sidebar-foot">
           <p className={`sync-pill ${syncTone}`}>{syncLabel}</p>
+          {syncDetail ? (
+            <p className="sidebar-foot-note sync-detail" title={syncDetail}>
+              {syncDetail}
+            </p>
+          ) : null}
           <div className="form-row">
             {onRefresh ? (
               <button type="button" className="btn ghost sm" onClick={onRefresh}>
@@ -131,7 +139,7 @@ export function Shell({
               </button>
             ) : null}
           </div>
-          <p className="sidebar-foot-note">Shared D1 · Spirit City</p>
+          <p className="sidebar-foot-note">Shared cloud DB (D1)</p>
         </div>
       </aside>
 

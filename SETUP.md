@@ -32,6 +32,13 @@ npm run deploy
 
 Bookmark the `*.workers.dev` URL — everyone on the crew uses this same link and same database.
 
+**“Offline (local only)”** means the browser could not reach `/api/state` on that host. Common causes:
+1. You’re on an **expired Cloudflare preview** URL (temporary accounts die ~1 hour unless claimed)
+2. You’re on **localhost** without `wrangler`/Vite Cloudflare plugin serving the Worker
+3. A Cloudflare bot challenge blocked the API response
+
+Fix: open the latest deployed URL, click **Refresh**, and **claim** the preview account so it stays online.
+
 **Stuck on login?** API token method:
 
 1. https://dash.cloudflare.com/profile/api-tokens → Create → **Edit Cloudflare Workers**

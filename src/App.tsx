@@ -111,6 +111,11 @@ export default function App() {
       pendingStash={pendingStash}
       syncLabel={sync.label}
       syncTone={sync.tone}
+      syncDetail={
+        store.syncStatus === 'offline' || store.syncStatus === 'error'
+          ? store.syncError
+          : null
+      }
       onRefresh={() => void store.refreshFromCloud()}
       onLogout={
         role === 'employee' && employeeLoggedIn ? onEmployeeLogout : undefined
