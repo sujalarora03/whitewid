@@ -172,9 +172,8 @@ p {
   display: inline-flex;
 }
 
-.warn-panel {
-  border-color: rgba(240, 193, 74, 0.35);
-  background: rgba(240, 193, 74, 0.08);
+.spaced-top {
+  margin-top: 1rem;
 }
 
 .nav-btn:hover {

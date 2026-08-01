@@ -1,15 +1,178 @@
+import { useState } from 'react'
+import { ShoppingBag, Trash2 } from 'lucide-react'
 import type { StoreApi } from '../hooks/useStore'
-import { money } from '../lib/utils'
+import { formatDate, money } from '../lib/utils'
 
 export function Inventory({ store }: { store: StoreApi }) {
-  const { state, setMaterialStock, setProductStock } = store
+  const {
+    state,
+    setMaterialStock,
+    setProductStock,
+    addMaterialPurchase,
+    removeMaterialPurchase,
+  } = store
+
+  const activeEmps = state.employees.filter((e) => e.active)
+  const [buyerId, setBuyerId] = useState('')
+  const [materialId, setMaterialId] = useState(state.materials[0]?.id ?? '')
+  const [qty, setQty] = useState(1)
+  const [totalPaid, setTotalPaid] = useState(
+    state.materials[0]?.cost ?? 0,
+  )
+  const [note, setNote] = useState('')
+
+  function onMaterialChange(id: string) {
+    setMaterialId(id)
+    const mat = state.materials.find((m) => m.id === id)
+    if (mat) setTotalPaid(mat.cost * qty)
+  }
+
+  function submitPurchase(e: React.FormEvent) {
+    e.preventDefault()
+    if (!materialId || qty < 1) return
+    addMaterialPurchase({
+      employeeId: buyerId,
+      materialId,
+      qty,
+      totalPaid,
+      note: note || undefined,
+    })
+    setNote('')
+    setQty(1)
+    const mat = state.materials.find((m) => m.id === materialId)
+    if (mat) setTotalPaid(mat.cost)
+  }
 
   return (
     <div className="stack">
       <section className="panel">
         <header className="panel-head">
+          <h3>
+            <ShoppingBag size={16} /> Log material purchase
+          </h3>
+        </header>
+        <p className="muted panel-intro">
+          Who bought mats for the business from the store. Separate from
+          crafting — the person who crafts is not assumed to be the buyer.
+        </p>
+        <form className="form-stack" onSubmit={submitPurchase}>
+          <div className="form-row">
+            <label className="field grow">
+              <span>Who bought</span>
+              <select
+                value={buyerId}
+                onChange={(e) => setBuyerId(e.target.value)}
+              >
+                <option value="">Owner / business</option>
+                {activeEmps.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field grow">
+              <span>Material</span>
+              <select
+                value={materialId}
+                onChange={(e) => onMaterialChange(e.target.value)}
+                required
+              >
+                {state.materials.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              <span>Qty</span>
+              <input
+                type="number"
+                min={1}
+                value={qty}
+                onChange={(e) => {
+                  const q = Math.max(1, Number(e.target.value) || 1)
+                  setQty(q)
+                  const mat = state.materials.find((m) => m.id === materialId)
+                  if (mat) setTotalPaid(mat.cost * q)
+                }}
+              />
+            </label>
+            <label className="field">
+              <span>Total paid</span>
+              <input
+                type="number"
+                min={0}
+                value={totalPaid}
+                onChange={(e) => setTotalPaid(Number(e.target.value) || 0)}
+              />
+            </label>
+            <label className="field grow">
+              <span>Note</span>
+              <input
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Optional"
+              />
+            </label>
+          </div>
+          <button type="submit" className="btn primary">
+            Add to business stock
+          </button>
+        </form>
+
+        {state.materialPurchases.length > 0 && (
+          <div className="table-scroll spaced-top">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>When</th>
+                  <th>Buyer</th>
+                  <th>Material</th>
+                  <th>Qty</th>
+                  <th>Paid</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {state.materialPurchases.slice(0, 30).map((p) => {
+                  const emp = state.employees.find((e) => e.id === p.employeeId)
+                  return (
+                    <tr key={p.id}>
+                      <td>{formatDate(p.createdAt)}</td>
+                      <td>{emp?.name ?? 'Owner / business'}</td>
+                      <td>
+                        {p.materialName}
+                        {p.note ? (
+                          <span className="note-tag"> · {p.note}</span>
+                        ) : null}
+                      </td>
+                      <td>{p.qty}</td>
+                      <td>{money(p.totalPaid)}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="icon-btn"
+                          aria-label="Remove purchase"
+                          onClick={() => removeMaterialPurchase(p.id)}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className="panel">
+        <header className="panel-head">
           <h3>Materials</h3>
-          <span className="muted">Update after store buys / crafts</span>
+          <span className="muted">Business shared stock</span>
         </header>
         <div className="table-scroll">
           <table className="data-table">

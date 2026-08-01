@@ -19,6 +19,7 @@ export function loadState(): AppState {
       bonuses: parsed.bonuses ?? [],
       stashBuys: parsed.stashBuys ?? [],
       craftLogs: parsed.craftLogs ?? [],
+      materialPurchases: parsed.materialPurchases ?? [],
     }
   } catch {
     return defaultState()

@@ -16,6 +16,7 @@ export function CraftCalc({ store }: { store: StoreApi }) {
   const [employeeId, setEmployeeId] = useState(activeEmps[0]?.id ?? '')
   const [qty, setQty] = useState(1)
   const [note, setNote] = useState('')
+  const [deductStock, setDeductStock] = useState(true)
   const [discordMsg, setDiscordMsg] = useState<string | null>(null)
 
   const recipe = state.recipes.find((r) => r.id === recipeId)
@@ -41,11 +42,8 @@ export function CraftCalc({ store }: { store: StoreApi }) {
     ? recipeUnitCost(recipe.id, state.materials, state.recipes)
     : 0
   const totalCost = unitCost * qty
-  const canCraft =
-    !!recipe &&
-    !!employeeId &&
-    qty > 0 &&
-    breakdown.every((b) => b.short === 0)
+  const stockOk = !deductStock || breakdown.every((b) => b.short === 0)
+  const canCraft = !!recipe && !!employeeId && qty > 0 && stockOk
 
   const shoppingList = breakdown.filter((b) => b.short > 0)
   const shopTotal = shoppingList.reduce((sum, b) => {
@@ -56,7 +54,10 @@ export function CraftCalc({ store }: { store: StoreApi }) {
   async function doCraft() {
     if (!recipe || !employeeId) return
     const emp = state.employees.find((e) => e.id === employeeId)
-    craft(recipe.id, qty, employeeId, note || undefined)
+    craft(recipe.id, qty, employeeId, {
+      note: note || undefined,
+      deductStock,
+    })
 
     if (
       state.settings.discordPostCrafts &&
@@ -77,7 +78,11 @@ export function CraftCalc({ store }: { store: StoreApi }) {
         result.ok ? 'Craft logged + posted to Discord' : `Discord: ${result.error}`,
       )
     } else {
-      setDiscordMsg('Craft logged (not sold — stock updated)')
+      setDiscordMsg(
+        deductStock
+          ? 'Craft logged — used business materials (not a purchase)'
+          : 'Craft logged — no stock deducted',
+      )
     }
     setNote('')
   }
@@ -91,13 +96,14 @@ export function CraftCalc({ store }: { store: StoreApi }) {
           </h3>
         </header>
         <p className="muted panel-intro">
-          Record who crafted what — even if it hasn’t been sold yet. Materials
-          drop, finished stock goes up, and it shows in craft history.
+          Crafting only records who produced the item. It does{' '}
+          <strong>not</strong> mean they bought the materials — log store buys
+          under <strong>Stock</strong> separately.
         </p>
 
         <div className="form-row">
           <label className="field grow">
-            <span>Employee</span>
+            <span>Who crafted</span>
             <select
               value={employeeId}
               onChange={(e) => setEmployeeId(e.target.value)}
@@ -144,15 +150,28 @@ export function CraftCalc({ store }: { store: StoreApi }) {
           </label>
         </div>
 
+        <label className="check-field">
+          <input
+            type="checkbox"
+            checked={deductStock}
+            onChange={(e) => setDeductStock(e.target.checked)}
+          />
+          Deduct from business material stock
+          <span className="note-tag">
+            {' '}
+            (off = mats already handled / not from shared stock)
+          </span>
+        </label>
+
         {recipe && (
           <>
             <div className="cost-banner">
               <div>
-                <span className="muted">Unit cost</span>
+                <span className="muted">Recipe cost (reference)</span>
                 <strong>{money(unitCost)}</strong>
               </div>
               <div>
-                <span className="muted">Batch cost ({qty}×)</span>
+                <span className="muted">Batch reference ({qty}×)</span>
                 <strong>{money(totalCost)}</strong>
               </div>
             </div>
@@ -163,19 +182,22 @@ export function CraftCalc({ store }: { store: StoreApi }) {
                   <th>Material</th>
                   <th>Per craft</th>
                   <th>Needed</th>
-                  <th>In stock</th>
-                  <th>Buy</th>
-                  <th>Cost</th>
+                  <th>Business stock</th>
+                  <th>Short</th>
+                  <th>Ref. cost</th>
                 </tr>
               </thead>
               <tbody>
                 {breakdown.map((b) => (
-                  <tr key={b.materialId} className={b.short ? 'warn-row' : ''}>
+                  <tr
+                    key={b.materialId}
+                    className={deductStock && b.short ? 'warn-row' : ''}
+                  >
                     <td>{b.name}</td>
                     <td>{b.perUnit}</td>
                     <td>{b.need}</td>
                     <td>{b.stock}</td>
-                    <td>{b.short || '—'}</td>
+                    <td>{deductStock ? b.short || '—' : '—'}</td>
                     <td>{money(b.cost)}</td>
                   </tr>
                 ))}
@@ -194,8 +216,8 @@ export function CraftCalc({ store }: { store: StoreApi }) {
               {!canCraft && (
                 <span className="muted">
                   {!employeeId
-                    ? 'Pick an employee.'
-                    : 'Update stock or buy missing materials first.'}
+                    ? 'Pick who crafted.'
+                    : 'Business stock is short — buy mats under Stock, or uncheck deduct.'}
                 </span>
               )}
               {discordMsg && <span className="muted">{discordMsg}</span>}
@@ -204,13 +226,17 @@ export function CraftCalc({ store }: { store: StoreApi }) {
         )}
       </section>
 
-      {shoppingList.length > 0 && (
+      {deductStock && shoppingList.length > 0 && (
         <section className="panel">
           <header className="panel-head">
             <h3>
-              <ShoppingCart size={16} /> Restock list
+              <ShoppingCart size={16} /> Materials short
             </h3>
           </header>
+          <p className="muted panel-intro">
+            Someone needs to buy these for the business (Stock → Material
+            purchase) — not automatically tied to the crafter.
+          </p>
           <ul className="rank-list">
             {shoppingList.map((b) => (
               <li key={b.materialId}>
@@ -270,7 +296,7 @@ export function CraftCalc({ store }: { store: StoreApi }) {
       <section className="panel">
         <header className="panel-head">
           <h3>Craft history</h3>
-          <span className="muted">Not sales — production only</span>
+          <span className="muted">Production only — not material buys</span>
         </header>
         {state.craftLogs.length === 0 ? (
           <p className="empty">No crafts logged yet.</p>
@@ -280,10 +306,11 @@ export function CraftCalc({ store }: { store: StoreApi }) {
               <thead>
                 <tr>
                   <th>When</th>
-                  <th>Employee</th>
+                  <th>Who crafted</th>
                   <th>Item</th>
                   <th>Qty</th>
-                  <th>Cost</th>
+                  <th>Stock</th>
+                  <th>Ref. cost</th>
                   <th />
                 </tr>
               </thead>
@@ -301,6 +328,13 @@ export function CraftCalc({ store }: { store: StoreApi }) {
                         ) : null}
                       </td>
                       <td>{c.qty}</td>
+                      <td>
+                        {c.deductedStock !== false ? (
+                          <span className="note-tag">deducted</span>
+                        ) : (
+                          <span className="note-tag">no deduct</span>
+                        )}
+                      </td>
                       <td>{money(c.totalCost)}</td>
                       <td>
                         <button

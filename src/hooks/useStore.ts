@@ -5,6 +5,7 @@ import type {
   CraftLog,
   Employee,
   Material,
+  MaterialPurchase,
   Product,
   Recipe,
   Sale,
@@ -196,16 +197,24 @@ export function useStore() {
   }, [])
 
   const craft = useCallback(
-    (recipeId: string, qty: number, employeeId: string, note?: string) => {
+    (
+      recipeId: string,
+      qty: number,
+      employeeId: string,
+      opts?: { note?: string; deductStock?: boolean },
+    ) => {
       setState((s) => {
         const recipe = s.recipes.find((r) => r.id === recipeId)
         if (!recipe || !employeeId) return s
 
-        const materials = s.materials.map((m) => {
-          const need = recipe.ingredients.find((i) => i.materialId === m.id)
-          if (!need) return m
-          return { ...m, stock: Math.max(0, m.stock - need.qty * qty) }
-        })
+        const deductStock = opts?.deductStock !== false
+        const materials = deductStock
+          ? s.materials.map((m) => {
+              const need = recipe.ingredients.find((i) => i.materialId === m.id)
+              if (!need) return m
+              return { ...m, stock: Math.max(0, m.stock - need.qty * qty) }
+            })
+          : s.materials
 
         const unitCost = recipeUnitCost(recipeId, s.materials, s.recipes)
         let products = s.products
@@ -226,8 +235,9 @@ export function useStore() {
           qty,
           unitCost,
           totalCost: unitCost * qty,
+          deductedStock: deductStock,
           createdAt: new Date().toISOString(),
-          note,
+          note: opts?.note,
         }
 
         return {
@@ -246,6 +256,63 @@ export function useStore() {
       ...s,
       craftLogs: s.craftLogs.filter((c) => c.id !== id),
     }))
+  }, [])
+
+  const addMaterialPurchase = useCallback(
+    (input: {
+      employeeId: string
+      materialId: string
+      qty: number
+      totalPaid: number
+      note?: string
+    }) => {
+      setState((s) => {
+        const mat = s.materials.find((m) => m.id === input.materialId)
+        if (!mat || input.qty < 1) return s
+
+        const purchase: MaterialPurchase = {
+          id: uid('mp'),
+          employeeId: input.employeeId,
+          materialId: mat.id,
+          materialName: mat.name,
+          qty: input.qty,
+          unitCost: mat.cost,
+          totalPaid: input.totalPaid,
+          createdAt: new Date().toISOString(),
+          note: input.note,
+        }
+
+        return {
+          ...s,
+          materialPurchases: [purchase, ...s.materialPurchases],
+          materials: s.materials.map((m) =>
+            m.id === mat.id ? { ...m, stock: m.stock + input.qty } : m,
+          ),
+        }
+      })
+    },
+    [],
+  )
+
+  const removeMaterialPurchase = useCallback((id: string) => {
+    setState((s) => {
+      const purchase = s.materialPurchases.find((p) => p.id === id)
+      if (!purchase) {
+        return {
+          ...s,
+          materialPurchases: s.materialPurchases.filter((p) => p.id !== id),
+        }
+      }
+      return {
+        ...s,
+        materialPurchases: s.materialPurchases.filter((p) => p.id !== id),
+        materials: s.materials.map((m) =>
+          m.id === purchase.materialId
+            ? { ...m, stock: Math.max(0, m.stock - purchase.qty) }
+            : m,
+        ),
+      }
+    })
   }, [])
 
   const setMaterialStock = useCallback((id: string, stock: number) => {
@@ -368,6 +435,8 @@ export function useStore() {
     removeStashBuy,
     craft,
     removeCraftLog,
+    addMaterialPurchase,
+    removeMaterialPurchase,
     setMaterialStock,
     setMaterialCost,
     setProductSalePrice,

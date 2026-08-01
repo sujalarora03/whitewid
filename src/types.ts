@@ -75,7 +75,8 @@ export interface StashBuy {
   note?: string
 }
 
-/** Craft completed by an employee (even if not sold yet) */
+/** Craft completed by an employee (even if not sold yet).
+ * Does NOT mean they bought the materials — those are separate. */
 export interface CraftLog {
   id: string
   employeeId: string
@@ -84,6 +85,22 @@ export interface CraftLog {
   qty: number
   unitCost: number
   totalCost: number
+  /** Whether business material stock was deducted */
+  deductedStock: boolean
+  createdAt: string
+  note?: string
+}
+
+/** Someone bought materials for the business (separate from crafting) */
+export interface MaterialPurchase {
+  id: string
+  /** Who ran the store buy — empty string = owner / business */
+  employeeId: string
+  materialId: string
+  materialName: string
+  qty: number
+  unitCost: number
+  totalPaid: number
   createdAt: string
   note?: string
 }
@@ -109,6 +126,7 @@ export interface AppState {
   bonuses: Bonus[]
   stashBuys: StashBuy[]
   craftLogs: CraftLog[]
+  materialPurchases: MaterialPurchase[]
   settings: AppSettings
 }
 

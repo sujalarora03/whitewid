@@ -201,15 +201,20 @@ export function craftLogEmbed(input: {
     embeds: [
       {
         title: `${input.businessName} · Craft logged`,
+        description: 'Production only — not a material purchase',
         color: GREEN,
         fields: [
-          { name: 'Employee', value: input.employeeName, inline: true },
+          { name: 'Who crafted', value: input.employeeName, inline: true },
           {
             name: 'Crafted',
             value: `${input.qty}× ${input.recipeName}`,
             inline: true,
           },
-          { name: 'Material cost', value: money(input.totalCost), inline: true },
+          {
+            name: 'Recipe cost (ref.)',
+            value: money(input.totalCost),
+            inline: true,
+          },
         ],
         timestamp: new Date().toISOString(),
       },
