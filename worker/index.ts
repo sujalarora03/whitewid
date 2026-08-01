@@ -1,6 +1,9 @@
 /**
- * White Widow API — Discord proxy + shared D1 state.
+ * White Widow API — Discord proxy + shared D1 state (merge-on-write).
  */
+
+import { mergeAppStates } from '../src/lib/mergeState'
+import type { AppState } from '../src/types'
 
 export interface Env {
   DB: D1Database
@@ -70,7 +73,7 @@ async function handleState(request: Request, env: Env): Promise<Response> {
     }
 
     if (request.method === 'PUT') {
-      const body = (await request.json()) as { state?: unknown }
+      const body = (await request.json()) as { state?: AppState }
       if (!body.state || typeof body.state !== 'object') {
         return Response.json(
           { error: 'Missing state' },
@@ -78,8 +81,23 @@ async function handleState(request: Request, env: Env): Promise<Response> {
         )
       }
 
+      const row = await env.DB.prepare(
+        'SELECT data FROM app_state WHERE id = 1',
+      ).first<{ data: string }>()
+
+      let merged: AppState = body.state
+      if (row?.data) {
+        try {
+          const remote = JSON.parse(row.data) as AppState
+          // Merge so concurrent sales/crafts from other browsers are kept
+          merged = mergeAppStates(remote, body.state)
+        } catch {
+          merged = body.state
+        }
+      }
+
       const updatedAt = new Date().toISOString()
-      const data = JSON.stringify(body.state)
+      const data = JSON.stringify(merged)
 
       await env.DB.prepare(
         `INSERT INTO app_state (id, data, updated_at) VALUES (1, ?, ?)
@@ -88,7 +106,10 @@ async function handleState(request: Request, env: Env): Promise<Response> {
         .bind(data, updatedAt)
         .run()
 
-      return Response.json({ ok: true, updatedAt }, { headers: cors })
+      return Response.json(
+        { ok: true, updatedAt, state: merged },
+        { headers: cors },
+      )
     }
 
     return Response.json(

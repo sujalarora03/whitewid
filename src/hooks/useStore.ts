@@ -15,6 +15,7 @@ import type {
 } from '../types'
 import { defaultState, recipeUnitCost } from '../data/seed'
 import { fetchCloudState, saveCloudState, type SyncStatus } from '../lib/cloud'
+import { mergeAppStates } from '../lib/mergeState'
 import { loadState, saveState, uid } from '../lib/utils'
 
 export function useStore() {
@@ -24,6 +25,8 @@ export function useStore() {
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null)
   const readyToSave = useRef(false)
   const skipNextSave = useRef(false)
+  const stateRef = useRef(state)
+  stateRef.current = state
 
   useEffect(() => {
     let cancelled = false
@@ -40,17 +43,33 @@ export function useStore() {
       }
 
       if (result.state) {
+        // Keep any local-only rows that haven't synced yet (e.g. typed offline)
+        const merged = mergeAppStates(result.state, stateRef.current)
         skipNextSave.current = true
-        setState(result.state)
-        saveState(result.state)
+        setState(merged)
+        saveState(merged)
         setLastSyncedAt(result.updatedAt)
         setSyncStatus('synced')
         setSyncError(null)
+        readyToSave.current = true
+        // Push union to cloud so the other browser can see our offline rows
+        void saveCloudState(merged).then((save) => {
+          if (cancelled || !save.ok || !save.state) return
+          skipNextSave.current = true
+          setState(save.state)
+          saveState(save.state)
+          setLastSyncedAt(save.updatedAt ?? null)
+        })
       } else {
         const seed = loadState()
         const save = await saveCloudState(seed)
         if (cancelled) return
         if (save.ok) {
+          if (save.state) {
+            skipNextSave.current = true
+            setState(save.state)
+            saveState(save.state)
+          }
           setLastSyncedAt(save.updatedAt ?? null)
           setSyncStatus('synced')
           setSyncError(null)
@@ -78,20 +97,72 @@ export function useStore() {
     setSyncStatus('saving')
     const timer = window.setTimeout(() => {
       void (async () => {
-        const result = await saveCloudState(state)
+        const snapshot = stateRef.current
+        const result = await saveCloudState(snapshot)
         if (result.ok) {
           setLastSyncedAt(result.updatedAt ?? new Date().toISOString())
           setSyncStatus('synced')
           setSyncError(null)
+          if (result.state) {
+            // Apply merged cloud result (includes other people's sales)
+            skipNextSave.current = true
+            setState(result.state)
+            saveState(result.state)
+          }
         } else {
           setSyncStatus('error')
           setSyncError(result.error ?? 'Save failed')
         }
       })()
-    }, 600)
+    }, 500)
 
     return () => window.clearTimeout(timer)
   }, [state])
+
+  // Pull teammates' changes every few seconds
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      if (!readyToSave.current) return
+      if (syncStatus === 'saving' || syncStatus === 'loading') return
+      void (async () => {
+        const result = await fetchCloudState()
+        if (!result.ok || !result.state) return
+        const merged = mergeAppStates(result.state, stateRef.current)
+        const sameSales =
+          merged.sales.length === stateRef.current.sales.length &&
+          merged.sales.every((s) =>
+            stateRef.current.sales.some((x) => x.id === s.id),
+          )
+        const sameCrafts =
+          merged.craftLogs.length === stateRef.current.craftLogs.length &&
+          merged.craftLogs.every((c) =>
+            stateRef.current.craftLogs.some((x) => x.id === c.id),
+          )
+        const sameStock =
+          merged.materials.every(
+            (m) =>
+              stateRef.current.materials.find((x) => x.id === m.id)?.stock ===
+              m.stock,
+          ) &&
+          merged.products.every(
+            (p) =>
+              stateRef.current.products.find((x) => x.id === p.id)?.stock ===
+              p.stock,
+          )
+        if (sameSales && sameCrafts && sameStock) {
+          setLastSyncedAt(result.updatedAt)
+          return
+        }
+        skipNextSave.current = true
+        setState(merged)
+        saveState(merged)
+        setLastSyncedAt(result.updatedAt)
+        setSyncStatus('synced')
+        setSyncError(null)
+      })()
+    }, 4000)
+    return () => window.clearInterval(id)
+  }, [syncStatus])
 
   const refreshFromCloud = useCallback(async () => {
     setSyncStatus('loading')
@@ -102,10 +173,20 @@ export function useStore() {
       return
     }
     if (result.state) {
+      const merged = mergeAppStates(result.state, stateRef.current)
       skipNextSave.current = true
-      setState(result.state)
-      saveState(result.state)
+      setState(merged)
+      saveState(merged)
       setLastSyncedAt(result.updatedAt)
+      // Persist union so both sides stay
+      void saveCloudState(merged).then((save) => {
+        if (save.ok && save.state) {
+          skipNextSave.current = true
+          setState(save.state)
+          saveState(save.state)
+          setLastSyncedAt(save.updatedAt ?? null)
+        }
+      })
     }
     setSyncStatus('synced')
     setSyncError(null)

@@ -1,5 +1,6 @@
 import type { AppState } from '../types'
 import { defaultState } from '../data/seed'
+import { mergeAppStates } from './mergeState'
 
 export type SyncStatus =
   | 'booting'
@@ -76,19 +77,37 @@ export async function fetchCloudState(): Promise<{
 
 export async function saveCloudState(
   state: AppState,
-): Promise<{ ok: boolean; updatedAt?: string; error?: string }> {
+): Promise<{
+  ok: boolean
+  updatedAt?: string
+  state?: AppState
+  error?: string
+}> {
   try {
+    // Pull latest first so we don't wipe another person's sales/crafts
+    const latest = await fetchCloudState()
+    const toSave =
+      latest.ok && latest.state
+        ? mergeAppStates(latest.state, state)
+        : state
+
     const res = await fetch('/api/state', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ state }),
+      body: JSON.stringify({ state: toSave }),
     })
     if (!res.ok) {
       const text = await res.text()
       return { ok: false, error: text }
     }
-    const data = (await res.json()) as { updatedAt?: string }
-    return { ok: true, updatedAt: data.updatedAt }
+    const data = (await res.json()) as {
+      updatedAt?: string
+      state?: AppState
+    }
+    const saved = data.state
+      ? mergeWithDefaults(data.state)
+      : mergeWithDefaults(toSave)
+    return { ok: true, updatedAt: data.updatedAt, state: saved }
   } catch (err) {
     return {
       ok: false,
