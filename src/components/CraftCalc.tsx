@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Calculator, ShoppingCart, Send, Trash2 } from 'lucide-react'
+import { Calculator, ShoppingCart, Send, Trash2, UserRound } from 'lucide-react'
 import type { StoreApi } from '../hooks/useStore'
 import { recipeUnitCost } from '../data/seed'
 import {
@@ -12,10 +12,14 @@ import { formatDate, money } from '../lib/utils'
 export function CraftCalc({
   store,
   lockedEmployeeId,
+  mode = 'business',
 }: {
   store: StoreApi
   lockedEmployeeId?: string
+  /** business = shop production; personal = craft for yourself */
+  mode?: 'business' | 'personal'
 }) {
+  const personal = mode === 'personal'
   const { state, craft, removeCraftLog } = store
   const activeEmps = state.employees.filter((e) => e.active)
   const [recipeId, setRecipeId] = useState(state.recipes[0]?.id ?? '')
@@ -24,7 +28,7 @@ export function CraftCalc({
   )
   const [qty, setQty] = useState(1)
   const [note, setNote] = useState('')
-  const [deductStock, setDeductStock] = useState(true)
+  const [deductStock, setDeductStock] = useState(!personal)
   const [discordMsg, setDiscordMsg] = useState<string | null>(null)
 
   const effectiveEmployeeId = lockedEmployeeId || employeeId
@@ -55,11 +59,20 @@ export function CraftCalc({
   const stockOk = !deductStock || breakdown.every((b) => b.short === 0)
   const canCraft = !!recipe && !!effectiveEmployeeId && qty > 0 && stockOk
 
-  const shoppingList = breakdown.filter((b) => b.short > 0)
+  const shoppingList = personal
+    ? breakdown.map((b) => ({ ...b, short: b.need }))
+    : breakdown.filter((b) => b.short > 0)
   const shopTotal = shoppingList.reduce((sum, b) => {
     const mat = state.materials.find((m) => m.id === b.materialId)
-    return sum + (mat?.cost ?? 0) * b.short
+    const units = personal ? b.need : b.short
+    return sum + (mat?.cost ?? 0) * units
   }, 0)
+
+  const history = state.craftLogs.filter((c) =>
+    personal
+      ? c.purpose === 'personal'
+      : (c.purpose ?? 'business') === 'business',
+  )
 
   async function doCraft() {
     if (!recipe || !effectiveEmployeeId) return
@@ -67,6 +80,7 @@ export function CraftCalc({
     craft(recipe.id, qty, effectiveEmployeeId, {
       note: note || undefined,
       deductStock,
+      purpose: personal ? 'personal' : 'business',
     })
 
     if (
@@ -82,16 +96,25 @@ export function CraftCalc({
           recipeName: recipe.name,
           qty,
           totalCost,
+          personal,
         }),
       )
       setDiscordMsg(
-        result.ok ? 'Craft logged + posted to Discord' : `Discord: ${result.error}`,
+        result.ok
+          ? personal
+            ? 'Personal craft logged + posted to Discord'
+            : 'Craft logged + posted to Discord'
+          : `Discord: ${result.error}`,
       )
     } else {
       setDiscordMsg(
-        deductStock
-          ? 'Craft logged — used business materials (not a purchase)'
-          : 'Craft logged — no stock deducted',
+        personal
+          ? deductStock
+            ? 'Personal craft logged — used business materials; item kept by crafter'
+            : 'Personal craft logged — requirements only / own mats'
+          : deductStock
+            ? 'Craft logged — used business materials (not a purchase)'
+            : 'Craft logged — no stock deducted',
       )
     }
     setNote('')
@@ -102,18 +125,30 @@ export function CraftCalc({
       <section className="panel">
         <header className="panel-head">
           <h3>
-            <Calculator size={16} /> Log a craft
+            {personal ? <UserRound size={16} /> : <Calculator size={16} />}{' '}
+            {personal ? 'Personal requirements' : 'Log a craft'}
           </h3>
         </header>
         <p className="muted panel-intro">
-          Crafting only records who produced the item. It does{' '}
-          <strong>not</strong> mean they bought the materials — log store buys
-          under <strong>Stock</strong> separately.
+          {personal ? (
+            <>
+              Calculate what <strong>you</strong> need to craft for yourself.
+              Logging a personal craft does <strong>not</strong> add finished
+              stock to the business and does <strong>not</strong> count as a
+              sale or commission.
+            </>
+          ) : (
+            <>
+              Crafting only records who produced the item. It does{' '}
+              <strong>not</strong> mean they bought the materials — log store
+              buys under <strong>Stock</strong> separately.
+            </>
+          )}
         </p>
 
         <div className="form-row">
           <label className="field grow">
-            <span>Who crafted</span>
+            <span>{personal ? 'Who' : 'Who crafted'}</span>
             {lockedEmployeeId ? (
               <input
                 value={
@@ -165,7 +200,7 @@ export function CraftCalc({
             <input
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Optional"
+              placeholder={personal ? 'e.g. for myself' : 'Optional'}
             />
           </label>
         </div>
@@ -176,10 +211,14 @@ export function CraftCalc({
             checked={deductStock}
             onChange={(e) => setDeductStock(e.target.checked)}
           />
-          Deduct from business material stock
+          {personal
+            ? 'Took materials from business stock'
+            : 'Deduct from business material stock'}
           <span className="note-tag">
             {' '}
-            (off = mats already handled / not from shared stock)
+            {personal
+              ? '(off = you bought / used your own mats)'
+              : '(off = mats already handled / not from shared stock)'}
           </span>
         </label>
 
@@ -187,11 +226,15 @@ export function CraftCalc({
           <>
             <div className="cost-banner">
               <div>
-                <span className="muted">Recipe cost (reference)</span>
+                <span className="muted">
+                  {personal ? 'Your cost (reference)' : 'Recipe cost (reference)'}
+                </span>
                 <strong>{money(unitCost)}</strong>
               </div>
               <div>
-                <span className="muted">Batch reference ({qty}×)</span>
+                <span className="muted">
+                  {personal ? `Batch for you (${qty}×)` : `Batch reference (${qty}×)`}
+                </span>
                 <strong>{money(totalCost)}</strong>
               </div>
             </div>
@@ -203,7 +246,7 @@ export function CraftCalc({
                   <th>Per craft</th>
                   <th>Needed</th>
                   <th>Business stock</th>
-                  <th>Short</th>
+                  <th>{personal ? 'You need' : 'Short'}</th>
                   <th>Ref. cost</th>
                 </tr>
               </thead>
@@ -217,7 +260,7 @@ export function CraftCalc({
                     <td>{b.perUnit}</td>
                     <td>{b.need}</td>
                     <td>{b.stock}</td>
-                    <td>{deductStock ? b.short || '—' : '—'}</td>
+                    <td>{personal ? b.need : deductStock ? b.short || '—' : '—'}</td>
                     <td>{money(b.cost)}</td>
                   </tr>
                 ))}
@@ -231,7 +274,9 @@ export function CraftCalc({
                 disabled={!canCraft}
                 onClick={() => void doCraft()}
               >
-                Log craft {qty}× {recipe.name}
+                {personal
+                  ? `Log personal craft ${qty}× ${recipe.name}`
+                  : `Log craft ${qty}× ${recipe.name}`}
               </button>
               {!canCraft && (
                 <span className="muted">
@@ -246,87 +291,98 @@ export function CraftCalc({
         )}
       </section>
 
-      {deductStock && shoppingList.length > 0 && (
+      {shoppingList.length > 0 && (
         <section className="panel">
           <header className="panel-head">
             <h3>
-              <ShoppingCart size={16} /> Materials short
+              <ShoppingCart size={16} />{' '}
+              {personal ? 'Your material list' : 'Materials short'}
             </h3>
           </header>
           <p className="muted panel-intro">
-            Someone needs to buy these for the business (Stock → Material
-            purchase) — not automatically tied to the crafter.
+            {personal
+              ? 'Buy these yourself for a personal craft (not a business Stock purchase unless you choose to use shared mats).'
+              : 'Someone needs to buy these for the business (Stock → Material purchase) — not automatically tied to the crafter.'}
           </p>
           <ul className="rank-list">
             {shoppingList.map((b) => (
               <li key={b.materialId}>
                 <span className="grow">
-                  {b.short}× {b.name}
+                  {(personal ? b.need : b.short)}× {b.name}
                 </span>
                 <span>
                   {money(
                     (state.materials.find((m) => m.id === b.materialId)?.cost ??
-                      0) * b.short,
+                      0) * (personal ? b.need : b.short),
                   )}
                 </span>
               </li>
             ))}
           </ul>
           <p className="shop-total">
-            Store buy total: <strong>{money(shopTotal)}</strong>
+            {personal ? 'Personal buy total' : 'Store buy total'}:{' '}
+            <strong>{money(shopTotal)}</strong>
           </p>
-          <div className="actions">
-            <button
-              type="button"
-              className="btn discord"
-              disabled={!state.settings.discordWebhookUrl.trim()}
-              onClick={() => {
-                void (async () => {
-                  if (!recipe) return
-                  const result = await postToDiscord(
-                    state.settings.discordWebhookUrl,
-                    craftRestockEmbed({
-                      businessName: state.settings.businessName,
-                      recipeName: recipe.name,
-                      qty,
-                      lines: shoppingList.map((b) => ({
-                        name: b.name,
-                        short: b.short,
-                        cost:
-                          (state.materials.find((m) => m.id === b.materialId)
-                            ?.cost ?? 0) * b.short,
-                      })),
-                      shopTotal,
-                    }),
-                  )
-                  setDiscordMsg(
-                    result.ok
-                      ? 'Restock list posted to Discord'
-                      : `Discord: ${result.error}`,
-                  )
-                })()
-              }}
-            >
-              <Send size={16} /> Post restock to Discord
-            </button>
-          </div>
+          {!personal && (
+            <div className="actions">
+              <button
+                type="button"
+                className="btn discord"
+                disabled={!state.settings.discordWebhookUrl.trim()}
+                onClick={() => {
+                  void (async () => {
+                    if (!recipe) return
+                    const result = await postToDiscord(
+                      state.settings.discordWebhookUrl,
+                      craftRestockEmbed({
+                        businessName: state.settings.businessName,
+                        recipeName: recipe.name,
+                        qty,
+                        lines: shoppingList.map((b) => ({
+                          name: b.name,
+                          short: b.short,
+                          cost:
+                            (state.materials.find((m) => m.id === b.materialId)
+                              ?.cost ?? 0) * b.short,
+                        })),
+                        shopTotal,
+                      }),
+                    )
+                    setDiscordMsg(
+                      result.ok
+                        ? 'Restock list posted to Discord'
+                        : `Discord: ${result.error}`,
+                    )
+                  })()
+                }}
+              >
+                <Send size={16} /> Post restock to Discord
+              </button>
+            </div>
+          )}
         </section>
       )}
 
       <section className="panel">
         <header className="panel-head">
-          <h3>Craft history</h3>
-          <span className="muted">Production only — not material buys</span>
+          <h3>{personal ? 'Personal craft history' : 'Craft history'}</h3>
+          <span className="muted">
+            {personal
+              ? 'Kept by crafter — not business stock'
+              : 'Production only — not material buys'}
+          </span>
         </header>
-        {state.craftLogs.length === 0 ? (
-          <p className="empty">No crafts logged yet.</p>
+        {history.length === 0 ? (
+          <p className="empty">
+            {personal ? 'No personal crafts logged yet.' : 'No crafts logged yet.'}
+          </p>
         ) : (
           <div className="table-scroll">
             <table className="data-table">
               <thead>
                 <tr>
                   <th>When</th>
-                  <th>Who crafted</th>
+                  <th>Who</th>
                   <th>Item</th>
                   <th>Qty</th>
                   <th>Stock</th>
@@ -335,7 +391,7 @@ export function CraftCalc({
                 </tr>
               </thead>
               <tbody>
-                {state.craftLogs.slice(0, 40).map((c) => {
+                {history.slice(0, 40).map((c) => {
                   const emp = state.employees.find((e) => e.id === c.employeeId)
                   return (
                     <tr key={c.id}>
@@ -350,9 +406,13 @@ export function CraftCalc({
                       <td>{c.qty}</td>
                       <td>
                         {c.deductedStock !== false ? (
-                          <span className="note-tag">deducted</span>
+                          <span className="note-tag">
+                            {personal ? 'used business mats' : 'deducted'}
+                          </span>
                         ) : (
-                          <span className="note-tag">no deduct</span>
+                          <span className="note-tag">
+                            {personal ? 'own mats' : 'no deduct'}
+                          </span>
                         )}
                       </td>
                       <td>{money(c.totalCost)}</td>

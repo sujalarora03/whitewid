@@ -10,12 +10,14 @@ import {
   Package,
   Tags,
   UserRound,
+  HandHeart,
 } from 'lucide-react'
 
 const OWNER_NAV: { id: TabId; label: string; icon: typeof LayoutDashboard }[] =
   [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'craft', label: 'Craft', icon: FlaskConical },
+    { id: 'personal', label: 'Personal', icon: HandHeart },
     { id: 'sales', label: 'Sales', icon: Receipt },
     { id: 'stash', label: 'Stash', icon: PackageOpen },
     { id: 'employees', label: 'Crew', icon: Users },
@@ -26,6 +28,7 @@ const OWNER_NAV: { id: TabId; label: string; icon: typeof LayoutDashboard }[] =
 const EMP_NAV: { id: TabId; label: string; icon: typeof LayoutDashboard }[] = [
   { id: 'desk', label: 'My desk', icon: UserRound },
   { id: 'craft', label: 'Craft', icon: FlaskConical },
+  { id: 'personal', label: 'Personal', icon: HandHeart },
   { id: 'sales', label: 'Sales', icon: Receipt },
   { id: 'stash', label: 'Stash', icon: PackageOpen },
   { id: 'inventory', label: 'Stock', icon: Package },

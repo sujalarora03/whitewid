@@ -196,12 +196,17 @@ export function craftLogEmbed(input: {
   recipeName: string
   qty: number
   totalCost: number
+  personal?: boolean
 }): DiscordPayload {
   return {
     embeds: [
       {
-        title: `${input.businessName} · Craft logged`,
-        description: 'Production only — not a material purchase',
+        title: input.personal
+          ? `${input.businessName} · Personal craft`
+          : `${input.businessName} · Craft logged`,
+        description: input.personal
+          ? 'Crafted for themselves — not business stock / not a sale'
+          : 'Production only — not a material purchase',
         color: GREEN,
         fields: [
           { name: 'Who crafted', value: input.employeeName, inline: true },

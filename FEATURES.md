@@ -31,6 +31,20 @@ Also shows recipe costs and a restock list if business stock is short.
 
 ---
 
+## Personal
+When someone wants to **craft for themselves** (not for the shop).
+
+| You do | What happens |
+|---|---|
+| Pick recipe + qty | See full material list + reference cost |
+| Log personal craft | Logged under that person; **no** finished stock added to business |
+| “Took materials from business stock” ON | Shared mats drop |
+| Checkbox OFF (default) | Own mats / bought yourself |
+
+Does **not** create a sale or commission. Business Craft tab stays for shop production.
+
+---
+
 ## Sales
 Normal shop sales (employee sold an item for a price).
 

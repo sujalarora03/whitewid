@@ -137,11 +137,13 @@ export default function App() {
       {role === 'owner' &&
         ownerUnlocked &&
         (tab === 'craft' ||
+          tab === 'personal' ||
           tab === 'sales' ||
           tab === 'stash' ||
           tab === 'inventory') && (
           <>
             {tab === 'craft' && <CraftCalc store={store} />}
+            {tab === 'personal' && <CraftCalc store={store} mode="personal" />}
             {tab === 'sales' && <Sales store={store} />}
             {tab === 'stash' && <Stash store={store} />}
             {tab === 'inventory' && <Inventory store={store} />}
@@ -164,6 +166,13 @@ export default function App() {
       )}
       {role === 'employee' && employeeLoggedIn && tab === 'craft' && (
         <CraftCalc store={store} lockedEmployeeId={locked} />
+      )}
+      {role === 'employee' && employeeLoggedIn && tab === 'personal' && (
+        <CraftCalc
+          store={store}
+          lockedEmployeeId={locked}
+          mode="personal"
+        />
       )}
       {role === 'employee' && employeeLoggedIn && tab === 'sales' && (
         <Sales store={store} lockedEmployeeId={locked} />

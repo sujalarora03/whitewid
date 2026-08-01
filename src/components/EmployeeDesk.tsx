@@ -1,5 +1,12 @@
 import { useMemo } from 'react'
-import { FlaskConical, Package, PackageOpen, Receipt, UserRound } from 'lucide-react'
+import {
+  FlaskConical,
+  HandHeart,
+  Package,
+  PackageOpen,
+  Receipt,
+  UserRound,
+} from 'lucide-react'
 import type { StoreApi } from '../hooks/useStore'
 import { buildWeekReport } from '../lib/stats'
 import { money } from '../lib/utils'
@@ -113,6 +120,15 @@ export function EmployeeDesk({
               <FlaskConical size={18} />
               <strong>Log a craft</strong>
               <span className="recipe-cost">Production only</span>
+            </button>
+            <button
+              type="button"
+              className="recipe-card"
+              onClick={() => onGo('personal')}
+            >
+              <HandHeart size={18} />
+              <strong>Personal craft</strong>
+              <span className="recipe-cost">Mats for yourself</span>
             </button>
             <button
               type="button"

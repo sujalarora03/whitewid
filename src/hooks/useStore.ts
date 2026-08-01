@@ -313,6 +313,7 @@ export function useStore() {
               unitCost,
               totalCost: unitCost * input.qty,
               deductedStock: deductMaterials,
+              purpose: 'business',
               createdAt: new Date().toISOString(),
               note: `Stash sale → ${input.buyerName.trim() || 'Customer'}`,
             }
@@ -439,12 +440,17 @@ export function useStore() {
       recipeId: string,
       qty: number,
       employeeId: string,
-      opts?: { note?: string; deductStock?: boolean },
+      opts?: {
+        note?: string
+        deductStock?: boolean
+        purpose?: 'business' | 'personal'
+      },
     ) => {
       setState((s) => {
         const recipe = s.recipes.find((r) => r.id === recipeId)
         if (!recipe || !employeeId) return s
 
+        const purpose = opts?.purpose ?? 'business'
         const deductStock = opts?.deductStock !== false
         const materials = deductStock
           ? s.materials.map((m) => {
@@ -456,13 +462,16 @@ export function useStore() {
 
         const unitCost = recipeUnitCost(recipeId, s.materials, s.recipes)
         let products = s.products
-        const existing = products.find((p) => p.recipeId === recipeId)
-        if (existing) {
-          products = products.map((p) =>
-            p.recipeId === recipeId
-              ? { ...p, stock: p.stock + qty, cost: unitCost }
-              : p,
-          )
+        // Personal crafts keep the item — do not add to business finished stock
+        if (purpose === 'business') {
+          const existing = products.find((p) => p.recipeId === recipeId)
+          if (existing) {
+            products = products.map((p) =>
+              p.recipeId === recipeId
+                ? { ...p, stock: p.stock + qty, cost: unitCost }
+                : p,
+            )
+          }
         }
 
         const log: CraftLog = {
@@ -474,6 +483,7 @@ export function useStore() {
           unitCost,
           totalCost: unitCost * qty,
           deductedStock: deductStock,
+          purpose,
           createdAt: new Date().toISOString(),
           note: opts?.note,
         }

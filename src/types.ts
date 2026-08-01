@@ -99,6 +99,8 @@ export interface CraftLog {
   totalCost: number
   /** Whether business material stock was deducted */
   deductedStock: boolean
+  /** business = shop production; personal = crafted for themselves */
+  purpose: 'business' | 'personal'
   createdAt: string
   note?: string
 }
@@ -150,6 +152,7 @@ export type TabId =
   | 'dashboard'
   | 'desk'
   | 'craft'
+  | 'personal'
   | 'sales'
   | 'stash'
   | 'employees'

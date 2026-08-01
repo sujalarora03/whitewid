@@ -31,8 +31,10 @@ export function Dashboard({ store }: { store: StoreApi }) {
   const end = weekEnd(start)
   const pendingStash = state.stashBuys.filter((b) => b.status === 'pending')
   const pendingTotal = pendingStash.reduce((sum, b) => sum + b.amount, 0)
-  const craftsThisWeek = state.craftLogs.filter((c) =>
-    inRange(c.createdAt, start, end),
+  const craftsThisWeek = state.craftLogs.filter(
+    (c) =>
+      (c.purpose ?? 'business') === 'business' &&
+      inRange(c.createdAt, start, end),
   )
   const craftUnits = craftsThisWeek.reduce((sum, c) => sum + c.qty, 0)
 

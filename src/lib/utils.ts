@@ -26,7 +26,10 @@ export function loadState(): AppState {
         unitCost: b.unitCost ?? 0,
         source: b.source ?? ('from_stock' as const),
       })),
-      craftLogs: parsed.craftLogs ?? [],
+      craftLogs: (parsed.craftLogs ?? []).map((c) => ({
+        ...c,
+        purpose: c.purpose ?? ('business' as const),
+      })),
       materialPurchases: parsed.materialPurchases ?? [],
     }
   } catch {
