@@ -9,6 +9,13 @@ import {
   weekStart,
 } from './utils'
 
+/** Business crafts only — personal never counts for top crafter / week craft stats. */
+export function isBusinessCraft(c: CraftLog): boolean {
+  if (c.isPersonal === true) return false
+  if (c.purpose === 'personal') return false
+  return true
+}
+
 export interface CraftBreakdown {
   recipeId: string
   recipeName: string
@@ -74,7 +81,7 @@ export function buildWeekReport(
   const sales = state.sales.filter((s) => inRange(s.createdAt, start, end))
   const bonuses = state.bonuses.filter((b) => inRange(b.createdAt, start, end))
   const craftLogs = state.craftLogs.filter(
-    (c) => c.purpose === 'business' && inRange(c.createdAt, start, end),
+    (c) => isBusinessCraft(c) && inRange(c.createdAt, start, end),
   )
 
   const revenue = sales.reduce((sum, s) => sum + saleRevenue(s), 0)

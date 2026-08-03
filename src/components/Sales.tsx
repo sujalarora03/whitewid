@@ -9,11 +9,13 @@ import {
 } from '../lib/discord'
 import { canDeleteRecord, type ActorCtx } from '../lib/permissions'
 import {
+  familyUnitPrice,
   formatSellRange,
   guideForProduct,
   minSellForSale,
   tierForQty,
 } from '../data/priceGuide'
+import { recipeUnitCost } from '../data/seed'
 import {
   formatDate,
   money,
@@ -48,6 +50,8 @@ export function Sales({
   )
   const [note, setNote] = useState('')
   const [discordMsg, setDiscordMsg] = useState<string | null>(null)
+  const [familyDeal, setFamilyDeal] = useState(false)
+  const [gangDeal, setGangDeal] = useState(false)
 
   const effectiveEmployeeId = lockedEmployeeId || employeeId
   const product = state.products.find((p) => p.id === productId)
@@ -56,10 +60,22 @@ export function Sales({
   const isExternal = product?.kind === 'external'
   const guide = product ? guideForProduct(product.id) : undefined
   const floor = product ? minSellForSale(product.id, qty) : null
-  const underFloor = floor != null && unitPrice < floor.min
+  const dealType = familyDeal ? 'family' : gangDeal ? 'gang' : 'normal'
+  const skipCostAlert = dealType !== 'normal'
+  const underFloor =
+    !skipCostAlert && floor != null && unitPrice < floor.min
+
+  const liveUnitCost = useMemo(() => {
+    if (!product) return 0
+    if (product.pricingMode === 'percent') return product.cost
+    if (product.recipeId) {
+      return recipeUnitCost(product.recipeId, state.materials, state.recipes)
+    }
+    return product.cost
+  }, [product, state.materials, state.recipes])
 
   const preview = useMemo(() => {
-    const unitCost = product?.cost ?? 0
+    const unitCost = liveUnitCost
     if (pricingMode === 'percent') {
       const revenue = (qty * unitPrice) / 100
       const cost = (qty * unitCost) / 100
@@ -72,24 +88,56 @@ export function Sales({
     const profit = revenue - cost
     const commission = Math.max(0, profit) * rate
     return { revenue, cost, profit, commission, net: profit - commission }
-  }, [unitPrice, qty, product, rate, pricingMode])
+  }, [unitPrice, qty, liveUnitCost, rate, pricingMode])
+
+  function applyDealPrice(
+    id: string,
+    opts: { family: boolean; gang: boolean },
+  ) {
+    const p = state.products.find((x) => x.id === id)
+    if (!p) return
+    if (opts.family) {
+      const fam = familyUnitPrice(id)
+      if (fam != null) {
+        setUnitPrice(fam)
+        return
+      }
+    }
+    if (opts.gang) {
+      const cost =
+        p.pricingMode === 'percent'
+          ? p.cost
+          : p.recipeId
+            ? recipeUnitCost(p.recipeId, state.materials, state.recipes)
+            : p.cost
+      setUnitPrice(cost)
+      return
+    }
+    const g = guideForProduct(p.id)
+    const tier = g ? tierForQty(g, qty) : undefined
+    if (tier) setUnitPrice(tier.sellMin)
+    else setUnitPrice(p.salePrice || p.cost || 0)
+  }
 
   function onProductChange(id: string) {
     setProductId(id)
-    const p = state.products.find((x) => x.id === id)
-    if (!p) return
-    const g = guideForProduct(p.id)
-    const tier = g ? tierForQty(g, qty) : undefined
-    if (tier) {
-      setUnitPrice(tier.sellMin)
-    } else {
-      setUnitPrice(p.salePrice || p.cost || 0)
-    }
+    applyDealPrice(id, { family: familyDeal, gang: gangDeal })
   }
 
   function onQtyChange(next: number) {
-    const q = Math.max(1, next)
-    setQty(q)
+    setQty(Math.max(1, next))
+  }
+
+  function toggleFamily(checked: boolean) {
+    setFamilyDeal(checked)
+    if (checked) setGangDeal(false)
+    applyDealPrice(productId, { family: checked, gang: false })
+  }
+
+  function toggleGang(checked: boolean) {
+    setGangDeal(checked)
+    if (checked) setFamilyDeal(false)
+    applyDealPrice(productId, { family: false, gang: checked })
   }
 
   async function submit(e: React.FormEvent) {
@@ -104,6 +152,7 @@ export function Sales({
       qty,
       unitPrice,
       note: note || undefined,
+      dealType,
     })
 
     const messages: string[] = []
@@ -124,7 +173,17 @@ export function Sales({
           revenue: preview.revenue,
           profit: preview.profit,
           commission: preview.commission,
-          note: note || undefined,
+          note:
+            [
+              note || undefined,
+              dealType === 'family'
+                ? 'Family deal'
+                : dealType === 'gang'
+                  ? 'Gang deal (cost-to-cost)'
+                  : undefined,
+            ]
+              .filter(Boolean)
+              .join(' · ') || undefined,
         }),
       )
       messages.push(
@@ -155,6 +214,12 @@ export function Sales({
       )
     } else if (underFloor && !alertUrl) {
       messages.push('Under floor — set Cost alert webhook in Prices')
+    } else if (skipCostAlert && (familyDeal || gangDeal)) {
+      messages.push(
+        familyDeal
+          ? 'Family deal — no cost alert'
+          : 'Gang deal — no cost alert',
+      )
     }
 
     setDiscordMsg(messages.length ? messages.join(' · ') : null)
@@ -268,6 +333,32 @@ export function Sales({
             </label>
           </div>
 
+          <div className="form-row">
+            <label className="check-field">
+              <input
+                type="checkbox"
+                checked={familyDeal}
+                onChange={(e) => toggleFamily(e.target.checked)}
+              />
+              Family sale (Grape Ape $500 · Insecticide $150)
+            </label>
+            <label className="check-field">
+              <input
+                type="checkbox"
+                checked={gangDeal}
+                onChange={(e) => toggleGang(e.target.checked)}
+              />
+              Gang sale (cost-to-cost, no margin)
+            </label>
+          </div>
+          {(familyDeal || gangDeal) && (
+            <p className="muted panel-intro">
+              {familyDeal
+                ? 'Family pricing applied where listed — no cost-alert Discord post.'
+                : 'Selling at making cost — no cost-alert Discord post.'}
+            </p>
+          )}
+
           {isExternal && (
             <p className="muted panel-intro">
               External service — does not change finished product stock.
@@ -299,7 +390,7 @@ export function Sales({
             </div>
             <div>
               <span className="muted">
-                {pricingMode === 'percent' ? 'Our cost (2%)' : 'Material cost'}
+                {pricingMode === 'percent' ? 'Our cost (2%)' : 'Making cost'}
               </span>
               <strong>{money(preview.cost)}</strong>
             </div>
@@ -364,6 +455,12 @@ export function Sales({
                         {s.productName}
                         {s.kind === 'external' ? (
                           <span className="note-tag"> · external</span>
+                        ) : null}
+                        {s.dealType === 'family' ? (
+                          <span className="note-tag"> · family</span>
+                        ) : null}
+                        {s.dealType === 'gang' ? (
+                          <span className="note-tag"> · gang</span>
                         ) : null}
                         {s.pricingMode === 'percent' ? (
                           <span className="note-tag">

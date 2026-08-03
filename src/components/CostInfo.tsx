@@ -19,8 +19,10 @@ export function CostInfo() {
         </h3>
       </header>
       <p className="muted panel-intro">
-        Making = our cost. Selling = minimum (and typical range). Sales under
-        the floor post to the <strong>cost alert</strong> Discord channel.
+        Making = our store / craft cost (cigs &amp; lighter match the in-game
+        shop). Selling = minimum (and typical range). Sales under the floor
+        post to the <strong>cost alert</strong> Discord channel — except Family
+        / Gang deals.
       </p>
 
       <GuideTable title="Crafted products" rows={crafted} />

@@ -96,9 +96,9 @@ export const PRICE_GUIDE: PriceGuideItem[] = [
     name: 'Silver Ember Cigarette',
     kind: 'supply',
     productId: 'prod-silver-ember',
-    makingCost: 0,
+    makingCost: 500,
     pricingMode: 'unit',
-    makingLabel: '—',
+    makingLabel: '$500 store',
     tiers: [{ qtyFrom: 1, sellMin: 2000, sellMax: 2000 }],
   },
   {
@@ -106,9 +106,9 @@ export const PRICE_GUIDE: PriceGuideItem[] = [
     name: 'Royal Drift Cigarette',
     kind: 'supply',
     productId: 'prod-royal-drift',
-    makingCost: 0,
+    makingCost: 500,
     pricingMode: 'unit',
-    makingLabel: '—',
+    makingLabel: '$500 store',
     tiers: [{ qtyFrom: 1, sellMin: 2100, sellMax: 2100 }],
   },
   {
@@ -116,9 +116,9 @@ export const PRICE_GUIDE: PriceGuideItem[] = [
     name: 'Black Velvet Cigarette',
     kind: 'supply',
     productId: 'prod-black-velvet',
-    makingCost: 0,
+    makingCost: 500,
     pricingMode: 'unit',
-    makingLabel: '—',
+    makingLabel: '$500 store',
     tiers: [{ qtyFrom: 1, sellMin: 2200, sellMax: 2200 }],
   },
   {
@@ -128,6 +128,7 @@ export const PRICE_GUIDE: PriceGuideItem[] = [
     productId: 'prod-lighter',
     makingCost: 200,
     pricingMode: 'unit',
+    makingLabel: '$200 store',
     tiers: [{ qtyFrom: 1, sellMin: 1000, sellMax: 1000 }],
   },
   {
@@ -212,4 +213,14 @@ export function formatQtyBand(tier: PriceTier): string {
   }
   if (tier.qtyFrom <= 1) return `Under ${tier.qtyTo + 1}`
   return `${tier.qtyFrom}–${tier.qtyTo}`
+}
+
+/** Family internal unit prices (no cost alert) */
+export const FAMILY_UNIT_PRICE: Record<string, number> = {
+  'prod-grape-ape': 500,
+  'prod-insecticide': 150,
+}
+
+export function familyUnitPrice(productId: string): number | null {
+  return FAMILY_UNIT_PRICE[productId] ?? null
 }

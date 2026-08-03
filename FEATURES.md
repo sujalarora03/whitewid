@@ -47,7 +47,13 @@ Sellers log what they sold. This is the normal path for commission.
 
 **External services** (Money Whitewash, Joints PreMade, Weed Processing) appear under Sales → External. They do not change shop stock.
 
-**Cost Info** on Sales / Prices shows the baseline making + selling floors. A sale under the floor still saves, and posts to the **cost alert** Discord webhook (Prices → Discord).
+**Deal types on Sales:**
+- **Family** — Grape Ape $500, Insecticide $150; no cost alert
+- **Gang** — sell at making cost (no margin); no cost alert
+
+**Cost Info** on Sales / Prices shows the baseline making + selling floors. A normal sale under the floor still saves, and posts to the **cost alert** Discord webhook (Prices → Discord).
+
+Top crafter counts **business crafts only** (Personal tab crafts are excluded).
 
 Someone who crafts **and** sells just uses Craft + Sales. No need to link who made a sold item.
 

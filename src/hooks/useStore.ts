@@ -396,6 +396,7 @@ export function useStore() {
       qty: number
       unitPrice: number
       note?: string
+      dealType?: 'normal' | 'family' | 'gang'
     }) => {
       setState((s) => {
         const product = s.products.find((p) => p.id === input.productId)
@@ -408,6 +409,7 @@ export function useStore() {
           unitCost = recipeUnitCost(product.recipeId, s.materials, s.recipes)
         }
 
+        const dealType = input.dealType ?? 'normal'
         const sale: Sale = {
           id: uid('sale'),
           employeeId: input.employeeId,
@@ -420,6 +422,7 @@ export function useStore() {
           note: input.note,
           kind,
           pricingMode,
+          dealType,
         }
 
         const products =
@@ -435,6 +438,12 @@ export function useStore() {
           pricingMode === 'percent'
             ? `${sale.unitPrice}% of ${sale.qty}`
             : `$${sale.unitPrice}`
+        const dealLabel =
+          dealType === 'family'
+            ? ' · family'
+            : dealType === 'gang'
+              ? ' · gang'
+              : ''
 
         return {
           ...s,
@@ -446,7 +455,7 @@ export function useStore() {
             action: 'create',
             entity: 'sale',
             entityId: sale.id,
-            summary: `Sale ${sale.productName} · ${priceLabel}${kind === 'external' ? ' (external)' : ''}`,
+            summary: `Sale ${sale.productName} · ${priceLabel}${dealLabel}${kind === 'external' ? ' (external)' : ''}`,
           }),
         }
       })
@@ -819,6 +828,7 @@ export function useStore() {
         if (!recipe || !employeeId) return s
 
         const purpose = opts?.purpose ?? 'business'
+        const isPersonal = purpose === 'personal'
         const deductStock = opts?.deductStock !== false
 
         if (deductStock) {
@@ -840,7 +850,7 @@ export function useStore() {
         const unitCost = recipeUnitCost(recipeId, s.materials, s.recipes)
         let products = s.products
         // Business crafts always bump finished stock for the matching product
-        if (purpose === 'business') {
+        if (!isPersonal) {
           const existing = products.find((p) => p.recipeId === recipeId)
           if (existing) {
             products = products.map((p) =>
@@ -875,7 +885,8 @@ export function useStore() {
           unitCost,
           totalCost: unitCost * qty,
           deductedStock: deductStock,
-          purpose,
+          purpose: isPersonal ? 'personal' : 'business',
+          isPersonal,
           createdAt: new Date().toISOString(),
           note: opts?.note,
         }
@@ -891,7 +902,7 @@ export function useStore() {
             action: 'create',
             entity: 'craft',
             entityId: log.id,
-            summary: `${purpose === 'personal' ? 'Personal' : 'Business'} craft ${qty}× ${recipe.name}`,
+            summary: `${isPersonal ? 'Personal' : 'Business'} craft ${qty}× ${recipe.name}`,
           }),
         }
       })

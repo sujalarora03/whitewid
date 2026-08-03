@@ -74,6 +74,8 @@ export interface Sale {
   /** Copied from product at sale time */
   kind?: 'inventory' | 'external'
   pricingMode?: 'unit' | 'percent'
+  /** normal retail | family internal | gang cost-to-cost */
+  dealType?: 'normal' | 'family' | 'gang'
 }
 
 export interface Bonus {
@@ -161,6 +163,8 @@ export interface CraftLog {
   deductedStock: boolean
   /** business = shop production; personal = crafted for themselves */
   purpose: 'business' | 'personal'
+  /** Redundant flag so personal never leaks into top crafter if purpose is lost */
+  isPersonal?: boolean
   createdAt: string
   note?: string
 }

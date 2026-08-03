@@ -80,8 +80,8 @@ export function CraftCalc({
 
   const history = state.craftLogs.filter((c) =>
     personal
-      ? c.purpose === 'personal'
-      : (c.purpose ?? 'business') === 'business',
+      ? c.purpose === 'personal' || c.isPersonal === true
+      : !(c.purpose === 'personal' || c.isPersonal === true),
   )
 
   async function doCraft() {

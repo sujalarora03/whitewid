@@ -203,7 +203,12 @@ function mergeWithDefaults(parsed: Partial<AppState>): AppState {
     pendingOrders: parsed.pendingOrders ?? [],
     craftLogs: (parsed.craftLogs ?? []).map((c) => ({
       ...c,
-      purpose: c.purpose ?? ('business' as const),
+      purpose:
+        c.isPersonal || c.purpose === 'personal'
+          ? ('personal' as const)
+          : ((c.purpose as 'business' | 'personal' | undefined) ??
+            ('business' as const)),
+      isPersonal: Boolean(c.isPersonal || c.purpose === 'personal'),
     })),
     materialPurchases: parsed.materialPurchases ?? [],
     deletedIds: normalizeDeletedIds(parsed.deletedIds),
