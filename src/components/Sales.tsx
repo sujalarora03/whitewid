@@ -444,7 +444,7 @@ export function Sales({
         </form>
       </section>
 
-      <CostInfo />
+      {actor.isOwner && <CostInfo />}
 
       <section className="panel">
         <header className="panel-head">
