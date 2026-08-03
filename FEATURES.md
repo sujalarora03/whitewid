@@ -40,10 +40,14 @@ Sellers log what they sold. This is the normal path for commission.
 
 | Calculated | Formula |
 |---|---|
-| Revenue | price × qty |
-| Cost | material/recipe cost × qty |
+| Revenue | price × qty (or % × principal for Money Whitewash) |
+| Cost | material/recipe cost × qty (or 2% for whitewash) |
 | Profit | revenue − cost |
 | Commission (default 15%) | profit × 15% |
+
+**External services** (Money Whitewash, Joints PreMade, Weed Processing) appear under Sales → External. They do not change shop stock.
+
+**Cost Info** on Sales / Prices shows the baseline making + selling floors. A sale under the floor still saves, and posts to the **cost alert** Discord webhook (Prices → Discord).
 
 Someone who crafts **and** sells just uses Craft + Sales. No need to link who made a sold item.
 
@@ -112,11 +116,14 @@ Sidebar **Audit** shows who created/deleted sales, crafts, stash clears, mat buy
 ---
 
 ## Discord
-Under **Prices** you can set **two** Discord webhooks:
+Under **Prices** you can set **three** Discord webhooks:
 1. **Main channel** — sales, bonuses, crafts, stash, material buys, weekly report
 2. **Resources channel** — Craft “Request resources” restock lists (falls back to main if empty)
+3. **Cost alert channel** — fires when a sale is under the Cost Info floor
 
-Paste each channel’s webhook URL and use **Test main** / **Test resources**.
+Paste each channel’s webhook URL and use **Test main** / **Test resources** / **Test cost alert**.
+
+Top crafter on the Dashboard counts **business crafts only** (personal crafts are excluded).
 
 ---
 

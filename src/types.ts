@@ -1,4 +1,10 @@
-export type Category = 'seeds' | 'fertilizer' | 'supplies' | 'smoking' | 'other'
+export type Category =
+  | 'seeds'
+  | 'fertilizer'
+  | 'supplies'
+  | 'smoking'
+  | 'other'
+  | 'external'
 
 export interface Ingredient {
   materialId: string
@@ -35,6 +41,13 @@ export interface Product {
   stockUpdatedAt?: string
   /** If from a recipe, link for COGS calc */
   recipeId?: string
+  /**
+   * inventory = finished/shop stock (default).
+   * external = service / outside job — no stock deduction.
+   */
+  kind?: 'inventory' | 'external'
+  /** unit = $ per item; percent = unitPrice is % of qty (qty = principal) */
+  pricingMode?: 'unit' | 'percent'
 }
 
 export interface Employee {
@@ -58,6 +71,9 @@ export interface Sale {
   unitCost: number
   createdAt: string
   note?: string
+  /** Copied from product at sale time */
+  kind?: 'inventory' | 'external'
+  pricingMode?: 'unit' | 'percent'
 }
 
 export interface Bonus {
@@ -174,6 +190,8 @@ export interface AppSettings {
   discordWebhookUrl: string
   /** Separate Discord channel for material / restock resource requests */
   discordResourcesWebhookUrl: string
+  /** Discord channel for sales under the baseline floor (cost alerts) */
+  discordCostAlertWebhookUrl: string
   discordPostSales: boolean
   discordPostBonuses: boolean
   discordPostCrafts: boolean

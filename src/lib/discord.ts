@@ -395,3 +395,48 @@ export function resourcesWebhookUrl(settings: AppSettings): string {
 export function resourcesDiscordReady(settings: AppSettings): boolean {
   return Boolean(resourcesWebhookUrl(settings))
 }
+
+/** Cost-alert channel — no fallback (only posts when dedicated webhook is set). */
+export function costAlertWebhookUrl(settings: AppSettings): string {
+  return settings.discordCostAlertWebhookUrl?.trim() || ''
+}
+
+export function costAlertEmbed(input: {
+  businessName: string
+  employeeName: string
+  productName: string
+  qty: number
+  unitPrice: number
+  floor: number
+  mode: 'unit' | 'percent'
+  revenue: number
+  note?: string
+}): DiscordPayload {
+  const unitLabel =
+    input.mode === 'percent'
+      ? `${input.unitPrice}% (floor ${input.floor}%)`
+      : `${money(input.unitPrice)} / unit (floor ${money(input.floor)})`
+  return {
+    content: `⚠️ **Cost alert** — sale below baseline`,
+    embeds: [
+      {
+        title: `${input.businessName} · Under floor`,
+        color: 0xe74c3c,
+        fields: [
+          { name: 'Seller', value: input.employeeName, inline: true },
+          {
+            name: 'Item',
+            value: `${input.qty}× ${input.productName}`,
+            inline: true,
+          },
+          { name: 'Price', value: unitLabel, inline: true },
+          { name: 'Revenue', value: money(input.revenue), inline: true },
+          ...(input.note
+            ? [{ name: 'Note', value: input.note, inline: true }]
+            : []),
+        ],
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  }
+}

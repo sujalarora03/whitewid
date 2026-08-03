@@ -1,5 +1,6 @@
 import type { AppState } from '../types'
 import { defaultState } from '../data/seed'
+import { ensureCatalogProducts } from './catalog'
 import {
   mergeAppStates,
   normalizeDeletedIds,
@@ -176,7 +177,13 @@ function mergeWithDefaults(parsed: Partial<AppState>): AppState {
   const merged: AppState = {
     ...base,
     ...parsed,
-    settings: { ...base.settings, ...parsed.settings },
+    settings: {
+      ...base.settings,
+      ...parsed.settings,
+      discordCostAlertWebhookUrl:
+        parsed.settings?.discordCostAlertWebhookUrl ??
+        base.settings.discordCostAlertWebhookUrl,
+    },
     materials: parsed.materials ?? base.materials,
     recipes: parsed.recipes ?? base.recipes,
     products: parsed.products ?? base.products,
@@ -202,5 +209,5 @@ function mergeWithDefaults(parsed: Partial<AppState>): AppState {
     deletedIds: normalizeDeletedIds(parsed.deletedIds),
     auditLogs: parsed.auditLogs ?? [],
   }
-  return ensureCrewRoster(stripDeletedRows(merged))
+  return ensureCatalogProducts(ensureCrewRoster(stripDeletedRows(merged)))
 }

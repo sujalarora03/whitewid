@@ -116,7 +116,8 @@ export function Dashboard({ store }: { store: StoreApi }) {
                   {report.topCrafter.craftCount} craft logs
                   {report.topCrafter.craftsByItem[0]
                     ? ` · top: ${report.topCrafter.craftsByItem[0].recipeName}`
-                    : ''}
+                    : ''}{' '}
+                  · business only (personal excluded)
                 </p>
               </div>
             </div>

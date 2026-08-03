@@ -1,5 +1,6 @@
 import type { AppState, Sale } from '../types'
 import { STORAGE_KEY, defaultState } from '../data/seed'
+import { ensureCatalogProducts } from './catalog'
 import { normalizeDeletedIds, stripDeletedRows } from './mergeState'
 
 export function loadState(): AppState {
@@ -8,10 +9,17 @@ export function loadState(): AppState {
     if (!raw) return defaultState()
     const parsed = JSON.parse(raw) as Partial<AppState>
     const base = defaultState()
-    return stripDeletedRows({
+    return ensureCatalogProducts(
+      stripDeletedRows({
       ...base,
       ...parsed,
-      settings: { ...base.settings, ...parsed.settings },
+      settings: {
+        ...base.settings,
+        ...parsed.settings,
+        discordCostAlertWebhookUrl:
+          parsed.settings?.discordCostAlertWebhookUrl ??
+          base.settings.discordCostAlertWebhookUrl,
+      },
       materials: parsed.materials ?? base.materials,
       recipes: parsed.recipes ?? base.recipes,
       products: parsed.products ?? base.products,
@@ -36,7 +44,8 @@ export function loadState(): AppState {
       materialPurchases: parsed.materialPurchases ?? [],
       deletedIds: normalizeDeletedIds(parsed.deletedIds),
       auditLogs: parsed.auditLogs ?? [],
-    })
+    }),
+    )
   } catch {
     return defaultState()
   }
@@ -85,10 +94,16 @@ export function inRange(iso: string, start: Date, end: Date): boolean {
 }
 
 export function saleRevenue(s: Sale): number {
+  if (s.pricingMode === 'percent') {
+    return (s.qty * s.unitPrice) / 100
+  }
   return s.unitPrice * s.qty
 }
 
 export function saleCost(s: Sale): number {
+  if (s.pricingMode === 'percent') {
+    return (s.qty * s.unitCost) / 100
+  }
   return s.unitCost * s.qty
 }
 

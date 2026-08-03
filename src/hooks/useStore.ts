@@ -401,8 +401,10 @@ export function useStore() {
         const product = s.products.find((p) => p.id === input.productId)
         if (!product) return s
 
+        const kind = product.kind ?? 'inventory'
+        const pricingMode = product.pricingMode ?? 'unit'
         let unitCost = product.cost
-        if (product.recipeId) {
+        if (product.recipeId && pricingMode === 'unit') {
           unitCost = recipeUnitCost(product.recipeId, s.materials, s.recipes)
         }
 
@@ -416,23 +418,35 @@ export function useStore() {
           unitCost,
           createdAt: new Date().toISOString(),
           note: input.note,
+          kind,
+          pricingMode,
         }
+
+        const products =
+          kind === 'external'
+            ? s.products
+            : s.products.map((p) =>
+                p.id === input.productId
+                  ? touchStock(p, p.stock - input.qty)
+                  : p,
+              )
+
+        const priceLabel =
+          pricingMode === 'percent'
+            ? `${sale.unitPrice}% of ${sale.qty}`
+            : `$${sale.unitPrice}`
 
         return {
           ...s,
           sales: [sale, ...s.sales],
-          products: s.products.map((p) =>
-            p.id === input.productId
-              ? touchStock(p, p.stock - input.qty)
-              : p,
-          ),
+          products,
           auditLogs: pushAudit(s.auditLogs, {
             actorId: input.employeeId,
             actorName: nameOf(s, input.employeeId),
             action: 'create',
             entity: 'sale',
             entityId: sale.id,
-            summary: `Sale ${sale.qty}× ${sale.productName} @ $${sale.unitPrice}`,
+            summary: `Sale ${sale.productName} · ${priceLabel}${kind === 'external' ? ' (external)' : ''}`,
           }),
         }
       })

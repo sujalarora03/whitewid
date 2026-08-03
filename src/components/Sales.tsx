@@ -1,8 +1,19 @@
 import { useMemo, useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import type { StoreApi } from '../hooks/useStore'
-import { postToDiscord, saleEmbed } from '../lib/discord'
+import {
+  costAlertEmbed,
+  costAlertWebhookUrl,
+  postToDiscord,
+  saleEmbed,
+} from '../lib/discord'
 import { canDeleteRecord, type ActorCtx } from '../lib/permissions'
+import {
+  formatSellRange,
+  guideForProduct,
+  minSellForSale,
+  tierForQty,
+} from '../data/priceGuide'
 import {
   formatDate,
   money,
@@ -10,6 +21,7 @@ import {
   saleProfit,
   saleRevenue,
 } from '../lib/utils'
+import { CostInfo } from './CostInfo'
 
 export function Sales({
   store,
@@ -22,6 +34,10 @@ export function Sales({
 }) {
   const { state, addSale, removeSale } = store
   const activeEmps = state.employees.filter((e) => e.active)
+  const inventoryProducts = state.products.filter(
+    (p) => (p.kind ?? 'inventory') !== 'external',
+  )
+  const externalProducts = state.products.filter((p) => p.kind === 'external')
   const [employeeId, setEmployeeId] = useState(
     lockedEmployeeId || activeEmps[0]?.id || '',
   )
@@ -34,22 +50,46 @@ export function Sales({
   const [discordMsg, setDiscordMsg] = useState<string | null>(null)
 
   const effectiveEmployeeId = lockedEmployeeId || employeeId
-
   const product = state.products.find((p) => p.id === productId)
   const rate = state.settings.commissionRate
+  const pricingMode = product?.pricingMode ?? 'unit'
+  const isExternal = product?.kind === 'external'
+  const guide = product ? guideForProduct(product.id) : undefined
+  const floor = product ? minSellForSale(product.id, qty) : null
+  const underFloor = floor != null && unitPrice < floor.min
 
   const preview = useMemo(() => {
+    const unitCost = product?.cost ?? 0
+    if (pricingMode === 'percent') {
+      const revenue = (qty * unitPrice) / 100
+      const cost = (qty * unitCost) / 100
+      const profit = revenue - cost
+      const commission = Math.max(0, profit) * rate
+      return { revenue, cost, profit, commission, net: profit - commission }
+    }
     const revenue = unitPrice * qty
-    const cost = (product?.cost ?? 0) * qty
+    const cost = unitCost * qty
     const profit = revenue - cost
     const commission = Math.max(0, profit) * rate
     return { revenue, cost, profit, commission, net: profit - commission }
-  }, [unitPrice, qty, product, rate])
+  }, [unitPrice, qty, product, rate, pricingMode])
 
   function onProductChange(id: string) {
     setProductId(id)
     const p = state.products.find((x) => x.id === id)
-    if (p) setUnitPrice(p.salePrice || p.cost || 0)
+    if (!p) return
+    const g = guideForProduct(p.id)
+    const tier = g ? tierForQty(g, qty) : undefined
+    if (tier) {
+      setUnitPrice(tier.sellMin)
+    } else {
+      setUnitPrice(p.salePrice || p.cost || 0)
+    }
+  }
+
+  function onQtyChange(next: number) {
+    const q = Math.max(1, next)
+    setQty(q)
   }
 
   async function submit(e: React.FormEvent) {
@@ -66,16 +106,14 @@ export function Sales({
       note: note || undefined,
     })
 
+    const messages: string[] = []
+
     if (
       state.settings.discordPostSales &&
       state.settings.discordWebhookUrl.trim() &&
       emp &&
       prod
     ) {
-      const revenue = unitPrice * qty
-      const cost = (prod.cost ?? 0) * qty
-      const profit = revenue - cost
-      const commission = Math.max(0, profit) * rate
       const result = await postToDiscord(
         state.settings.discordWebhookUrl,
         saleEmbed({
@@ -83,22 +121,51 @@ export function Sales({
           employeeName: emp.name,
           productName: prod.name,
           qty,
-          revenue,
-          profit,
-          commission,
+          revenue: preview.revenue,
+          profit: preview.profit,
+          commission: preview.commission,
           note: note || undefined,
         }),
       )
-      setDiscordMsg(
+      messages.push(
         result.ok ? 'Posted to Discord' : `Discord: ${result.error}`,
       )
-    } else {
-      setDiscordMsg(null)
     }
 
+    const alertUrl = costAlertWebhookUrl(state.settings)
+    if (underFloor && floor && alertUrl && emp && prod) {
+      const alert = await postToDiscord(
+        alertUrl,
+        costAlertEmbed({
+          businessName: state.settings.businessName,
+          employeeName: emp.name,
+          productName: prod.name,
+          qty,
+          unitPrice,
+          floor: floor.min,
+          mode: floor.mode,
+          revenue: preview.revenue,
+          note: note || undefined,
+        }),
+      )
+      messages.push(
+        alert.ok
+          ? 'Cost alert posted'
+          : `Cost alert failed: ${alert.error}`,
+      )
+    } else if (underFloor && !alertUrl) {
+      messages.push('Under floor — set Cost alert webhook in Prices')
+    }
+
+    setDiscordMsg(messages.length ? messages.join(' · ') : null)
     setNote('')
     setQty(1)
   }
+
+  const suggested =
+    guide && tierForQty(guide, qty)
+      ? formatSellRange(tierForQty(guide, qty)!, guide.pricingMode)
+      : null
 
   return (
     <div className="stack">
@@ -138,37 +205,54 @@ export function Sales({
               )}
             </label>
             <label className="field grow">
-              <span>Product</span>
+              <span>Product / service</span>
               <select
                 value={productId}
                 onChange={(e) => onProductChange(e.target.value)}
                 required
               >
-                {state.products.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
+                <optgroup label="Shop stock">
+                  {inventoryProducts.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                      {p.stock != null ? ` · stock ${p.stock}` : ''}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="External">
+                  {externalProducts.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </optgroup>
               </select>
             </label>
           </div>
           <div className="form-row">
             <label className="field">
-              <span>Qty</span>
+              <span>
+                {pricingMode === 'percent' ? 'Amount (principal $)' : 'Qty'}
+              </span>
               <input
                 type="number"
                 min={1}
                 value={qty}
                 onChange={(e) =>
-                  setQty(Math.max(1, Number(e.target.value) || 1))
+                  onQtyChange(Math.max(1, Number(e.target.value) || 1))
                 }
               />
             </label>
             <label className="field">
-              <span>Unit price</span>
+              <span>
+                {pricingMode === 'percent'
+                  ? 'Fee to customer (%)'
+                  : 'Unit price ($)'}
+              </span>
               <input
                 type="number"
                 min={0}
+                step={pricingMode === 'percent' ? 0.1 : 1}
                 value={unitPrice}
                 onChange={(e) => setUnitPrice(Number(e.target.value) || 0)}
               />
@@ -184,13 +268,39 @@ export function Sales({
             </label>
           </div>
 
+          {isExternal && (
+            <p className="muted panel-intro">
+              External service — does not change finished product stock.
+              {pricingMode === 'percent'
+                ? ' Enter the money amount and the % fee charged to the customer (our cost is 2%).'
+                : ''}
+            </p>
+          )}
+
+          {suggested && (
+            <p className="muted panel-intro">
+              Baseline for this qty: sell {suggested}
+              {floor ? ` · floor ${floor.min}${floor.mode === 'percent' ? '%' : ''}` : ''}
+            </p>
+          )}
+
+          {underFloor && (
+            <p className="muted panel-intro" style={{ color: '#c0392b' }}>
+              Under floor ({floor!.min}
+              {floor!.mode === 'percent' ? '%' : ''}) — sale still saves, and a
+              cost alert will post if that webhook is set.
+            </p>
+          )}
+
           <div className="preview-grid">
             <div>
               <span className="muted">Revenue</span>
               <strong>{money(preview.revenue)}</strong>
             </div>
             <div>
-              <span className="muted">Material cost</span>
+              <span className="muted">
+                {pricingMode === 'percent' ? 'Our cost (2%)' : 'Material cost'}
+              </span>
               <strong>{money(preview.cost)}</strong>
             </div>
             <div>
@@ -219,6 +329,8 @@ export function Sales({
           </div>
         </form>
       </section>
+
+      <CostInfo />
 
       <section className="panel">
         <header className="panel-head">
@@ -250,11 +362,22 @@ export function Sales({
                       <td>{emp?.name ?? '—'}</td>
                       <td>
                         {s.productName}
+                        {s.kind === 'external' ? (
+                          <span className="note-tag"> · external</span>
+                        ) : null}
+                        {s.pricingMode === 'percent' ? (
+                          <span className="note-tag">
+                            {' '}
+                            · {s.unitPrice}% of {money(s.qty)}
+                          </span>
+                        ) : null}
                         {s.note ? (
                           <span className="note-tag"> · {s.note}</span>
                         ) : null}
                       </td>
-                      <td>{s.qty}</td>
+                      <td>
+                        {s.pricingMode === 'percent' ? money(s.qty) : s.qty}
+                      </td>
                       <td>{money(saleRevenue(s))}</td>
                       <td>{money(saleProfit(s))}</td>
                       <td>{money(saleCommission(s, rate))}</td>

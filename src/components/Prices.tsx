@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { StoreApi } from '../hooks/useStore'
 import type { ActorCtx } from '../lib/permissions'
 import { DiscordPanel } from './DiscordPanel'
+import { CostInfo } from './CostInfo'
 import { money, pct } from '../lib/utils'
 
 export function Prices({
@@ -79,6 +80,8 @@ export function Prices({
       </section>
 
       <DiscordPanel store={store} />
+
+      <CostInfo />
 
       <section className="panel">
         <header className="panel-head">
