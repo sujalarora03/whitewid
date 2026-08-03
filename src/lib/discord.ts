@@ -77,6 +77,11 @@ export function saleEmbed(input: {
                 },
               ]
             : []),
+          {
+            name: 'Full inventory',
+            value: `[Live stock](${inventoryPublicUrl()})`,
+            inline: true,
+          },
           ...(input.note
             ? [{ name: 'Note', value: input.note, inline: true }]
             : []),
@@ -268,6 +273,10 @@ export function craftLogEmbed(input: {
           ...(matLines
             ? [{ name: 'Raw materials left', value: matLines }]
             : []),
+          {
+            name: 'Full inventory',
+            value: `[Live stock](${inventoryPublicUrl()})`,
+          },
         ],
         timestamp: new Date().toISOString(),
       },
@@ -445,10 +454,20 @@ export function alertsWebhookUrl(settings: AppSettings): string {
   )
 }
 
+/** Public live-inventory URL (no Discord bot / developer key). */
+export function inventoryPublicUrl(origin?: string): string {
+  if (origin) return `${origin.replace(/\/$/, '')}/inv`
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return `${window.location.origin}/inv`
+  }
+  return 'https://white-widow-manager.incandescent-impatiens.workers.dev/inv'
+}
+
 export function inventorySnapshotEmbed(
   businessName: string,
   materials: { name: string; stock: number }[],
   crafted: { name: string; stock: number }[],
+  liveUrl?: string,
 ): DiscordPayload {
   const mats = materials
     .filter((m) => m.stock > 0)
@@ -460,9 +479,10 @@ export function inventorySnapshotEmbed(
     .join('\n')
   const matsAll = materials.map((m) => `• **${m.name}** — ${m.stock}`).join('\n')
   const finsAll = crafted.map((p) => `• **${p.name}** — ${p.stock}`).join('\n')
+  const link = liveUrl || inventoryPublicUrl()
 
   return {
-    content: `📦 **${businessName} inventory**`,
+    content: `📦 **${businessName} inventory**\nLive link (no bot key): ${link}`,
     embeds: [
       {
         title: `${businessName} · Inventory`,
@@ -476,8 +496,14 @@ export function inventorySnapshotEmbed(
             name: 'Crafted / finished',
             value: (fins || finsAll || '_Empty_').slice(0, 1000),
           },
+          {
+            name: 'Always up to date',
+            value: `[Open live inventory](${link})`,
+          },
         ],
-        footer: { text: 'Ask with /inventory in Discord · or Post inventory in Stock' },
+        footer: {
+          text: 'Pin this link in Discord — refresh anytime, no /command needed',
+        },
         timestamp: new Date().toISOString(),
       },
     ],

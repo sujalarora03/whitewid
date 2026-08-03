@@ -3,6 +3,7 @@ import { Package, ShoppingBag, Trash2, Send } from 'lucide-react'
 import type { StoreApi } from '../hooks/useStore'
 import {
   alertsWebhookUrl,
+  inventoryPublicUrl,
   inventorySnapshotEmbed,
   materialPurchaseEmbed,
   postToDiscord,
@@ -42,6 +43,7 @@ export function Inventory({
   const [discordMsg, setDiscordMsg] = useState<string | null>(null)
   const [invMsg, setInvMsg] = useState<string | null>(null)
   const [invBusy, setInvBusy] = useState(false)
+  const liveInvUrl = inventoryPublicUrl()
 
   const effectiveBuyerId = lockedEmployeeId || buyerId
 
@@ -65,6 +67,7 @@ export function Inventory({
           name: p.name,
           stock: p.stock,
         })),
+        liveInvUrl,
       ),
     )
     setInvBusy(false)
@@ -73,6 +76,15 @@ export function Inventory({
         ? 'Full inventory posted to Discord'
         : `Discord: ${result.error}`,
     )
+  }
+
+  async function copyLiveLink() {
+    try {
+      await navigator.clipboard.writeText(liveInvUrl)
+      setInvMsg('Live inventory link copied — pin it in Discord')
+    } catch {
+      setInvMsg(liveInvUrl)
+    }
   }
 
   function onMaterialChange(id: string) {
@@ -136,18 +148,29 @@ export function Inventory({
         </header>
         <p className="muted panel-intro">
           Business crafts <strong>add</strong> finished stock. Sales{' '}
-          <strong>deduct</strong> finished stock. Material purchases add raw
-          mats; crafts with deduct ON lower raw mats. Post the live snapshot to
-          Discord, or use <strong>/inventory</strong> there after setup.
+          <strong>deduct</strong> finished stock. Share the live link in Discord
+          — anyone can open it (no bot / developer key). Or post a snapshot
+          below.
         </p>
+        <label className="field">
+          <span>Live inventory link (pin in Discord)</span>
+          <input readOnly value={liveInvUrl} onFocus={(e) => e.target.select()} />
+        </label>
         <div className="actions">
+          <button
+            type="button"
+            className="btn"
+            onClick={() => void copyLiveLink()}
+          >
+            Copy live link
+          </button>
           <button
             type="button"
             className="btn discord"
             disabled={invBusy}
             onClick={() => void postInventory()}
           >
-            <Send size={16} /> Post inventory to Discord
+            <Send size={16} /> Post inventory snapshot
           </button>
           {invMsg && <span className="muted">{invMsg}</span>}
         </div>

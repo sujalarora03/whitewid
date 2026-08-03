@@ -131,7 +131,7 @@ Under **Prices** you can set Discord webhooks:
 3. **Resources channel** — Craft restock lists (falls back to main)
 4. **Cost alert channel** — under-floor sales
 
-**Inventory:** business crafts add finished stock; sales deduct it. **Stock → Post inventory** (or `/inventory` in Discord after bot setup) shows raw materials + crafted stock.
+**Inventory:** business crafts add finished stock; sales deduct it. Pin the live link **`/inv`** in Discord (no bot key) — or **Stock → Post inventory** / **Copy live link**.
 
 Top crafter counts **business crafts only** (personal crafts are excluded).
 

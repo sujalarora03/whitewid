@@ -6,6 +6,7 @@ import {
   alertsWebhookUrl,
   costAlertWebhookUrl,
   discordReady,
+  inventoryPublicUrl,
   inventorySnapshotEmbed,
   postToDiscord,
   resourcesDiscordReady,
@@ -106,6 +107,7 @@ export function DiscordPanel({ store }: { store: StoreApi }) {
           name: p.name,
           stock: p.stock,
         })),
+        inventoryPublicUrl(),
       ),
     )
     setBusy(false)
@@ -153,10 +155,16 @@ export function DiscordPanel({ store }: { store: StoreApi }) {
 
       <p className="muted panel-intro">
         Create webhooks in Discord: Channel settings → Integrations → Webhooks
-        → New Webhook → copy URL. Main = ops; Alerts = simple sale/craft +
-        inventory; Resources = restock; Cost alert = under-floor sales. For
-        live <strong>/inventory</strong> in Discord, see SETUP.md (bot
-        interactions).
+        → New Webhook → copy URL. Main = ops; Alerts = sale/craft + inventory;
+        Resources = restock; Cost alert = under-floor sales.
+      </p>
+      <p className="muted panel-intro">
+        Live inventory (no Discord developer key):{' '}
+        <a href={inventoryPublicUrl()} target="_blank" rel="noreferrer">
+          {inventoryPublicUrl()}
+        </a>
+        — pin that link in your channel. Discord cannot read chat without a
+        bot app; the link is the simple way.
       </p>
 
       <div className="form-stack">

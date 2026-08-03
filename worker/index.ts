@@ -1,6 +1,6 @@
 /**
  * White Widow API — Discord proxy + shared D1 state (merge-on-write)
- * + Discord slash-command interactions (/inventory).
+ * + public inventory page (/inv) and optional Discord slash commands.
  */
 
 import { mergeAppStates } from '../src/lib/mergeState'
@@ -33,6 +33,11 @@ export default {
 
     if (url.pathname === '/api/discord-interactions') {
       return handleDiscordInteractions(request, env)
+    }
+
+    if (url.pathname === '/api/inventory' || url.pathname === '/inv') {
+      const { handlePublicInventory } = await import('./publicInventory')
+      return handlePublicInventory(request, env)
     }
 
     if (url.pathname === '/api/state') {

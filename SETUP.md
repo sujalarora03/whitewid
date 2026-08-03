@@ -53,32 +53,21 @@ Then open the app once as Owner → **Crew → Load / reset crew roster**.
 ## C. Discord
 
 1. Channel ⚙ → Integrations → Webhooks → New Webhook → copy URL  
-2. App → **Prices** → paste into **Main channel** → **Test main**  
-3. (Optional) **Alerts channel** — simple sale/craft posts with stock left + inventory snapshots  
-4. (Optional) **Resources channel** — Craft restock requests  
-5. (Optional) **Cost alert channel** — under-floor sales  
+2. App → **Prices** → paste into **Main** / **Alerts** / etc. → Test  
 
-### Live `/inventory` in Discord (optional)
+### Live inventory — no developer key
 
-So anyone in the channel can type `/inventory` and get raw mats + crafted stock:
+Pin this link in your Discord channel (or Stock → Copy live link):
 
-1. [Discord Developer Portal](https://discord.com/developers/applications) → New Application → copy **Public Key**  
-2. After deploy: `npx wrangler secret put DISCORD_PUBLIC_KEY` (paste the public key)  
-3. Portal → General → **Interactions Endpoint URL**:  
-   `https://white-widow-manager.incandescent-impatiens.workers.dev/api/discord-interactions`  
-   → Save (Discord sends a PING; Worker must respond)  
-4. Register the slash command (once), with your App ID + Bot token:
+**https://white-widow-manager.incandescent-impatiens.workers.dev/inv**
 
-```bash
-curl -X POST "https://discord.com/api/v10/applications/YOUR_APP_ID/commands" \
-  -H "Authorization: Bot YOUR_BOT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"inventory","description":"Show White Widow raw materials and crafted stock","type":1}'
-```
+Anyone who opens it sees raw materials + crafted stock. Sale/craft alerts also include this link. Discord cannot read “inventory” chat messages without a bot app — the link is the simple way.
 
-5. Invite the bot to your server (OAuth2 → URL Generator → `applications.commands` scope).
+Optional plain text: `…/inv?format=text` · JSON: `…/inv?format=json`
 
-Without the bot, use **Stock → Post inventory to Discord** or **Prices → Post inventory**.
+### Optional: `/inventory` slash command (needs Discord Developer Portal)
+
+Only if you want a Discord `/` command. Requires Public Key secret + bot invite — see older notes in repo history / ask if you need it. Not required for the live link above.
 
 ---
 
