@@ -54,8 +54,31 @@ Then open the app once as Owner → **Crew → Load / reset crew roster**.
 
 1. Channel ⚙ → Integrations → Webhooks → New Webhook → copy URL  
 2. App → **Prices** → paste into **Main channel** → **Test main**  
-3. (Optional) Repeat for a second channel used for material restock requests → paste into **Resources channel** → **Test resources**  
-   Craft → **Request resources on Discord** posts there.
+3. (Optional) **Alerts channel** — simple sale/craft posts with stock left + inventory snapshots  
+4. (Optional) **Resources channel** — Craft restock requests  
+5. (Optional) **Cost alert channel** — under-floor sales  
+
+### Live `/inventory` in Discord (optional)
+
+So anyone in the channel can type `/inventory` and get raw mats + crafted stock:
+
+1. [Discord Developer Portal](https://discord.com/developers/applications) → New Application → copy **Public Key**  
+2. After deploy: `npx wrangler secret put DISCORD_PUBLIC_KEY` (paste the public key)  
+3. Portal → General → **Interactions Endpoint URL**:  
+   `https://white-widow-manager.incandescent-impatiens.workers.dev/api/discord-interactions`  
+   → Save (Discord sends a PING; Worker must respond)  
+4. Register the slash command (once), with your App ID + Bot token:
+
+```bash
+curl -X POST "https://discord.com/api/v10/applications/YOUR_APP_ID/commands" \
+  -H "Authorization: Bot YOUR_BOT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"inventory","description":"Show White Widow raw materials and crafted stock","type":1}'
+```
+
+5. Invite the bot to your server (OAuth2 → URL Generator → `applications.commands` scope).
+
+Without the bot, use **Stock → Post inventory to Discord** or **Prices → Post inventory**.
 
 ---
 

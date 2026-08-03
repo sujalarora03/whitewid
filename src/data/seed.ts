@@ -12,6 +12,7 @@ export const defaultState = (): AppState => ({
     discordWebhookUrl: '',
     discordResourcesWebhookUrl: '',
     discordCostAlertWebhookUrl: '',
+    discordAlertsWebhookUrl: '',
     discordPostSales: true,
     discordPostBonuses: true,
     discordPostCrafts: true,

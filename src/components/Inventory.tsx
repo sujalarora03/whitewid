@@ -1,8 +1,17 @@
 import { useState } from 'react'
-import { ShoppingBag, Trash2 } from 'lucide-react'
+import { Package, ShoppingBag, Trash2, Send } from 'lucide-react'
 import type { StoreApi } from '../hooks/useStore'
-import { materialPurchaseEmbed, postToDiscord } from '../lib/discord'
+import {
+  alertsWebhookUrl,
+  inventorySnapshotEmbed,
+  materialPurchaseEmbed,
+  postToDiscord,
+} from '../lib/discord'
 import { canDeleteRecord, type ActorCtx } from '../lib/permissions'
+import {
+  craftedStockLines,
+  materialStockLines,
+} from '../lib/inventory'
 import { formatDate, money } from '../lib/utils'
 
 export function Inventory({
@@ -31,8 +40,40 @@ export function Inventory({
   const [totalPaid, setTotalPaid] = useState(state.materials[0]?.cost ?? 0)
   const [note, setNote] = useState('')
   const [discordMsg, setDiscordMsg] = useState<string | null>(null)
+  const [invMsg, setInvMsg] = useState<string | null>(null)
+  const [invBusy, setInvBusy] = useState(false)
 
   const effectiveBuyerId = lockedEmployeeId || buyerId
+
+  async function postInventory() {
+    const hook = alertsWebhookUrl(state.settings)
+    if (!hook) {
+      setInvMsg('Set Alerts or Main Discord webhook under Prices first.')
+      return
+    }
+    setInvBusy(true)
+    setInvMsg(null)
+    const result = await postToDiscord(
+      hook,
+      inventorySnapshotEmbed(
+        state.settings.businessName,
+        materialStockLines(state).map((m) => ({
+          name: m.name,
+          stock: m.stock,
+        })),
+        craftedStockLines(state).map((p) => ({
+          name: p.name,
+          stock: p.stock,
+        })),
+      ),
+    )
+    setInvBusy(false)
+    setInvMsg(
+      result.ok
+        ? 'Full inventory posted to Discord'
+        : `Discord: ${result.error}`,
+    )
+  }
 
   function onMaterialChange(id: string) {
     setMaterialId(id)
@@ -87,6 +128,31 @@ export function Inventory({
 
   return (
     <div className="stack">
+      <section className="panel">
+        <header className="panel-head">
+          <h3>
+            <Package size={16} /> Inventory balances
+          </h3>
+        </header>
+        <p className="muted panel-intro">
+          Business crafts <strong>add</strong> finished stock. Sales{' '}
+          <strong>deduct</strong> finished stock. Material purchases add raw
+          mats; crafts with deduct ON lower raw mats. Post the live snapshot to
+          Discord, or use <strong>/inventory</strong> there after setup.
+        </p>
+        <div className="actions">
+          <button
+            type="button"
+            className="btn discord"
+            disabled={invBusy}
+            onClick={() => void postInventory()}
+          >
+            <Send size={16} /> Post inventory to Discord
+          </button>
+          {invMsg && <span className="muted">{invMsg}</span>}
+        </div>
+      </section>
+
       <section className="panel">
         <header className="panel-head">
           <h3>

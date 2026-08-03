@@ -194,8 +194,10 @@ export interface AppSettings {
   discordWebhookUrl: string
   /** Separate Discord channel for material / restock resource requests */
   discordResourcesWebhookUrl: string
-  /** Discord channel for sales under the baseline floor (cost alerts) */
+  /** Discord channel for under-floor sales (cost alerts) */
   discordCostAlertWebhookUrl: string
+  /** Optional channel for simple sale/craft alerts + inventory pings (falls back to main) */
+  discordAlertsWebhookUrl: string
   discordPostSales: boolean
   discordPostBonuses: boolean
   discordPostCrafts: boolean

@@ -53,8 +53,11 @@ export function saleEmbed(input: {
   profit: number
   commission: number
   note?: string
+  /** Finished stock left after this sale (inventory products) */
+  stockAfter?: number | null
 }): DiscordPayload {
   return {
+    content: `🧾 **Sale** — ${input.qty}× ${input.productName} by ${input.employeeName}`,
     embeds: [
       {
         title: `${input.businessName} · Sale`,
@@ -65,6 +68,15 @@ export function saleEmbed(input: {
           { name: 'Revenue', value: money(input.revenue), inline: true },
           { name: 'Profit', value: money(input.profit), inline: true },
           { name: 'Commission', value: money(input.commission), inline: true },
+          ...(input.stockAfter != null
+            ? [
+                {
+                  name: 'Inventory left',
+                  value: `${input.stockAfter}× ${input.productName}`,
+                  inline: true,
+                },
+              ]
+            : []),
           ...(input.note
             ? [{ name: 'Note', value: input.note, inline: true }]
             : []),
@@ -210,8 +222,19 @@ export function craftLogEmbed(input: {
   qty: number
   totalCost: number
   personal?: boolean
+  /** Finished stock after this business craft */
+  finishedStockAfter?: number | null
+  /** Material balances after deduct */
+  matsAfter?: { name: string; after: number }[]
 }): DiscordPayload {
+  const matLines =
+    input.matsAfter && input.matsAfter.length > 0
+      ? input.matsAfter.map((m) => `• ${m.name} — ${m.after} left`).join('\n')
+      : null
   return {
+    content: input.personal
+      ? `🧪 **Personal craft** — ${input.qty}× ${input.recipeName} by ${input.employeeName}`
+      : `🧪 **Craft** — ${input.qty}× ${input.recipeName} by ${input.employeeName}`,
     embeds: [
       {
         title: input.personal
@@ -219,7 +242,7 @@ export function craftLogEmbed(input: {
           : `${input.businessName} · Craft logged`,
         description: input.personal
           ? 'Crafted for themselves — not business stock / not a sale'
-          : 'Production only — not a material purchase',
+          : 'Production added to finished inventory (business)',
         color: GREEN,
         fields: [
           { name: 'Who crafted', value: input.employeeName, inline: true },
@@ -233,6 +256,18 @@ export function craftLogEmbed(input: {
             value: money(input.totalCost),
             inline: true,
           },
+          ...(input.finishedStockAfter != null
+            ? [
+                {
+                  name: 'Finished stock now',
+                  value: `${input.finishedStockAfter}× ${input.recipeName}`,
+                  inline: true,
+                },
+              ]
+            : []),
+          ...(matLines
+            ? [{ name: 'Raw materials left', value: matLines }]
+            : []),
         ],
         timestamp: new Date().toISOString(),
       },
@@ -399,6 +434,54 @@ export function resourcesDiscordReady(settings: AppSettings): boolean {
 /** Cost-alert channel — no fallback (only posts when dedicated webhook is set). */
 export function costAlertWebhookUrl(settings: AppSettings): string {
   return settings.discordCostAlertWebhookUrl?.trim() || ''
+}
+
+/** Simple sale/craft alerts + inventory posts (falls back to main). */
+export function alertsWebhookUrl(settings: AppSettings): string {
+  return (
+    settings.discordAlertsWebhookUrl?.trim() ||
+    settings.discordWebhookUrl?.trim() ||
+    ''
+  )
+}
+
+export function inventorySnapshotEmbed(
+  businessName: string,
+  materials: { name: string; stock: number }[],
+  crafted: { name: string; stock: number }[],
+): DiscordPayload {
+  const mats = materials
+    .filter((m) => m.stock > 0)
+    .map((m) => `• **${m.name}** — ${m.stock}`)
+    .join('\n')
+  const fins = crafted
+    .filter((p) => p.stock > 0)
+    .map((p) => `• **${p.name}** — ${p.stock}`)
+    .join('\n')
+  const matsAll = materials.map((m) => `• **${m.name}** — ${m.stock}`).join('\n')
+  const finsAll = crafted.map((p) => `• **${p.name}** — ${p.stock}`).join('\n')
+
+  return {
+    content: `📦 **${businessName} inventory**`,
+    embeds: [
+      {
+        title: `${businessName} · Inventory`,
+        color: 0x5dade2,
+        fields: [
+          {
+            name: 'Raw materials',
+            value: (mats || matsAll || '_Empty_').slice(0, 1000),
+          },
+          {
+            name: 'Crafted / finished',
+            value: (fins || finsAll || '_Empty_').slice(0, 1000),
+          },
+        ],
+        footer: { text: 'Ask with /inventory in Discord · or Post inventory in Stock' },
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  }
 }
 
 export function costAlertEmbed(input: {

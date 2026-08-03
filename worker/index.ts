@@ -1,17 +1,21 @@
 /**
- * White Widow API — Discord proxy + shared D1 state (merge-on-write).
+ * White Widow API — Discord proxy + shared D1 state (merge-on-write)
+ * + Discord slash-command interactions (/inventory).
  */
 
 import { mergeAppStates } from '../src/lib/mergeState'
 import type { AppState } from '../src/types'
+import { handleDiscordInteractions } from './discordInteractions'
 
 export interface Env {
   DB: D1Database
+  /** Discord Application Public Key for /api/discord-interactions */
+  DISCORD_PUBLIC_KEY?: string
 }
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, X-Signature-Ed25519, X-Signature-Timestamp',
   'Access-Control-Allow-Methods': 'GET, PUT, POST, OPTIONS',
 }
 
@@ -27,13 +31,22 @@ export default {
       return handleDiscord(request)
     }
 
+    if (url.pathname === '/api/discord-interactions') {
+      return handleDiscordInteractions(request, env)
+    }
+
     if (url.pathname === '/api/state') {
       return handleState(request, env)
     }
 
     if (url.pathname === '/api/health') {
       return Response.json(
-        { ok: true, db: Boolean(env.DB), owner: 'Pablo the II Escobar' },
+        {
+          ok: true,
+          db: Boolean(env.DB),
+          owner: 'Pablo the II Escobar',
+          inventoryCommand: Boolean(env.DISCORD_PUBLIC_KEY),
+        },
         { headers: cors },
       )
     }

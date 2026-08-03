@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import type { StoreApi } from '../hooks/useStore'
 import {
+  alertsWebhookUrl,
   costAlertEmbed,
   costAlertWebhookUrl,
   postToDiscord,
@@ -64,6 +65,11 @@ export function Sales({
   const skipCostAlert = dealType !== 'normal'
   const underFloor =
     !skipCostAlert && floor != null && unitPrice < floor.min
+  const stockShort =
+    Boolean(product) &&
+    (product!.kind ?? 'inventory') !== 'external' &&
+    pricingMode === 'unit' &&
+    qty > (product?.stock ?? 0)
 
   const liveUnitCost = useMemo(() => {
     if (!product) return 0
@@ -156,15 +162,20 @@ export function Sales({
     })
 
     const messages: string[] = []
+    const isInvProduct = prod && (prod.kind ?? 'inventory') !== 'external'
+    const stockAfter = isInvProduct
+      ? Math.max(0, (prod?.stock ?? 0) - qty)
+      : null
 
+    const alertHook = alertsWebhookUrl(state.settings)
     if (
       state.settings.discordPostSales &&
-      state.settings.discordWebhookUrl.trim() &&
+      alertHook &&
       emp &&
       prod
     ) {
       const result = await postToDiscord(
-        state.settings.discordWebhookUrl,
+        alertHook,
         saleEmbed({
           businessName: state.settings.businessName,
           employeeName: emp.name,
@@ -173,6 +184,7 @@ export function Sales({
           revenue: preview.revenue,
           profit: preview.profit,
           commission: preview.commission,
+          stockAfter,
           note:
             [
               note || undefined,
@@ -187,7 +199,11 @@ export function Sales({
         }),
       )
       messages.push(
-        result.ok ? 'Posted to Discord' : `Discord: ${result.error}`,
+        result.ok
+          ? stockAfter != null
+            ? `Posted · ${prod.name} left: ${stockAfter}`
+            : 'Posted to Discord'
+          : `Discord: ${result.error}`,
       )
     }
 
@@ -372,6 +388,13 @@ export function Sales({
             <p className="muted panel-intro">
               Baseline for this qty: sell {suggested}
               {floor ? ` · floor ${floor.min}${floor.mode === 'percent' ? '%' : ''}` : ''}
+            </p>
+          )}
+
+          {stockShort && (
+            <p className="muted panel-intro" style={{ color: '#c0392b' }}>
+              Only {product?.stock ?? 0} in finished stock — sale will floor at
+              0. Craft more first, or lower qty.
             </p>
           )}
 

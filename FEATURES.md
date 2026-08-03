@@ -99,9 +99,12 @@ Business inventory + **material purchases** (separate from crafting).
 
 | Action | Meaning |
 |---|---|
-| Log material purchase | Who bought mats from the store for the business; stock goes up |
+| Business craft | **Finished** stock goes **up** by craft qty |
+| Sale (shop item) | **Finished** stock goes **down** by sale qty |
+| Log material purchase | Raw mats stock goes up |
+| Craft with deduct ON | Raw mats stock goes down |
 | Edit material / product stock | Manual correction |
-| Finished products | Seeds, cigarettes, supplies available to sell/craft |
+| Post inventory / `/inventory` | Snapshot of raw mats + crafted to Discord |
 
 Buyer can be **Pablo the II Escobar** (owner) or an employee.
 
@@ -122,14 +125,15 @@ Sidebar **Audit** shows who created/deleted sales, crafts, stash clears, mat buy
 ---
 
 ## Discord
-Under **Prices** you can set **three** Discord webhooks:
+Under **Prices** you can set Discord webhooks:
 1. **Main channel** — sales, bonuses, crafts, stash, material buys, weekly report
-2. **Resources channel** — Craft “Request resources” restock lists (falls back to main if empty)
-3. **Cost alert channel** — fires when a sale is under the Cost Info floor
+2. **Alerts channel** — simple sale/craft alerts **with inventory left** after each action (falls back to main)
+3. **Resources channel** — Craft restock lists (falls back to main)
+4. **Cost alert channel** — under-floor sales
 
-Paste each channel’s webhook URL and use **Test main** / **Test resources** / **Test cost alert**.
+**Inventory:** business crafts add finished stock; sales deduct it. **Stock → Post inventory** (or `/inventory` in Discord after bot setup) shows raw materials + crafted stock.
 
-Top crafter on the Dashboard counts **business crafts only** (personal crafts are excluded).
+Top crafter counts **business crafts only** (personal crafts are excluded).
 
 ---
 

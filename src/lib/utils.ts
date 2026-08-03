@@ -19,6 +19,9 @@ export function loadState(): AppState {
         discordCostAlertWebhookUrl:
           parsed.settings?.discordCostAlertWebhookUrl ??
           base.settings.discordCostAlertWebhookUrl,
+        discordAlertsWebhookUrl:
+          parsed.settings?.discordAlertsWebhookUrl ??
+          base.settings.discordAlertsWebhookUrl,
       },
       materials: parsed.materials ?? base.materials,
       recipes: parsed.recipes ?? base.recipes,

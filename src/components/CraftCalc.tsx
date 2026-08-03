@@ -3,12 +3,17 @@ import { Calculator, ShoppingCart, Send, Trash2, UserRound } from 'lucide-react'
 import type { StoreApi } from '../hooks/useStore'
 import { recipeUnitCost } from '../data/seed'
 import {
+  alertsWebhookUrl,
   craftLogEmbed,
   craftRestockEmbed,
   postToDiscord,
   resourcesWebhookUrl,
 } from '../lib/discord'
 import { canDeleteRecord, type ActorCtx } from '../lib/permissions'
+import {
+  finishedStockAfterCraft,
+  materialStockAfterCraft,
+} from '../lib/inventory'
 import { formatDate, money } from '../lib/utils'
 
 export function CraftCalc({
@@ -93,21 +98,32 @@ export function CraftCalc({
       purpose: personal ? 'personal' : 'business',
     })
 
+    const finished = finishedStockAfterCraft(
+      state,
+      recipe.id,
+      qty,
+      personal,
+    )
+    const matsAfter = materialStockAfterCraft(
+      state.materials,
+      recipe.id,
+      qty,
+      state.recipes,
+      deductStock,
+    )
+
     const stockSummary = personal
       ? deductStock
         ? 'Personal craft logged — business mats reduced; finished stock unchanged'
         : 'Personal craft logged — no stock changes'
       : deductStock
-        ? `Craft logged — mats deducted · finished stock +${qty}× ${recipe.name}`
-        : `Craft logged — finished stock +${qty}× ${recipe.name} (mats not deducted)`
+        ? `Craft logged — mats deducted · finished stock now ${finished?.after ?? '—'}× ${recipe.name}`
+        : `Craft logged — finished stock now ${finished?.after ?? '—'}× ${recipe.name} (mats not deducted)`
 
-    if (
-      state.settings.discordPostCrafts &&
-      state.settings.discordWebhookUrl.trim() &&
-      emp
-    ) {
+    const alertHook = alertsWebhookUrl(state.settings)
+    if (state.settings.discordPostCrafts && alertHook && emp) {
       const result = await postToDiscord(
-        state.settings.discordWebhookUrl,
+        alertHook,
         craftLogEmbed({
           businessName: state.settings.businessName,
           employeeName: emp.name,
@@ -115,10 +131,14 @@ export function CraftCalc({
           qty,
           totalCost,
           personal,
+          finishedStockAfter: finished?.after ?? null,
+          matsAfter: matsAfter.map((m) => ({ name: m.name, after: m.after })),
         }),
       )
       setDiscordMsg(
-        result.ok ? `${stockSummary} · Discord ok` : `${stockSummary} · Discord: ${result.error}`,
+        result.ok
+          ? `${stockSummary} · Discord ok`
+          : `${stockSummary} · Discord: ${result.error}`,
       )
     } else {
       setDiscordMsg(stockSummary)
