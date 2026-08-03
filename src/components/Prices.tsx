@@ -1,9 +1,16 @@
 import { useState } from 'react'
 import type { StoreApi } from '../hooks/useStore'
+import type { ActorCtx } from '../lib/permissions'
 import { DiscordPanel } from './DiscordPanel'
 import { money, pct } from '../lib/utils'
 
-export function Prices({ store }: { store: StoreApi }) {
+export function Prices({
+  store,
+  actor,
+}: {
+  store: StoreApi
+  actor: ActorCtx
+}) {
   const {
     state,
     setMaterialCost,
@@ -168,7 +175,7 @@ export function Prices({ store }: { store: StoreApi }) {
                 'Reset all local data to defaults? This cannot be undone.',
               )
             ) {
-              hardReset()
+              hardReset(actor)
             }
           }}
         >

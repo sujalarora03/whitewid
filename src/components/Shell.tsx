@@ -12,6 +12,7 @@ import {
   UserRound,
   HandHeart,
   ClipboardList,
+  ScrollText,
 } from 'lucide-react'
 
 const OWNER_NAV: { id: TabId; label: string; icon: typeof LayoutDashboard }[] =
@@ -24,6 +25,7 @@ const OWNER_NAV: { id: TabId; label: string; icon: typeof LayoutDashboard }[] =
     { id: 'orders', label: 'Orders', icon: ClipboardList },
     { id: 'employees', label: 'Crew', icon: Users },
     { id: 'inventory', label: 'Stock', icon: Package },
+    { id: 'audit', label: 'Audit', icon: ScrollText },
     { id: 'prices', label: 'Prices', icon: Tags },
   ]
 

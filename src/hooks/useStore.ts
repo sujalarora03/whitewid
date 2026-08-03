@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type {
   AppState,
+  AuditEntry,
   Bonus,
   CraftLog,
   Employee,
@@ -16,7 +17,13 @@ import type {
 import { defaultState, recipeUnitCost } from '../data/seed'
 import { fetchCloudState, saveCloudState, type SyncStatus } from '../lib/cloud'
 import { markDeleted, mergeAppStates } from '../lib/mergeState'
+import {
+  canDeleteRecord,
+  type ActorCtx,
+} from '../lib/permissions'
 import { loadState, saveState, uid } from '../lib/utils'
+
+const AUDIT_CAP = 400
 
 function touchStock<T extends { stock: number; stockUpdatedAt?: string }>(
   row: T,
@@ -27,6 +34,23 @@ function touchStock<T extends { stock: number; stockUpdatedAt?: string }>(
     stock: Math.max(0, stock),
     stockUpdatedAt: new Date().toISOString(),
   }
+}
+
+function pushAudit(
+  logs: AuditEntry[] | undefined,
+  entry: Omit<AuditEntry, 'id' | 'at'>,
+): AuditEntry[] {
+  const row: AuditEntry = {
+    id: uid('aud'),
+    at: new Date().toISOString(),
+    ...entry,
+  }
+  return [row, ...(logs ?? [])].slice(0, AUDIT_CAP)
+}
+
+function nameOf(state: AppState, employeeId: string): string {
+  if (!employeeId) return state.settings.ownerName || 'Owner'
+  return state.employees.find((e) => e.id === employeeId)?.name ?? 'Unknown'
 }
 
 export function useStore() {
@@ -203,8 +227,18 @@ export function useStore() {
     setSyncError(null)
   }, [])
 
-  const hardReset = useCallback(() => {
+  const hardReset = useCallback((actor?: ActorCtx) => {
     const fresh = defaultState()
+    if (actor) {
+      fresh.auditLogs = pushAudit([], {
+        actorId: '',
+        actorName: actor.displayName,
+        action: 'reset',
+        entity: 'system',
+        entityId: 'hard-reset',
+        summary: 'Reset all business data to defaults',
+      })
+    }
     setState(fresh)
     void saveCloudState(fresh).then((r) => {
       if (r.ok) {
@@ -212,6 +246,21 @@ export function useStore() {
         setSyncStatus('synced')
       }
     })
+  }, [])
+
+  const clearAuditLogs = useCallback((actor: ActorCtx) => {
+    if (!actor.isOwner) return
+    setState((s) => ({
+      ...s,
+      auditLogs: pushAudit([], {
+        actorId: '',
+        actorName: actor.displayName,
+        action: 'reset',
+        entity: 'system',
+        entityId: 'audit-clear',
+        summary: 'Cleared audit log history',
+      }),
+    }))
   }, [])
 
   const updateSettings = useCallback((patch: Partial<AppState['settings']>) => {
@@ -273,16 +322,29 @@ export function useStore() {
     }))
   }, [])
 
-  const removeEmployee = useCallback((id: string) => {
-    setState((s) => ({
-      ...s,
-      employees: s.employees.filter((e) => e.id !== id),
-      deletedIds: markDeleted(s, 'employees', id),
-    }))
+  const removeEmployee = useCallback((id: string, actor: ActorCtx) => {
+    setState((s) => {
+      if (!actor.isOwner) return s
+      const emp = s.employees.find((e) => e.id === id)
+      if (!emp) return s
+      return {
+        ...s,
+        employees: s.employees.filter((e) => e.id !== id),
+        deletedIds: markDeleted(s, 'employees', id),
+        auditLogs: pushAudit(s.auditLogs, {
+          actorId: '',
+          actorName: actor.displayName,
+          action: 'delete',
+          entity: 'employee',
+          entityId: id,
+          summary: `Removed crew member ${emp.name}`,
+        }),
+      }
+    })
   }, [])
 
   const addBonus = useCallback(
-    (employeeId: string, amount: number, reason: string) => {
+    (employeeId: string, amount: number, reason: string, actor?: ActorCtx) => {
       const bonus: Bonus = {
         id: uid('bon'),
         employeeId,
@@ -290,17 +352,41 @@ export function useStore() {
         reason: reason.trim() || 'Bonus',
         createdAt: new Date().toISOString(),
       }
-      setState((s) => ({ ...s, bonuses: [bonus, ...s.bonuses] }))
+      setState((s) => ({
+        ...s,
+        bonuses: [bonus, ...s.bonuses],
+        auditLogs: pushAudit(s.auditLogs, {
+          actorId: actor?.isOwner ? '' : actor?.employeeId || '',
+          actorName: actor?.displayName || s.settings.ownerName || 'Owner',
+          action: 'create',
+          entity: 'bonus',
+          entityId: bonus.id,
+          summary: `Bonus $${Math.round(amount)} → ${nameOf(s, employeeId)} (${bonus.reason})`,
+        }),
+      }))
     },
     [],
   )
 
-  const removeBonus = useCallback((id: string) => {
-    setState((s) => ({
-      ...s,
-      bonuses: s.bonuses.filter((b) => b.id !== id),
-      deletedIds: markDeleted(s, 'bonuses', id),
-    }))
+  const removeBonus = useCallback((id: string, actor: ActorCtx) => {
+    setState((s) => {
+      if (!actor.isOwner) return s
+      const bonus = s.bonuses.find((b) => b.id === id)
+      if (!bonus) return s
+      return {
+        ...s,
+        bonuses: s.bonuses.filter((b) => b.id !== id),
+        deletedIds: markDeleted(s, 'bonuses', id),
+        auditLogs: pushAudit(s.auditLogs, {
+          actorId: '',
+          actorName: actor.displayName,
+          action: 'delete',
+          entity: 'bonus',
+          entityId: id,
+          summary: `Deleted bonus $${Math.round(bonus.amount)} for ${nameOf(s, bonus.employeeId)}`,
+        }),
+      }
+    })
   }, [])
 
   const addSale = useCallback(
@@ -340,18 +426,39 @@ export function useStore() {
               ? touchStock(p, p.stock - input.qty)
               : p,
           ),
+          auditLogs: pushAudit(s.auditLogs, {
+            actorId: input.employeeId,
+            actorName: nameOf(s, input.employeeId),
+            action: 'create',
+            entity: 'sale',
+            entityId: sale.id,
+            summary: `Sale ${sale.qty}× ${sale.productName} @ $${sale.unitPrice}`,
+          }),
         }
       })
     },
     [],
   )
 
-  const removeSale = useCallback((id: string) => {
-    setState((s) => ({
-      ...s,
-      sales: s.sales.filter((x) => x.id !== id),
-      deletedIds: markDeleted(s, 'sales', id),
-    }))
+  const removeSale = useCallback((id: string, actor: ActorCtx) => {
+    setState((s) => {
+      const sale = s.sales.find((x) => x.id === id)
+      if (!sale) return s
+      if (!canDeleteRecord(actor, sale.employeeId)) return s
+      return {
+        ...s,
+        sales: s.sales.filter((x) => x.id !== id),
+        deletedIds: markDeleted(s, 'sales', id),
+        auditLogs: pushAudit(s.auditLogs, {
+          actorId: actor.isOwner ? '' : actor.employeeId || '',
+          actorName: actor.displayName,
+          action: 'delete',
+          entity: 'sale',
+          entityId: id,
+          summary: `Deleted sale ${sale.qty}× ${sale.productName} (${nameOf(s, sale.employeeId)})`,
+        }),
+      }
+    })
   }, [])
 
   const addStashBuy = useCallback(
@@ -516,6 +623,14 @@ export function useStore() {
               }
             : b,
         ),
+        auditLogs: pushAudit(s.auditLogs, {
+          actorId: '',
+          actorName: s.settings.ownerName || 'Owner',
+          action: 'clear',
+          entity: 'stash',
+          entityId: id,
+          summary: `Cleared stash ${buy.qty}× ${buy.productName} → ${buy.buyerName}`,
+        }),
       }
     })
   }, [])
@@ -551,16 +666,37 @@ export function useStore() {
         ...s,
         sales: [...newSales, ...s.sales],
         stashBuys,
+        auditLogs: pushAudit(s.auditLogs, {
+          actorId: '',
+          actorName: s.settings.ownerName || 'Owner',
+          action: 'clear',
+          entity: 'stash',
+          entityId: 'all-pending',
+          summary: `Cleared ${newSales.length} pending stash sale(s)`,
+        }),
       }
     })
   }, [])
 
-  const removeStashBuy = useCallback((id: string) => {
-    setState((s) => ({
-      ...s,
-      stashBuys: s.stashBuys.filter((b) => b.id !== id),
-      deletedIds: markDeleted(s, 'stashBuys', id),
-    }))
+  const removeStashBuy = useCallback((id: string, actor: ActorCtx) => {
+    setState((s) => {
+      const buy = s.stashBuys.find((b) => b.id === id)
+      if (!buy) return s
+      if (!canDeleteRecord(actor, buy.employeeId)) return s
+      return {
+        ...s,
+        stashBuys: s.stashBuys.filter((b) => b.id !== id),
+        deletedIds: markDeleted(s, 'stashBuys', id),
+        auditLogs: pushAudit(s.auditLogs, {
+          actorId: actor.isOwner ? '' : actor.employeeId || '',
+          actorName: actor.displayName,
+          action: 'delete',
+          entity: 'stash',
+          entityId: id,
+          summary: `Deleted stash ${buy.qty}× ${buy.productName} (${buy.buyerName})`,
+        }),
+      }
+    })
   }, [])
 
   const addPendingOrder = useCallback(
@@ -632,12 +768,25 @@ export function useStore() {
     [],
   )
 
-  const removePendingOrder = useCallback((id: string) => {
-    setState((s) => ({
-      ...s,
-      pendingOrders: s.pendingOrders.filter((o) => o.id !== id),
-      deletedIds: markDeleted(s, 'pendingOrders', id),
-    }))
+  const removePendingOrder = useCallback((id: string, actor: ActorCtx) => {
+    setState((s) => {
+      const order = s.pendingOrders.find((o) => o.id === id)
+      if (!order) return s
+      if (!canDeleteRecord(actor, order.createdById)) return s
+      return {
+        ...s,
+        pendingOrders: s.pendingOrders.filter((o) => o.id !== id),
+        deletedIds: markDeleted(s, 'pendingOrders', id),
+        auditLogs: pushAudit(s.auditLogs, {
+          actorId: actor.isOwner ? '' : actor.employeeId || '',
+          actorName: actor.displayName,
+          action: 'delete',
+          entity: 'order',
+          entityId: id,
+          summary: `Deleted order ${order.qty}× ${order.productName} for ${order.customerName}`,
+        }),
+      }
+    })
   }, [])
 
   const craft = useCallback(
@@ -722,18 +871,39 @@ export function useStore() {
           materials,
           products,
           craftLogs: [log, ...s.craftLogs],
+          auditLogs: pushAudit(s.auditLogs, {
+            actorId: employeeId,
+            actorName: nameOf(s, employeeId),
+            action: 'create',
+            entity: 'craft',
+            entityId: log.id,
+            summary: `${purpose === 'personal' ? 'Personal' : 'Business'} craft ${qty}× ${recipe.name}`,
+          }),
         }
       })
     },
     [],
   )
 
-  const removeCraftLog = useCallback((id: string) => {
-    setState((s) => ({
-      ...s,
-      craftLogs: s.craftLogs.filter((c) => c.id !== id),
-      deletedIds: markDeleted(s, 'craftLogs', id),
-    }))
+  const removeCraftLog = useCallback((id: string, actor: ActorCtx) => {
+    setState((s) => {
+      const craft = s.craftLogs.find((c) => c.id === id)
+      if (!craft) return s
+      if (!canDeleteRecord(actor, craft.employeeId)) return s
+      return {
+        ...s,
+        craftLogs: s.craftLogs.filter((c) => c.id !== id),
+        deletedIds: markDeleted(s, 'craftLogs', id),
+        auditLogs: pushAudit(s.auditLogs, {
+          actorId: actor.isOwner ? '' : actor.employeeId || '',
+          actorName: actor.displayName,
+          action: 'delete',
+          entity: 'craft',
+          entityId: id,
+          summary: `Deleted craft ${craft.qty}× ${craft.recipeName} (${nameOf(s, craft.employeeId)})`,
+        }),
+      }
+    })
   }, [])
 
   const addMaterialPurchase = useCallback(
@@ -766,23 +936,26 @@ export function useStore() {
           materials: s.materials.map((m) =>
             m.id === mat.id ? touchStock(m, m.stock + input.qty) : m,
           ),
+          auditLogs: pushAudit(s.auditLogs, {
+            actorId: input.employeeId,
+            actorName: nameOf(s, input.employeeId),
+            action: 'create',
+            entity: 'material_purchase',
+            entityId: purchase.id,
+            summary: `Bought ${purchase.qty}× ${purchase.materialName} for $${Math.round(purchase.totalPaid)}`,
+          }),
         }
       })
     },
     [],
   )
 
-  const removeMaterialPurchase = useCallback((id: string) => {
+  const removeMaterialPurchase = useCallback((id: string, actor: ActorCtx) => {
     setState((s) => {
       const purchase = s.materialPurchases.find((p) => p.id === id)
+      if (!purchase) return s
+      if (!canDeleteRecord(actor, purchase.employeeId || null)) return s
       const deletedIds = markDeleted(s, 'materialPurchases', id)
-      if (!purchase) {
-        return {
-          ...s,
-          materialPurchases: s.materialPurchases.filter((p) => p.id !== id),
-          deletedIds,
-        }
-      }
       return {
         ...s,
         materialPurchases: s.materialPurchases.filter((p) => p.id !== id),
@@ -792,18 +965,42 @@ export function useStore() {
             ? touchStock(m, m.stock - purchase.qty)
             : m,
         ),
+        auditLogs: pushAudit(s.auditLogs, {
+          actorId: actor.isOwner ? '' : actor.employeeId || '',
+          actorName: actor.displayName,
+          action: 'delete',
+          entity: 'material_purchase',
+          entityId: id,
+          summary: `Deleted mat buy ${purchase.qty}× ${purchase.materialName}`,
+        }),
       }
     })
   }, [])
 
-  const setMaterialStock = useCallback((id: string, stock: number) => {
-    setState((s) => ({
-      ...s,
-      materials: s.materials.map((m) =>
-        m.id === id ? touchStock(m, stock) : m,
-      ),
-    }))
-  }, [])
+  const setMaterialStock = useCallback(
+    (id: string, stock: number, actor?: ActorCtx) => {
+      setState((s) => {
+        const mat = s.materials.find((m) => m.id === id)
+        if (!mat) return s
+        const next = touchStock(mat, stock)
+        return {
+          ...s,
+          materials: s.materials.map((m) => (m.id === id ? next : m)),
+          auditLogs: actor
+            ? pushAudit(s.auditLogs, {
+                actorId: actor.isOwner ? '' : actor.employeeId || '',
+                actorName: actor.displayName,
+                action: 'update',
+                entity: 'stock',
+                entityId: id,
+                summary: `Set ${mat.name} stock ${mat.stock} → ${next.stock}`,
+              })
+            : s.auditLogs,
+        }
+      })
+    },
+    [],
+  )
 
   const setMaterialCost = useCallback((id: string, cost: number) => {
     setState((s) => {
@@ -843,14 +1040,30 @@ export function useStore() {
     }))
   }, [])
 
-  const setProductStock = useCallback((id: string, stock: number) => {
-    setState((s) => ({
-      ...s,
-      products: s.products.map((p) =>
-        p.id === id ? touchStock(p, stock) : p,
-      ),
-    }))
-  }, [])
+  const setProductStock = useCallback(
+    (id: string, stock: number, actor?: ActorCtx) => {
+      setState((s) => {
+        const product = s.products.find((p) => p.id === id)
+        if (!product) return s
+        const next = touchStock(product, stock)
+        return {
+          ...s,
+          products: s.products.map((p) => (p.id === id ? next : p)),
+          auditLogs: actor
+            ? pushAudit(s.auditLogs, {
+                actorId: actor.isOwner ? '' : actor.employeeId || '',
+                actorName: actor.displayName,
+                action: 'update',
+                entity: 'stock',
+                entityId: id,
+                summary: `Set ${product.name} finished stock ${product.stock} → ${next.stock}`,
+              })
+            : s.auditLogs,
+        }
+      })
+    },
+    [],
+  )
 
   const addMaterial = useCallback((name: string, cost: number) => {
     const mat: Material = {
@@ -935,6 +1148,7 @@ export function useStore() {
     addMaterial,
     addRecipe,
     hardReset,
+    clearAuditLogs,
   }
 }
 

@@ -192,6 +192,28 @@ export interface DeletedIds {
   employees: string[]
 }
 
+/** Owner-facing activity trail (creates, deletes, clears, roster changes) */
+export interface AuditEntry {
+  id: string
+  at: string
+  actorId: string
+  actorName: string
+  action: 'create' | 'delete' | 'clear' | 'update' | 'reset'
+  entity:
+    | 'sale'
+    | 'craft'
+    | 'stash'
+    | 'order'
+    | 'bonus'
+    | 'material_purchase'
+    | 'employee'
+    | 'stock'
+    | 'settings'
+    | 'system'
+  entityId: string
+  summary: string
+}
+
 export interface AppState {
   materials: Material[]
   recipes: Recipe[]
@@ -205,6 +227,7 @@ export interface AppState {
   materialPurchases: MaterialPurchase[]
   settings: AppSettings
   deletedIds: DeletedIds
+  auditLogs: AuditEntry[]
 }
 
 export type TabId =
@@ -218,3 +241,4 @@ export type TabId =
   | 'employees'
   | 'inventory'
   | 'prices'
+  | 'audit'

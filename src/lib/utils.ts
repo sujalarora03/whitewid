@@ -35,6 +35,7 @@ export function loadState(): AppState {
       })),
       materialPurchases: parsed.materialPurchases ?? [],
       deletedIds: normalizeDeletedIds(parsed.deletedIds),
+      auditLogs: parsed.auditLogs ?? [],
     })
   } catch {
     return defaultState()

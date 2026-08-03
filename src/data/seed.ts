@@ -278,6 +278,7 @@ export const defaultState = (): AppState => ({
     materialPurchases: [],
     employees: [],
   },
+  auditLogs: [],
 })
 
 /** Production cost for one craft from current material prices */

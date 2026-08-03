@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Shell } from './components/Shell'
 import { Dashboard } from './components/Dashboard'
 import { CraftCalc } from './components/CraftCalc'
@@ -8,6 +8,7 @@ import { Orders } from './components/Orders'
 import { Employees } from './components/Employees'
 import { Inventory } from './components/Inventory'
 import { Prices } from './components/Prices'
+import { AuditLog } from './components/AuditLog'
 import { EmployeeDesk } from './components/EmployeeDesk'
 import { EmployeeLogin, OwnerGate } from './components/AuthGates'
 import { useStore } from './hooks/useStore'
@@ -22,6 +23,7 @@ import {
   setOwnerAuthed,
   type AppRole,
 } from './lib/session'
+import type { ActorCtx } from './lib/permissions'
 import type { TabId } from './types'
 import './index.css'
 
@@ -103,6 +105,26 @@ export default function App() {
 
   const locked = role === 'employee' && employeeLoggedIn ? employeeId : undefined
 
+  const actor: ActorCtx = useMemo(() => {
+    if (role === 'owner' && ownerUnlocked) {
+      return {
+        isOwner: true,
+        displayName: store.state.settings.ownerName || 'Owner',
+      }
+    }
+    return {
+      isOwner: false,
+      employeeId: employeeId || undefined,
+      displayName: employeeName || 'Employee',
+    }
+  }, [
+    role,
+    ownerUnlocked,
+    employeeId,
+    employeeName,
+    store.state.settings.ownerName,
+  ])
+
   return (
     <Shell
       brand={store.state.settings.businessName}
@@ -133,11 +155,14 @@ export default function App() {
       {role === 'owner' && ownerUnlocked && tab === 'dashboard' && (
         <Dashboard store={store} />
       )}
-      {role === 'owner' && ownerUnlocked && tab === 'employees' && (
-        <Employees store={store} />
-      )}
       {role === 'owner' && ownerUnlocked && tab === 'prices' && (
-        <Prices store={store} />
+        <Prices store={store} actor={actor} />
+      )}
+      {role === 'owner' && ownerUnlocked && tab === 'audit' && (
+        <AuditLog store={store} actor={actor} />
+      )}
+      {role === 'owner' && ownerUnlocked && tab === 'employees' && (
+        <Employees store={store} actor={actor} />
       )}
       {role === 'owner' &&
         ownerUnlocked &&
@@ -148,12 +173,14 @@ export default function App() {
           tab === 'orders' ||
           tab === 'inventory') && (
           <>
-            {tab === 'craft' && <CraftCalc store={store} />}
-            {tab === 'personal' && <CraftCalc store={store} mode="personal" />}
-            {tab === 'sales' && <Sales store={store} />}
-            {tab === 'stash' && <Stash store={store} />}
-            {tab === 'orders' && <Orders store={store} />}
-            {tab === 'inventory' && <Inventory store={store} />}
+            {tab === 'craft' && <CraftCalc store={store} actor={actor} />}
+            {tab === 'personal' && (
+              <CraftCalc store={store} mode="personal" actor={actor} />
+            )}
+            {tab === 'sales' && <Sales store={store} actor={actor} />}
+            {tab === 'stash' && <Stash store={store} actor={actor} />}
+            {tab === 'orders' && <Orders store={store} actor={actor} />}
+            {tab === 'inventory' && <Inventory store={store} actor={actor} />}
           </>
         )}
 
@@ -172,23 +199,25 @@ export default function App() {
         />
       )}
       {role === 'employee' && employeeLoggedIn && tab === 'craft' && (
-        <CraftCalc store={store} lockedEmployeeId={locked} />
+        <CraftCalc store={store} lockedEmployeeId={locked} actor={actor} />
       )}
       {role === 'employee' && employeeLoggedIn && tab === 'personal' && (
         <CraftCalc
           store={store}
           lockedEmployeeId={locked}
           mode="personal"
+          actor={actor}
         />
       )}
       {role === 'employee' && employeeLoggedIn && tab === 'sales' && (
-        <Sales store={store} lockedEmployeeId={locked} />
+        <Sales store={store} lockedEmployeeId={locked} actor={actor} />
       )}
       {role === 'employee' && employeeLoggedIn && tab === 'stash' && (
         <Stash
           store={store}
           lockedEmployeeId={locked}
           employeeMode
+          actor={actor}
         />
       )}
       {role === 'employee' && employeeLoggedIn && tab === 'orders' && (
@@ -196,6 +225,7 @@ export default function App() {
           store={store}
           lockedEmployeeId={locked}
           employeeMode
+          actor={actor}
         />
       )}
       {role === 'employee' && employeeLoggedIn && tab === 'inventory' && (
@@ -203,6 +233,7 @@ export default function App() {
           store={store}
           lockedEmployeeId={locked}
           employeeMode
+          actor={actor}
         />
       )}
     </Shell>

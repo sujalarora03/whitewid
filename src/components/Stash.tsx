@@ -7,6 +7,7 @@ import {
   stashPendingEmbed,
 } from '../lib/discord'
 import { recipeUnitCost } from '../data/seed'
+import { canDeleteRecord, type ActorCtx } from '../lib/permissions'
 import { formatDate, money } from '../lib/utils'
 
 /**
@@ -17,10 +18,12 @@ export function Stash({
   store,
   lockedEmployeeId,
   employeeMode = false,
+  actor,
 }: {
   store: StoreApi
   lockedEmployeeId?: string
   employeeMode?: boolean
+  actor: ActorCtx
 }) {
   const {
     state,
@@ -331,27 +334,28 @@ export function Stash({
                         </td>
                         <td className="row-actions">
                           {!employeeMode && (
-                            <>
-                              <button
-                                type="button"
-                                className="btn primary sm"
-                                onClick={() => void onClear(b.id)}
-                              >
-                                Clear → confirm
-                              </button>
-                              <button
-                                type="button"
-                                className="icon-btn"
-                                aria-label="Delete"
-                                onClick={() => removeStashBuy(b.id)}
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </>
+                            <button
+                              type="button"
+                              className="btn primary sm"
+                              onClick={() => void onClear(b.id)}
+                            >
+                              Clear → confirm
+                            </button>
                           )}
-                          {employeeMode && (
-                            <span className="note-tag">waiting</span>
+                          {canDeleteRecord(actor, b.employeeId) && (
+                            <button
+                              type="button"
+                              className="icon-btn"
+                              aria-label="Delete"
+                              onClick={() => removeStashBuy(b.id, actor)}
+                            >
+                              <Trash2 size={16} />
+                            </button>
                           )}
+                          {employeeMode &&
+                            !canDeleteRecord(actor, b.employeeId) && (
+                              <span className="note-tag">waiting</span>
+                            )}
                         </td>
                       </tr>
                     )

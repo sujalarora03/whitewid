@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import type { StoreApi } from '../hooks/useStore'
 import { postToDiscord, saleEmbed } from '../lib/discord'
+import { canDeleteRecord, type ActorCtx } from '../lib/permissions'
 import {
   formatDate,
   money,
@@ -13,9 +14,11 @@ import {
 export function Sales({
   store,
   lockedEmployeeId,
+  actor,
 }: {
   store: StoreApi
   lockedEmployeeId?: string
+  actor: ActorCtx
 }) {
   const { state, addSale, removeSale } = store
   const activeEmps = state.employees.filter((e) => e.active)
@@ -256,14 +259,16 @@ export function Sales({
                       <td>{money(saleProfit(s))}</td>
                       <td>{money(saleCommission(s, rate))}</td>
                       <td>
-                        <button
-                          type="button"
-                          className="icon-btn"
-                          aria-label="Delete sale"
-                          onClick={() => removeSale(s.id)}
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        {canDeleteRecord(actor, s.employeeId) ? (
+                          <button
+                            type="button"
+                            className="icon-btn"
+                            aria-label="Delete sale"
+                            onClick={() => removeSale(s.id, actor)}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        ) : null}
                       </td>
                     </tr>
                   )

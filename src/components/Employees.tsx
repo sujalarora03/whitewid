@@ -12,9 +12,16 @@ import type { StoreApi } from '../hooks/useStore'
 import { buildWeekReport } from '../lib/stats'
 import { bonusEmbed, postToDiscord } from '../lib/discord'
 import { EMPLOYEE_GRADES, demoteGrade, promoteGrade } from '../lib/grades'
+import type { ActorCtx } from '../lib/permissions'
 import { formatDate, money, pct } from '../lib/utils'
 
-export function Employees({ store }: { store: StoreApi }) {
+export function Employees({
+  store,
+  actor,
+}: {
+  store: StoreApi
+  actor: ActorCtx
+}) {
   const {
     state,
     addEmployee,
@@ -50,7 +57,7 @@ export function Employees({ store }: { store: StoreApi }) {
     e.preventDefault()
     if (!bonusEmp || bonusAmt <= 0) return
     const emp = state.employees.find((x) => x.id === bonusEmp)
-    addBonus(bonusEmp, bonusAmt, bonusReason)
+    addBonus(bonusEmp, bonusAmt, bonusReason, actor)
 
     if (
       state.settings.discordPostBonuses &&
@@ -267,7 +274,8 @@ export function Employees({ store }: { store: StoreApi }) {
                       className="icon-btn"
                       aria-label="Remove"
                       onClick={() => {
-                        if (confirm(`Remove ${e.name}?`)) removeEmployee(e.id)
+                        if (confirm(`Remove ${e.name}?`))
+                          removeEmployee(e.id, actor)
                       }}
                     >
                       <Trash2 size={16} />
@@ -392,7 +400,7 @@ export function Employees({ store }: { store: StoreApi }) {
                     type="button"
                     className="icon-btn"
                     aria-label="Remove bonus"
-                    onClick={() => removeBonus(b.id)}
+                    onClick={() => removeBonus(b.id, actor)}
                   >
                     <Trash2 size={16} />
                   </button>

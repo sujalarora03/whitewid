@@ -2,16 +2,19 @@ import { useState } from 'react'
 import { ShoppingBag, Trash2 } from 'lucide-react'
 import type { StoreApi } from '../hooks/useStore'
 import { materialPurchaseEmbed, postToDiscord } from '../lib/discord'
+import { canDeleteRecord, type ActorCtx } from '../lib/permissions'
 import { formatDate, money } from '../lib/utils'
 
 export function Inventory({
   store,
   lockedEmployeeId,
   employeeMode = false,
+  actor,
 }: {
   store: StoreApi
   lockedEmployeeId?: string
   employeeMode?: boolean
+  actor: ActorCtx
 }) {
   const {
     state,
@@ -212,14 +215,16 @@ export function Inventory({
                       <td>{p.qty}</td>
                       <td>{money(p.totalPaid)}</td>
                       <td>
-                        <button
-                          type="button"
-                          className="icon-btn"
-                          aria-label="Remove purchase"
-                          onClick={() => removeMaterialPurchase(p.id)}
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        {canDeleteRecord(actor, p.employeeId || null) ? (
+                          <button
+                            type="button"
+                            className="icon-btn"
+                            aria-label="Remove purchase"
+                            onClick={() => removeMaterialPurchase(p.id, actor)}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        ) : null}
                       </td>
                     </tr>
                   )
@@ -265,7 +270,11 @@ export function Inventory({
                         min={0}
                         value={m.stock}
                         onChange={(e) =>
-                          setMaterialStock(m.id, Number(e.target.value) || 0)
+                          setMaterialStock(
+                            m.id,
+                            Number(e.target.value) || 0,
+                            actor,
+                          )
                         }
                       />
                     )}
@@ -317,7 +326,11 @@ export function Inventory({
                         min={0}
                         value={p.stock}
                         onChange={(e) =>
-                          setProductStock(p.id, Number(e.target.value) || 0)
+                          setProductStock(
+                            p.id,
+                            Number(e.target.value) || 0,
+                            actor,
+                          )
                         }
                       />
                     )}

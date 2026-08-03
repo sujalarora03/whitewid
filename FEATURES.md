@@ -68,6 +68,8 @@ Customer wants something later. Assign crafter/seller for the queue, track statu
    Recruit → Junior Seller → Senior Seller → Manager → CEO → Owner
 3. Share: `https://your-app.workers.dev/?role=employee`
 
+**Deletes:** employees can only delete **their own** sales, crafts, stash rows, orders, and material buys. Owner can delete anyone’s. Crew / bonuses stay owner-only.
+
 | Name | Grade | Password |
 |---|---|---|
 | Sergio Rodriguez | CEO | Sergio |
@@ -101,6 +103,11 @@ Buyer can be **Pablo the II Escobar** (owner) or an employee.
 - Product sale prices
 - Discord webhook + auto-post toggles (sales, bonuses, crafts, stash)
 - Reset all data to defaults
+
+---
+
+## Audit (owner only)
+Sidebar **Audit** shows who created/deleted sales, crafts, stash clears, mat buys, stock edits, and roster changes. Searchable; last 400 events kept.
 
 ---
 

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { ClipboardList, Trash2 } from 'lucide-react'
 import type { StoreApi } from '../hooks/useStore'
 import type { OrderStatus, PendingOrder } from '../types'
+import { canDeleteRecord, type ActorCtx } from '../lib/permissions'
 import { formatDate, money } from '../lib/utils'
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
@@ -25,11 +26,13 @@ function empName(
 export function Orders({
   store,
   lockedEmployeeId,
-  employeeMode = false,
+  employeeMode: _employeeMode = false,
+  actor,
 }: {
   store: StoreApi
   lockedEmployeeId?: string
   employeeMode?: boolean
+  actor: ActorCtx
 }) {
   const {
     state,
@@ -321,14 +324,14 @@ export function Orders({
                       >
                         Fulfill → stash
                       </button>
-                      {!employeeMode && (
+                      {canDeleteRecord(actor, o.createdById) && (
                         <button
                           type="button"
                           className="icon-btn"
                           aria-label="Delete"
                           onClick={() => {
                             if (confirm('Delete this order?'))
-                              removePendingOrder(o.id)
+                              removePendingOrder(o.id, actor)
                           }}
                         >
                           <Trash2 size={16} />

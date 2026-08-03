@@ -208,6 +208,11 @@ export function mergeAppStates(remote: AppState, local: AppState): AppState {
       defaultTime,
       deletedIds.materialPurchases,
     ),
+    auditLogs: mergeById(
+      remote.auditLogs ?? [],
+      local.auditLogs ?? [],
+      (e) => e.at,
+    ).slice(0, 400),
     deletedIds,
   }
 }

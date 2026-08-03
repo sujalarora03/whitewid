@@ -200,6 +200,7 @@ function mergeWithDefaults(parsed: Partial<AppState>): AppState {
     })),
     materialPurchases: parsed.materialPurchases ?? [],
     deletedIds: normalizeDeletedIds(parsed.deletedIds),
+    auditLogs: parsed.auditLogs ?? [],
   }
   return ensureCrewRoster(stripDeletedRows(merged))
 }

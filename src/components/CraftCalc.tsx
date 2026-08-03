@@ -8,17 +8,20 @@ import {
   postToDiscord,
   resourcesWebhookUrl,
 } from '../lib/discord'
+import { canDeleteRecord, type ActorCtx } from '../lib/permissions'
 import { formatDate, money } from '../lib/utils'
 
 export function CraftCalc({
   store,
   lockedEmployeeId,
   mode = 'business',
+  actor,
 }: {
   store: StoreApi
   lockedEmployeeId?: string
   /** business = shop production; personal = craft for yourself */
   mode?: 'business' | 'personal'
+  actor: ActorCtx
 }) {
   const personal = mode === 'personal'
   const { state, craft, removeCraftLog } = store
@@ -432,14 +435,16 @@ export function CraftCalc({
                       </td>
                       <td>{money(c.totalCost)}</td>
                       <td>
-                        <button
-                          type="button"
-                          className="icon-btn"
-                          aria-label="Delete craft log"
-                          onClick={() => removeCraftLog(c.id)}
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        {canDeleteRecord(actor, c.employeeId) ? (
+                          <button
+                            type="button"
+                            className="icon-btn"
+                            aria-label="Delete craft log"
+                            onClick={() => removeCraftLog(c.id, actor)}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        ) : null}
                       </td>
                     </tr>
                   )
