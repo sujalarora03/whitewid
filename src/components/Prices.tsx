@@ -73,9 +73,10 @@ export function Prices({
           </label>
         </div>
         <p className="muted panel-intro">
-          Commission is {pct(state.settings.commissionRate)} of profit (sale −
-          material cost). Owner password unlocks Owner mode. Create employee
-          accounts under Crew (promote / demote grades there).
+          Commission is {pct(state.settings.commissionRate)} of total sale price
+          (revenue), not profit. Past sales update automatically. Owner password
+          unlocks Owner mode. Create employee accounts under Crew (promote /
+          demote grades there).
         </p>
       </section>
 

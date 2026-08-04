@@ -1,5 +1,6 @@
 import type { AppState } from '../types'
 import { defaultState } from '../data/seed'
+import { migrateInventoryIfNeeded } from './inventory'
 
 /** Ensure catalog products (incl. external services) exist on loaded state. */
 export function ensureCatalogProducts(state: AppState): AppState {
@@ -47,6 +48,9 @@ export function ensureCatalogProducts(state: AppState): AppState {
   for (const extra of byId.values()) {
     products.push(extra)
   }
-  if (!changed && products.length === state.products.length) return state
-  return { ...state, products }
+  const withProducts =
+    !changed && products.length === state.products.length
+      ? state
+      : { ...state, products }
+  return migrateInventoryIfNeeded(withProducts)
 }

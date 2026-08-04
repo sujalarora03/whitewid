@@ -298,7 +298,7 @@ export function stashPendingEmbed(input: {
 }): DiscordPayload {
   const cost = input.unitCost * input.qty
   const profit = input.amount - cost
-  const commission = Math.max(0, profit) * input.commissionRate
+  const commission = Math.max(0, input.amount) * input.commissionRate
   const flow =
     input.source === 'crafted_then_sold'
       ? 'Crafted then sold'
@@ -349,7 +349,7 @@ export function stashClearedEmbed(input: {
 }): DiscordPayload {
   const cost = input.unitCost * input.qty
   const profit = input.amount - cost
-  const commission = Math.max(0, profit) * input.commissionRate
+  const commission = Math.max(0, input.amount) * input.commissionRate
   const flow =
     input.source === 'crafted_then_sold'
       ? 'Crafted then sold'

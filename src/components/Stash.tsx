@@ -56,8 +56,7 @@ export function Stash({
     return product.cost
   }, [product, state.materials, state.recipes])
 
-  const previewProfit = amount - unitCost * qty
-  const previewComm = Math.max(0, previewProfit) * state.settings.commissionRate
+  const previewComm = Math.max(0, amount) * state.settings.commissionRate
 
   const pending = state.stashBuys.filter(
     (b) =>

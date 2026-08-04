@@ -65,14 +65,16 @@ export function CraftCalc({
     ? recipeUnitCost(recipe.id, state.materials, state.recipes)
     : 0
   const totalCost = unitCost * qty
+  // Business crafts always deduct shared mats; personal is optional.
+  const willDeduct = personal ? deductStock : true
   const materialsShort =
-    deductStock && breakdown.some((b) => b.short > 0)
+    willDeduct && breakdown.some((b) => b.short > 0)
   // When deducting mats, require enough business stock before logging.
   const canCraft =
     !!recipe &&
     !!effectiveEmployeeId &&
     qty > 0 &&
-    (!deductStock || !materialsShort)
+    (!willDeduct || !materialsShort)
 
   const shoppingList = personal
     ? breakdown.map((b) => ({ ...b, short: b.need }))
@@ -92,11 +94,19 @@ export function CraftCalc({
   async function doCraft() {
     if (!recipe || !effectiveEmployeeId) return
     const emp = state.employees.find((e) => e.id === effectiveEmployeeId)
-    craft(recipe.id, qty, effectiveEmployeeId, {
+    const ok = craft(recipe.id, qty, effectiveEmployeeId, {
       note: note || undefined,
-      deductStock,
+      deductStock: willDeduct,
       purpose: personal ? 'personal' : 'business',
     })
+    if (!ok) {
+      setDiscordMsg(
+        willDeduct
+          ? 'Not enough materials in business stock — restock or lower qty'
+          : 'Could not log craft',
+      )
+      return
+    }
 
     const finished = finishedStockAfterCraft(
       state,
@@ -109,16 +119,14 @@ export function CraftCalc({
       recipe.id,
       qty,
       state.recipes,
-      deductStock,
+      willDeduct,
     )
 
     const stockSummary = personal
-      ? deductStock
+      ? willDeduct
         ? 'Personal craft logged — business mats reduced; finished stock unchanged'
         : 'Personal craft logged — no stock changes'
-      : deductStock
-        ? `Craft logged — mats deducted · finished stock now ${finished?.after ?? '—'}× ${recipe.name}`
-        : `Craft logged — finished stock now ${finished?.after ?? '—'}× ${recipe.name} (mats not deducted)`
+      : `Craft logged — mats deducted · finished stock now ${finished?.after ?? '—'}× ${recipe.name}`
 
     const alertHook = alertsWebhookUrl(state.settings)
     if (state.settings.discordPostCrafts && alertHook && emp) {
@@ -165,9 +173,9 @@ export function CraftCalc({
             </>
           ) : (
             <>
-              Crafting only records who produced the item. It does{' '}
-              <strong>not</strong> mean they bought the materials — log store
-              buys under <strong>Stock</strong> separately.
+              Business crafts always deduct materials from shared stock and add
+              finished products. Log store buys under <strong>Stock</strong>{' '}
+              separately.
             </>
           )}
         </p>
@@ -231,22 +239,24 @@ export function CraftCalc({
           </label>
         </div>
 
-        <label className="check-field">
-          <input
-            type="checkbox"
-            checked={deductStock}
-            onChange={(e) => setDeductStock(e.target.checked)}
-          />
-          {personal
-            ? 'Took materials from business stock'
-            : 'Deduct from business material stock'}
-          <span className="note-tag">
-            {' '}
-            {personal
-              ? '(off = you bought / used your own mats)'
-              : '(off = mats already handled / not from shared stock)'}
-          </span>
-        </label>
+        {personal ? (
+          <label className="check-field">
+            <input
+              type="checkbox"
+              checked={deductStock}
+              onChange={(e) => setDeductStock(e.target.checked)}
+            />
+            Took materials from business stock
+            <span className="note-tag">
+              {' '}
+              (off = you bought / used your own mats)
+            </span>
+          </label>
+        ) : (
+          <p className="muted panel-intro">
+            Materials are always deducted from business stock for shop crafts.
+          </p>
+        )}
 
         {recipe && (
           <>
@@ -280,13 +290,15 @@ export function CraftCalc({
                 {breakdown.map((b) => (
                   <tr
                     key={b.materialId}
-                    className={deductStock && b.short ? 'warn-row' : ''}
+                    className={willDeduct && b.short ? 'warn-row' : ''}
                   >
                     <td>{b.name}</td>
                     <td>{b.perUnit}</td>
                     <td>{b.need}</td>
                     <td>{b.stock}</td>
-                    <td>{personal ? b.need : deductStock ? b.short || '—' : '—'}</td>
+                    <td>
+                      {personal ? b.need : willDeduct ? b.short || '—' : '—'}
+                    </td>
                     <td>{money(b.cost)}</td>
                   </tr>
                 ))}
@@ -296,9 +308,12 @@ export function CraftCalc({
             {materialsShort && (
               <p className="muted panel-intro">
                 Not enough materials in business stock for this batch. Lower the
-                quantity, turn off deduct (if mats were handled outside the
-                app), or restock under <strong>Stock</strong> / request
-                resources on Discord.
+                quantity
+                {personal
+                  ? ', turn off deduct (if you used your own mats), or restock under '
+                  : ', or restock under '}
+                <strong>Stock</strong>
+                {personal ? ' / request resources on Discord.' : '.'}
               </p>
             )}
 
@@ -318,7 +333,9 @@ export function CraftCalc({
                   {!effectiveEmployeeId
                     ? 'Pick who crafted.'
                     : materialsShort
-                      ? 'Need more materials (or turn off deduct).'
+                      ? personal
+                        ? 'Need more materials (or turn off deduct).'
+                        : 'Need more materials in stock.'
                       : 'Cannot log yet.'}
                 </span>
               )}

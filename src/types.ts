@@ -203,6 +203,11 @@ export interface AppSettings {
   discordPostCrafts: boolean
   discordPostStash: boolean
   discordPostMaterials: boolean
+  /**
+   * Set after stock is rebuilt from purchase/craft/sale logs.
+   * Missing = run one-time migration on next load.
+   */
+  stockLedgerRebuiltAt?: string
 }
 
 /** Ids removed on any client — kept so merge-sync does not revive them */

@@ -120,7 +120,8 @@ export function saleProfit(s: Sale): number {
 }
 
 export function saleCommission(s: Sale, rate: number): number {
-  return Math.max(0, saleProfit(s)) * rate
+  // Commission is % of total sale price (revenue), not profit
+  return Math.max(0, saleRevenue(s)) * rate
 }
 
 export function formatDate(iso: string): string {

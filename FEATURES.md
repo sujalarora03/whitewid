@@ -22,8 +22,8 @@ Crafters log **production** (who made what). Separate from selling.
 
 | You do | What happens |
 |---|---|
-| Log business craft | **Finished products** stock goes up (see Stock tab) |
-| “Deduct from business material stock” ON | Needs enough **shared materials**; stock goes down |
+| Log business craft | **Finished products** stock goes up; **materials** always go down |
+| Personal craft + deduct ON | Materials go down; finished stock unchanged |
 | Checkbox OFF | Finished stock still up; materials unchanged |
 
 If mats are short with deduct ON, logging is blocked — restock under **Stock** or use **Request resources on Discord**.
@@ -43,7 +43,7 @@ Sellers log what they sold. This is the normal path for commission.
 | Revenue | price × qty (or % × principal for Money Whitewash) |
 | Cost | material/recipe cost × qty (or 2% for whitewash) |
 | Profit | revenue − cost |
-| Commission (default 15%) | profit × 15% |
+| Commission (default 15%) | **sale price (revenue)** × 15% |
 
 **External services** (Money Whitewash, Joints PreMade, Weed Processing) appear under Sales → External. They do not change shop stock.
 
@@ -99,19 +99,20 @@ Business inventory + **material purchases** (separate from crafting).
 
 | Action | Meaning |
 |---|---|
-| Business craft | **Finished** stock goes **up** by craft qty |
+| Business craft | **Finished** stock goes **up**; **materials** always go **down** |
 | Sale (shop item) | **Finished** stock goes **down** by sale qty |
 | Log material purchase | Raw mats stock goes up |
-| Craft with deduct ON | Raw mats stock goes down |
+| Personal craft + deduct ON | Raw mats stock goes down |
 | Edit material / product stock | Manual correction |
-| Post inventory / `/inventory` | Snapshot of raw mats + crafted to Discord |
+| Rebuild from logs (owner) | Recalculate mats + crafted from purchases / crafts / sales |
+| Post inventory / `/inv` | Snapshot of raw mats + crafted to Discord |
 
 Buyer can be **Pablo the II Escobar** (owner) or an employee.
 
 ---
 
 ## Prices
-- Business name, **owner name**, commission %
+- Business name, **owner name**, commission % of **sale price** (not profit)
 - Material store costs (feeds craft/sale costing)
 - Product sale prices
 - Discord webhook + auto-post toggles (sales, bonuses, crafts, stash)

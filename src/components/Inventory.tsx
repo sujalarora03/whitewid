@@ -32,6 +32,7 @@ export function Inventory({
     setProductStock,
     addMaterialPurchase,
     removeMaterialPurchase,
+    rebuildStockFromLogs,
   } = store
 
   const activeEmps = state.employees.filter((e) => e.active)
@@ -44,6 +45,18 @@ export function Inventory({
   const [invMsg, setInvMsg] = useState<string | null>(null)
   const [invBusy, setInvBusy] = useState(false)
   const liveInvUrl = inventoryPublicUrl()
+
+  function onRebuildStock() {
+    if (
+      !confirm(
+        'Recalculate material + crafted stock from all purchase, craft, and sale logs? Manual stock edits for recipe items will be overwritten.',
+      )
+    ) {
+      return
+    }
+    rebuildStockFromLogs(actor)
+    setInvMsg('Stock rebuilt from purchase / craft / sale history')
+  }
 
   const effectiveBuyerId = lockedEmployeeId || buyerId
 
@@ -147,10 +160,10 @@ export function Inventory({
           </h3>
         </header>
         <p className="muted panel-intro">
-          Business crafts <strong>add</strong> finished stock. Sales{' '}
-          <strong>deduct</strong> finished stock. Share the live link in Discord
-          — anyone can open it (no bot / developer key). Or post a snapshot
-          below.
+          Business crafts <strong>add</strong> finished stock and{' '}
+          <strong>deduct</strong> materials. Sales <strong>deduct</strong>{' '}
+          finished stock. Share the live link in Discord — anyone can open it
+          (no bot / developer key). Or post a snapshot below.
         </p>
         <label className="field">
           <span>Live inventory link (pin in Discord)</span>
@@ -172,6 +185,11 @@ export function Inventory({
           >
             <Send size={16} /> Post inventory snapshot
           </button>
+          {actor.isOwner && (
+            <button type="button" className="btn" onClick={onRebuildStock}>
+              Rebuild stock from logs
+            </button>
+          )}
           {invMsg && <span className="muted">{invMsg}</span>}
         </div>
       </section>

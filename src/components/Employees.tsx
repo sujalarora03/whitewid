@@ -291,7 +291,7 @@ export function Employees({
       <section className="panel">
         <header className="panel-head">
           <h3>Crew · this week</h3>
-          <span className="muted">Commission {pct(rate)} of profit</span>
+          <span className="muted">Commission {pct(rate)} of sale price</span>
         </header>
         <div className="table-scroll">
           <table className="data-table">

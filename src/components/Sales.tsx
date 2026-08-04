@@ -86,13 +86,13 @@ export function Sales({
       const revenue = (qty * unitPrice) / 100
       const cost = (qty * unitCost) / 100
       const profit = revenue - cost
-      const commission = Math.max(0, profit) * rate
+      const commission = Math.max(0, revenue) * rate
       return { revenue, cost, profit, commission, net: profit - commission }
     }
     const revenue = unitPrice * qty
     const cost = unitCost * qty
     const profit = revenue - cost
-    const commission = Math.max(0, profit) * rate
+    const commission = Math.max(0, revenue) * rate
     return { revenue, cost, profit, commission, net: profit - commission }
   }, [unitPrice, qty, liveUnitCost, rate, pricingMode])
 

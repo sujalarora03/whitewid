@@ -21,6 +21,7 @@ import {
   canDeleteRecord,
   type ActorCtx,
 } from '../lib/permissions'
+import { rebuildInventoryFromLedger } from '../lib/inventory'
 import { loadState, saveState, uid } from '../lib/utils'
 
 const AUDIT_CAP = 400
@@ -822,14 +823,16 @@ export function useStore() {
         deductStock?: boolean
         purpose?: 'business' | 'personal'
       },
-    ) => {
+    ): boolean => {
+      let applied = false
       setState((s) => {
         const recipe = s.recipes.find((r) => r.id === recipeId)
         if (!recipe || !employeeId) return s
 
         const purpose = opts?.purpose ?? 'business'
         const isPersonal = purpose === 'personal'
-        const deductStock = opts?.deductStock !== false
+        // Business crafts always deduct shared mats; personal is optional
+        const deductStock = isPersonal ? opts?.deductStock !== false : true
 
         if (deductStock) {
           const short = recipe.ingredients.some((ing) => {
@@ -849,7 +852,6 @@ export function useStore() {
 
         const unitCost = recipeUnitCost(recipeId, s.materials, s.recipes)
         let products = s.products
-        // Business crafts always bump finished stock for the matching product
         if (!isPersonal) {
           const existing = products.find((p) => p.recipeId === recipeId)
           if (existing) {
@@ -859,7 +861,6 @@ export function useStore() {
                 : p,
             )
           } else {
-            // Recipe has no linked product yet — create one so stock is visible
             products = [
               ...products,
               {
@@ -891,6 +892,7 @@ export function useStore() {
           note: opts?.note,
         }
 
+        applied = true
         return {
           ...s,
           materials,
@@ -902,13 +904,32 @@ export function useStore() {
             action: 'create',
             entity: 'craft',
             entityId: log.id,
-            summary: `${isPersonal ? 'Personal' : 'Business'} craft ${qty}× ${recipe.name}`,
+            summary: `${isPersonal ? 'Personal' : 'Business'} craft ${qty}× ${recipe.name}${deductStock ? ' · mats deducted' : ''}`,
           }),
         }
       })
+      return applied
     },
     [],
   )
+
+  const rebuildStockFromLogs = useCallback((actor?: ActorCtx) => {
+    setState((s) => {
+      const next = rebuildInventoryFromLedger(s)
+      return {
+        ...next,
+        auditLogs: pushAudit(s.auditLogs, {
+          actorId: actor?.isOwner ? '' : actor?.employeeId || '',
+          actorName: actor?.displayName || s.settings.ownerName || 'Owner',
+          action: 'update',
+          entity: 'stock',
+          entityId: 'ledger-rebuild',
+          summary:
+            'Rebuilt material + crafted stock from purchases, crafts, and sales',
+        }),
+      }
+    })
+  }, [])
 
   const removeCraftLog = useCallback((id: string, actor: ActorCtx) => {
     setState((s) => {
@@ -1163,6 +1184,7 @@ export function useStore() {
     updatePendingOrder,
     removePendingOrder,
     craft,
+    rebuildStockFromLogs,
     removeCraftLog,
     addMaterialPurchase,
     removeMaterialPurchase,
