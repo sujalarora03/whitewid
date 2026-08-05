@@ -217,8 +217,8 @@ export function formatQtyBand(tier: PriceTier): string {
 
 /** Family internal unit prices (no cost alert) */
 export const FAMILY_UNIT_PRICE: Record<string, number> = {
-  'prod-grape-ape': 500,
-  'prod-insecticide': 150,
+  'prod-grape-ape': 600,
+  'prod-insecticide': 220,
 }
 
 export function familyUnitPrice(productId: string): number | null {

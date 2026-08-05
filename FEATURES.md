@@ -48,7 +48,7 @@ Sellers log what they sold. This is the normal path for commission.
 **External services** (Money Whitewash, Joints PreMade, Weed Processing) appear under Sales → External. They do not change shop stock.
 
 **Deal types on Sales:**
-- **Family** — Grape Ape $500, Insecticide $150; no cost alert
+- **Family** — Grape Ape $600, Insecticide $220; no cost alert
 - **Gang** — sell at making cost (no margin); no cost alert
 
 **Cost Info** on Sales / Prices shows the baseline making + selling floors. A normal sale under the floor still saves, and posts to the **cost alert** Discord webhook (Prices → Discord).

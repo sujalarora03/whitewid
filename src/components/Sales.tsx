@@ -356,7 +356,7 @@ export function Sales({
                 checked={familyDeal}
                 onChange={(e) => toggleFamily(e.target.checked)}
               />
-              Family sale (Grape Ape $500 · Insecticide $150)
+              Family sale (Grape Ape $600 · Insecticide $220)
             </label>
             <label className="check-field">
               <input
