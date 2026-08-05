@@ -144,4 +144,6 @@ Top crafter counts **business crafts only** (personal crafts are excluded).
 | Browser localStorage only | **Cloudflare D1** shared DB + local cache |
 | Each device different | Same data for whole crew on the deployed URL |
 
+**Fresh start (owner → Prices):** clears sales / crafts / purchases / stock / history but **keeps the same employees and ids**. Old rows stay tombstoned so sync cannot bring them back. Everyone should refresh after a fresh start.
+
 Sidebar shows **Cloud synced** when the shared DB is up to date. Use **Refresh** to pull latest.
