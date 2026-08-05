@@ -18,10 +18,12 @@ export function Prices({
     setProductSalePrice,
     updateSettings,
     hardReset,
+    freshStartKeepEmployees,
   } = store
   const [commPct, setCommPct] = useState(
     Math.round(state.settings.commissionRate * 100),
   )
+  const [resetMsg, setResetMsg] = useState<string | null>(null)
 
   return (
     <div className="stack">
@@ -167,24 +169,50 @@ export function Prices({
           <h3>Reset data</h3>
         </header>
         <p className="muted">
-          Clears sales, bonuses, and stock — restores default recipes &amp;
-          prices from your screenshots.
+          <strong>Fresh start</strong> clears sales, crafts, stash, orders,
+          bonuses, material purchases, audit history, and sets all stock to 0.
+          Employees stay the same (same logins / ids). Use this before
+          re-entering raw materials.
         </p>
-        <button
-          type="button"
-          className="btn danger"
-          onClick={() => {
-            if (
-              confirm(
-                'Reset all local data to defaults? This cannot be undone.',
+        <div className="actions">
+          <button
+            type="button"
+            className="btn danger"
+            onClick={() => {
+              if (
+                !confirm(
+                  'Fresh start? Clears all sales, crafts, stock, and history. Employees and passwords stay the same. This writes to the shared cloud DB.',
+                )
+              ) {
+                return
+              }
+              freshStartKeepEmployees(actor)
+              setResetMsg(
+                'Fresh start applied — stock is 0 and history is cleared. Everyone should refresh.',
               )
-            ) {
+            }}
+          >
+            Fresh start (keep employees)
+          </button>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => {
+              if (
+                !confirm(
+                  'Full reset to app defaults (including default employee roster)? Prefer Fresh start unless you really want seed defaults.',
+                )
+              ) {
+                return
+              }
               hardReset(actor)
-            }
-          }}
-        >
-          Reset to defaults
-        </button>
+              setResetMsg('Reset to seed defaults.')
+            }}
+          >
+            Reset to seed defaults
+          </button>
+          {resetMsg && <span className="muted">{resetMsg}</span>}
+        </div>
       </section>
     </div>
   )

@@ -91,7 +91,10 @@ async function handleState(request: Request, env: Env): Promise<Response> {
     }
 
     if (request.method === 'PUT') {
-      const body = (await request.json()) as { state?: AppState }
+      const body = (await request.json()) as {
+        state?: AppState
+        replace?: boolean
+      }
       if (!body.state || typeof body.state !== 'object') {
         return Response.json(
           { error: 'Missing state' },
@@ -104,7 +107,8 @@ async function handleState(request: Request, env: Env): Promise<Response> {
       ).first<{ data: string }>()
 
       let merged: AppState = body.state
-      if (row?.data) {
+      // Owner fresh-start / hard reset: write exactly what was sent
+      if (!body.replace && row?.data) {
         try {
           const remote = JSON.parse(row.data) as AppState
           // Merge so concurrent sales/crafts from other browsers are kept

@@ -82,6 +82,7 @@ export async function fetchCloudState(): Promise<{
 
 export async function saveCloudState(
   state: AppState,
+  opts?: { replace?: boolean },
 ): Promise<{
   ok: boolean
   updatedAt?: string
@@ -89,17 +90,22 @@ export async function saveCloudState(
   error?: string
 }> {
   try {
-    // Pull latest first so we don't wipe another person's sales/crafts
-    const latest = await fetchCloudState()
-    const toSave =
-      latest.ok && latest.state
-        ? mergeAppStates(latest.state, state)
-        : state
+    const replace = opts?.replace === true
+    let toSave = state
+
+    if (!replace) {
+      // Pull latest first so we don't wipe another person's sales/crafts
+      const latest = await fetchCloudState()
+      toSave =
+        latest.ok && latest.state
+          ? mergeAppStates(latest.state, state)
+          : state
+    }
 
     const res = await fetch('/api/state', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ state: toSave }),
+      body: JSON.stringify({ state: toSave, replace }),
     })
     if (!res.ok) {
       const text = await res.text()

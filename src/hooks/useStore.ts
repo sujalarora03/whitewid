@@ -22,6 +22,7 @@ import {
   type ActorCtx,
 } from '../lib/permissions'
 import { rebuildInventoryFromLedger } from '../lib/inventory'
+import { buildFreshStartState } from '../lib/freshStart'
 import { loadState, saveState, uid } from '../lib/utils'
 
 const AUDIT_CAP = 400
@@ -241,12 +242,50 @@ export function useStore() {
       })
     }
     setState(fresh)
-    void saveCloudState(fresh).then((r) => {
+    void saveCloudState(fresh, { replace: true }).then((r) => {
       if (r.ok) {
+        if (r.state) {
+          skipNextSave.current = true
+          setState(r.state)
+          saveState(r.state)
+        }
         setLastSyncedAt(r.updatedAt ?? null)
         setSyncStatus('synced')
       }
     })
+  }, [])
+
+  /** Clear sales/crafts/stock/etc. Keep employees (same ids) + settings + catalog. */
+  const freshStartKeepEmployees = useCallback((actor?: ActorCtx) => {
+    setSyncStatus('saving')
+    void (async () => {
+      const latest = await fetchCloudState()
+      const base =
+        latest.ok && latest.state
+          ? mergeAppStates(latest.state, stateRef.current)
+          : stateRef.current
+      const next = buildFreshStartState(
+        base,
+        actor?.displayName || base.settings.ownerName || 'Owner',
+      )
+      skipNextSave.current = true
+      setState(next)
+      saveState(next)
+      const r = await saveCloudState(next, { replace: true })
+      if (r.ok) {
+        if (r.state) {
+          skipNextSave.current = true
+          setState(r.state)
+          saveState(r.state)
+        }
+        setLastSyncedAt(r.updatedAt ?? null)
+        setSyncStatus('synced')
+        setSyncError(null)
+      } else {
+        setSyncStatus('error')
+        setSyncError(r.error ?? 'Fresh start save failed')
+      }
+    })()
   }, [])
 
   const clearAuditLogs = useCallback((actor: ActorCtx) => {
@@ -1195,6 +1234,7 @@ export function useStore() {
     addMaterial,
     addRecipe,
     hardReset,
+    freshStartKeepEmployees,
     clearAuditLogs,
   }
 }
