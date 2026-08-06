@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // Worker name is fixed — after you claim/login, every deploy updates THIS
+  // same workers.dev URL (it does not mint a new subdomain).
+  "name": "white-widow-manager",
+  "compatibility_date": "2026-07-31",
+  "main": "./worker/index.ts",
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/inv"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "white-widow",
+      "database_id": "9a65ccb3-e21b-4591-b9b5-4c385d4ff308",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

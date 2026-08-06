@@ -1,0 +1,38 @@
+# Deploys to the SAME workers.dev URL on every push.
+# Requires GitHub secrets (from the Cloudflare account that owns the Worker):
+#   CLOUDFLARE_API_TOKEN   — Create token: Edit Cloudflare Workers
+#   CLOUDFLARE_ACCOUNT_ID  — Account ID from the Cloudflare dashboard URL / wrangler whoami
+name: Deploy White Widow
+
+on:
+  push:
+    branches:
+      - main
+      - cursor/white-widow-manager-f14d
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy Worker + assets
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
