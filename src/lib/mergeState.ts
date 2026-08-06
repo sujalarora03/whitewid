@@ -167,11 +167,60 @@ function mergeEmployees(
  */
 export function mergeAppStates(remote: AppState, local: AppState): AppState {
   const deletedIds = mergeDeleted(remote.deletedIds, local.deletedIds)
+  const remoteEpoch = remote.settings?.dataEpoch ?? ''
+  const localEpoch = local.settings?.dataEpoch ?? ''
+  // After a fresh start / ledger rebuild, ignore stale browser stock numbers
+  const preferRemoteStock = remoteEpoch > localEpoch
+
+  const settings = {
+    ...remote.settings,
+    ...local.settings,
+    // Keep the newer epoch / rebuild markers from either side
+    dataEpoch:
+      remoteEpoch >= localEpoch
+        ? remote.settings?.dataEpoch ?? local.settings?.dataEpoch
+        : local.settings?.dataEpoch ?? remote.settings?.dataEpoch,
+    stockLedgerRebuiltAt: (() => {
+      const r = remote.settings?.stockLedgerRebuiltAt ?? ''
+      const l = local.settings?.stockLedgerRebuiltAt ?? ''
+      if (r >= l)
+        return (
+          remote.settings?.stockLedgerRebuiltAt ??
+          local.settings?.stockLedgerRebuiltAt
+        )
+      return (
+        local.settings?.stockLedgerRebuiltAt ??
+        remote.settings?.stockLedgerRebuiltAt
+      )
+    })(),
+  }
+
+  // Stale browsers (older/missing epoch) must not resurrect pre-wipe stock.
+  const materials = preferRemoteStock
+    ? (() => {
+        const remoteIds = new Set(remote.materials.map((m) => m.id))
+        return [
+          ...remote.materials,
+          ...local.materials.filter((m) => !remoteIds.has(m.id)),
+        ]
+      })()
+    : mergeStockRows(remote.materials, local.materials)
+
+  const products = preferRemoteStock
+    ? (() => {
+        const remoteIds = new Set(remote.products.map((p) => p.id))
+        return [
+          ...remote.products,
+          ...local.products.filter((p) => !remoteIds.has(p.id)),
+        ]
+      })()
+    : mergeStockRows(remote.products, local.products)
+
   return {
-    settings: { ...remote.settings, ...local.settings },
-    materials: mergeStockRows(remote.materials, local.materials),
+    settings,
+    materials,
     recipes: mergeById(remote.recipes, local.recipes, () => ''),
-    products: mergeStockRows(remote.products, local.products),
+    products,
     employees: mergeEmployees(
       remote.employees,
       local.employees,

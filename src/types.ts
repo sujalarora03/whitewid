@@ -208,6 +208,11 @@ export interface AppSettings {
    * Missing = run one-time migration on next load.
    */
   stockLedgerRebuiltAt?: string
+  /**
+   * Bumped on fresh start / ledger rebuild. Clients with an older epoch
+   * must not overwrite material/finished stock via merge-sync.
+   */
+  dataEpoch?: string
 }
 
 /** Ids removed on any client — kept so merge-sync does not revive them */

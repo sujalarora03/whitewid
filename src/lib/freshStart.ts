@@ -56,6 +56,7 @@ export function buildFreshStartState(
     settings: {
       ...current.settings,
       stockLedgerRebuiltAt: now,
+      dataEpoch: now,
     },
     materials: current.materials.map((m) => ({
       ...m,

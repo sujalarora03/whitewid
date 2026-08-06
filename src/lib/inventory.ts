@@ -216,6 +216,7 @@ export function rebuildInventoryFromLedger(state: AppState): AppState {
     settings: {
       ...state.settings,
       stockLedgerRebuiltAt: now,
+      dataEpoch: now,
     },
   }
 }
