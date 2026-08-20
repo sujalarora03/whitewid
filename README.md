@@ -77,8 +77,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Stage 1 Crankshaft** | 33 Steel Plate (10+15+8), 4 Scrap Metal |
 | **Stage 2 Crankshaft** | 33 Steel Plate (10+15+8), 4 Scrap Metal |
 | **Stage 1 Valves** | 33 Steel Plate (10+15+8), 4 Scrap Metal |
+| **Stage 2 Valves** | 33 Steel Plate (10+15+8), 4 Scrap Metal |
 
-Paste the next blueprint screenshot to add Stage 2 Valves / remaining parts.
+Paste the next blueprint screenshot to add remaining parts.
 
 ## Deploy
 
