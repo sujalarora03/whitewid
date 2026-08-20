@@ -5,7 +5,7 @@
  * Each recipe’s `ingredients` are the **stash needed per craft**.
  *
  * Still needed from screenshots:
- * Remaining kits in row 4 of the library.
+ * Clutch Repair Kit, Armor Plate, Engine Pistons, and remaining kits.
  */
 
 import type { Material, Product, Recipe } from '../types'
@@ -227,6 +227,17 @@ export const CATALOG_RECIPES: Recipe[] = [
       { materialId: 'mat-polymer-strip', qty: 10 },
     ],
   },
+  {
+    id: 'rec-suspension-repair-kit',
+    name: 'Suspension Repair Kit',
+    category: 'repair',
+    salePrice: 0,
+    ingredients: [
+      { materialId: 'mat-steel-plate', qty: 45 },
+      { materialId: 'mat-circuit-bundle', qty: 25 },
+      { materialId: 'mat-polymer-strip', qty: 15 },
+    ],
+  },
 ]
 
 export const CATALOG_PRODUCTS: Product[] = [
@@ -373,5 +384,14 @@ export const CATALOG_PRODUCTS: Product[] = [
     salePrice: 0,
     stock: 0,
     recipeId: 'rec-brake-repair-kit',
+  },
+  {
+    id: 'prod-suspension-repair-kit',
+    name: 'Suspension Repair Kit',
+    category: 'repair',
+    cost: 0,
+    salePrice: 0,
+    stock: 0,
+    recipeId: 'rec-suspension-repair-kit',
   },
 ]
