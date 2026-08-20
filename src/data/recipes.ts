@@ -5,7 +5,7 @@
  * Each recipe’s `ingredients` are the **stash needed per craft**.
  *
  * Still needed from screenshots:
- * Gearbox Repair Kit, Turbo Repair Kit, Brake Repair Kit, and remaining kits.
+ * Turbo Repair Kit, Brake Repair Kit, and remaining kits.
  */
 
 import type { Material, Product, Recipe } from '../types'
@@ -195,6 +195,16 @@ export const CATALOG_RECIPES: Recipe[] = [
       { materialId: 'mat-steel-plate', qty: 25 },
     ],
   },
+  {
+    id: 'rec-gearbox-repair-kit',
+    name: 'Gearbox Repair Kit',
+    category: 'repair',
+    salePrice: 0,
+    ingredients: [
+      { materialId: 'mat-steel-plate', qty: 50 },
+      { materialId: 'mat-circuit-bundle', qty: 15 },
+    ],
+  },
 ]
 
 export const CATALOG_PRODUCTS: Product[] = [
@@ -314,5 +324,14 @@ export const CATALOG_PRODUCTS: Product[] = [
     salePrice: 0,
     stock: 0,
     recipeId: 'rec-radiator-repair-kit',
+  },
+  {
+    id: 'prod-gearbox-repair-kit',
+    name: 'Gearbox Repair Kit',
+    category: 'repair',
+    cost: 0,
+    salePrice: 0,
+    stock: 0,
+    recipeId: 'rec-gearbox-repair-kit',
   },
 ]

@@ -33,8 +33,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Alternator Repair Kit** | 20 Polymer Strip, 25 Steel Plate (10+15 on screenshot), 15 Circuit Bundle |
 | **Fuel Pump Repair Kit** | 20 Scrap Metal, 25 Polymer Strip, 20 Steel Plate (10+10 on screenshot) |
 | **Radiator Repair Kit** | 25 Scrap Metal, 20 Circuit Bundle, 25 Steel Plate (10+15 on screenshot) |
+| **Gearbox Repair Kit** | 50 Steel Plate (10+15+25 on screenshot), 15 Circuit Bundle |
 
-Paste the next blueprint screenshot to add Gearbox / Turbo / Brake Repair Kits.
+Paste the next blueprint screenshot to add Turbo / Brake Repair Kits.
 
 ## Deploy
 
