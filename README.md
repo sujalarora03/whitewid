@@ -54,8 +54,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Grille** | 34 Steel Plate (10+15+9), 15 Scrap Metal, 8 Scrap Tin, 10 Broken Carparts, 12 Polymer Strip, 20 Circuit Bundle, 7 Lightweight Metal |
 | **Hood** | 37 Steel Plate (10+15+12), 15 Scrap Metal, 10 Scrap Tin, 10 Broken Carparts, 12 Polymer Strip, 20 Circuit Bundle, 7 Lightweight Metal |
 | **Roof Part** | 37 Steel Plate (10+15+12), 15 Scrap Metal, 10 Scrap Tin, 10 Broken Carparts, 12 Polymer Strip, 20 Circuit Bundle, 7 Lightweight Metal |
+| **Rim Set** | 25 Steel Plate (10+15), 10 Broken Carparts, 10 Polymer Strip, 10 Lightweight Metal |
 
-Paste the next blueprint screenshot to add Fender / remaining parts.
+Paste the next blueprint screenshot to add Exhaust / remaining parts.
 
 ## Deploy
 
