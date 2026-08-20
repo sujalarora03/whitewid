@@ -5,7 +5,7 @@
  * Each recipe’s `ingredients` are the **stash needed per craft**.
  *
  * Still needed from screenshots:
- * Fender, Ornament, Dial Design, Steering Wheel, Hydraulic Kit, Xenon Kit, remaining kits.
+ * Fender, Ornament, Dial Design, Steering Wheel, Hydraulic Kit, remaining kits.
  */
 
 import type { Material, Product, Recipe } from '../types'
@@ -559,6 +559,17 @@ export const CATALOG_RECIPES: Recipe[] = [
       { materialId: 'mat-polymer-strip', qty: 15 },
     ],
   },
+  {
+    id: 'rec-xenon-kit',
+    name: 'Xenon Kit',
+    category: 'parts',
+    salePrice: 0,
+    ingredients: [
+      { materialId: 'mat-steel-plate', qty: 25 },
+      { materialId: 'mat-lightweight-metal', qty: 10 },
+      { materialId: 'mat-circuit-bundle', qty: 10 },
+    ],
+  },
 ]
 
 export const CATALOG_PRODUCTS: Product[] = [
@@ -939,5 +950,14 @@ export const CATALOG_PRODUCTS: Product[] = [
     salePrice: 0,
     stock: 0,
     recipeId: 'rec-trim-part',
+  },
+  {
+    id: 'prod-xenon-kit',
+    name: 'Xenon Kit',
+    category: 'parts',
+    cost: 0,
+    salePrice: 0,
+    stock: 0,
+    recipeId: 'rec-xenon-kit',
   },
 ]
