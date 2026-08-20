@@ -59,8 +59,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Frame Part** | 25 Steel Plate (10+15), 15 Scrap Metal, 10 Scrap Tin, 20 Circuit Bundle, 7 Lightweight Metal |
 | **Tuning Chip** | 25 Steel Plate (10+15), 1 Tuning Parts, 1 Tuning Circuit |
 | **Cleaning Kit** | 25 Steel Plate (10+15), 2 Circuit Bundle, 5 Scrap Tin |
+| **Horn** | 25 Steel Plate (10+15), 2 Circuit Bundle, 5 Scrap Tin |
 
-Paste the next blueprint screenshot to add Horn / remaining parts.
+Paste the next blueprint screenshot to add Plate Holder / remaining parts.
 
 ## Deploy
 
