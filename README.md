@@ -42,8 +42,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Engine Pistons** | 25 Steel Plate (10+15 on screenshot), 25 Scrap Tin, 25 Broken Carparts |
 | **Radiator** | 25 Steel Plate (10+15 on screenshot), 25 Scrap Tin, 25 Broken Carparts |
 | **Fuel Pump** | 25 Steel Plate (10+15 on screenshot), 25 Scrap Tin, 25 Broken Carparts |
+| **Alternator Battery** | 25 Steel Plate (10+15 on screenshot), 25 Scrap Tin, 25 Broken Carparts |
 
-Paste the next blueprint screenshot to add Alternator Battery / Brake Parts / remaining parts.
+Paste the next blueprint screenshot to add Brake Parts / remaining parts.
 
 ## Deploy
 
