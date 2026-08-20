@@ -28,8 +28,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Stage 4 Supercharger** | 40 Scrap Metal, 25 Scrap Tin, 25 Steel Plate, 22 Broken Carparts, 30 Polymer Strip, 65 Circuit Bundle, 14 Lightweight Metal |
 | **27mm Turbo** | 40 Scrap Metal, 25 Scrap Tin, 25 Steel Plate, 22 Broken Carparts, 30 Polymer Strip, 65 Circuit Bundle, 14 Lightweight Metal |
 | **Repair Kit** | 5 Scrap Metal, 3 Steel Plate, 4 Circuit Bundle, 4 Polymer Strip |
+| **Advanced Repair Kit** | 7 Scrap Metal, 5 Steel Plate, 5 Circuit Bundle, 5 Polymer Strip |
 
-Paste the next blueprint screenshot to add Advanced Repair Kit and the rest of the kits.
+Paste the next blueprint screenshot to add Body Repair Kit and the rest of the kits.
 
 ## Deploy
 
