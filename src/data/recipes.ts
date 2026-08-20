@@ -5,7 +5,7 @@
  * Each recipe’s `ingredients` are the **stash needed per craft**.
  *
  * Still needed from screenshots:
- * Spoiler Part, Front Bumper, Rear Bumper, Side Skirt, Grille, remaining body parts.
+ * Front Bumper, Rear Bumper, Side Skirt, Grille, remaining body parts.
  */
 
 import type { Material, Product, Recipe } from '../types'
@@ -359,6 +359,21 @@ export const CATALOG_RECIPES: Recipe[] = [
       { materialId: 'mat-scrap-tin', qty: 25 },
     ],
   },
+  {
+    id: 'rec-spoiler-part',
+    name: 'Spoiler Part',
+    category: 'parts',
+    salePrice: 0,
+    ingredients: [
+      { materialId: 'mat-steel-plate', qty: 35 },
+      { materialId: 'mat-scrap-metal', qty: 17 },
+      { materialId: 'mat-scrap-tin', qty: 11 },
+      { materialId: 'mat-broken-carparts', qty: 10 },
+      { materialId: 'mat-polymer-strip', qty: 12 },
+      { materialId: 'mat-circuit-bundle', qty: 30 },
+      { materialId: 'mat-lightweight-metal', qty: 7 },
+    ],
+  },
 ]
 
 export const CATALOG_PRODUCTS: Product[] = [
@@ -604,5 +619,14 @@ export const CATALOG_PRODUCTS: Product[] = [
     salePrice: 0,
     stock: 0,
     recipeId: 'rec-gearbox-parts',
+  },
+  {
+    id: 'prod-spoiler-part',
+    name: 'Spoiler Part',
+    category: 'parts',
+    cost: 0,
+    salePrice: 0,
+    stock: 0,
+    recipeId: 'rec-spoiler-part',
   },
 ]

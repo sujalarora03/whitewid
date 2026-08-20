@@ -47,8 +47,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Suspension Parts** | 40 Steel Plate (10+15+15), 40 Scrap Metal, 20 Scrap Tin, 22 Broken Carparts, 30 Polymer Strip, 50 Circuit Bundle, 14 Lightweight Metal |
 | **Clutch** | 25 Steel Plate (10+15 on screenshot), 25 Scrap Tin, 25 Broken Carparts |
 | **Gearbox Parts** | 25 Steel Plate (10+15 on screenshot), 50 Lightweight Metal, 50 Circuit Bundle, 25 Polymer Strip, 25 Scrap Tin |
+| **Spoiler Part** | 35 Steel Plate (10+15+10), 17 Scrap Metal, 11 Scrap Tin, 10 Broken Carparts, 12 Polymer Strip, 30 Circuit Bundle, 7 Lightweight Metal |
 
-Paste the next blueprint screenshot to add Spoiler Part / remaining parts.
+Paste the next blueprint screenshot to add Front Bumper / remaining parts.
 
 ## Deploy
 
