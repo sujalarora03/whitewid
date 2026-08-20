@@ -5,7 +5,7 @@
  * Each recipe’s `ingredients` are the **stash needed per craft**.
  *
  * Still needed from screenshots:
- * Fender, Ornament, Dial Design, Steering Wheel, Hydraulic Kit, Plaque, remaining kits.
+ * Fender, Ornament, Dial Design, Steering Wheel, Hydraulic Kit, Plaque, Stage 2 Crankshaft, Stage 1 Valves, Stage 2 Valves, remaining kits.
  */
 
 import type { Material, Product, Recipe } from '../types'
@@ -707,6 +707,16 @@ export const CATALOG_RECIPES: Recipe[] = [
       { materialId: 'mat-lightweight-metal', qty: 14 },
     ],
   },
+  {
+    id: 'rec-stage-1-crankshaft',
+    name: 'Stage 1 Crankshaft',
+    category: 'engines',
+    salePrice: 0,
+    ingredients: [
+      { materialId: 'mat-steel-plate', qty: 33 },
+      { materialId: 'mat-scrap-metal', qty: 4 },
+    ],
+  },
 ]
 
 export const CATALOG_PRODUCTS: Product[] = [
@@ -1195,5 +1205,14 @@ export const CATALOG_PRODUCTS: Product[] = [
     salePrice: 0,
     stock: 0,
     recipeId: 'rec-100mm-turbo',
+  },
+  {
+    id: 'prod-stage-1-crankshaft',
+    name: 'Stage 1 Crankshaft',
+    category: 'engines',
+    cost: 0,
+    salePrice: 0,
+    stock: 0,
+    recipeId: 'rec-stage-1-crankshaft',
   },
 ]
