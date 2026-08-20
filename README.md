@@ -30,8 +30,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Repair Kit** | 5 Scrap Metal, 3 Steel Plate, 4 Circuit Bundle, 4 Polymer Strip |
 | **Advanced Repair Kit** | 7 Scrap Metal, 5 Steel Plate, 5 Circuit Bundle, 5 Polymer Strip |
 | **Body Repair Kit** | 10 Scrap Metal, 10 Steel Plate, 5 Circuit Bundle, 5 Polymer Strip |
+| **Alternator Repair Kit** | 20 Polymer Strip, 25 Steel Plate (10+15 on screenshot), 15 Circuit Bundle |
 
-Paste the next blueprint screenshot to add Alternator Repair Kit and the rest of the kits.
+Paste the next blueprint screenshot to add Fuel Pump Repair Kit and the rest of the kits.
 
 ## Deploy
 

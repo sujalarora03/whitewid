@@ -266,4 +266,13 @@ export const CATALOG_PRODUCTS: Product[] = [
     stock: 0,
     recipeId: 'rec-body-repair-kit',
   },
+  {
+    id: 'prod-alternator-repair-kit',
+    name: 'Alternator Repair Kit',
+    category: 'repair',
+    cost: 0,
+    salePrice: 0,
+    stock: 0,
+    recipeId: 'rec-alternator-repair-kit',
+  },
 ]
