@@ -5,7 +5,7 @@
  * Each recipe’s `ingredients` are the **stash needed per craft**.
  *
  * Still needed from screenshots:
- * Alternator Repair Kit, Fuel Pump Repair Kit, and the rest of the library.
+ * Fuel Pump Repair Kit, and the rest of the library.
  */
 
 import type { Material, Product, Recipe } from '../types'
@@ -160,6 +160,17 @@ export const CATALOG_RECIPES: Recipe[] = [
       { materialId: 'mat-steel-plate', qty: 10 },
       { materialId: 'mat-circuit-bundle', qty: 5 },
       { materialId: 'mat-polymer-strip', qty: 5 },
+    ],
+  },
+  {
+    id: 'rec-alternator-repair-kit',
+    name: 'Alternator Repair Kit',
+    category: 'repair',
+    salePrice: 0,
+    ingredients: [
+      { materialId: 'mat-polymer-strip', qty: 20 },
+      { materialId: 'mat-steel-plate', qty: 25 },
+      { materialId: 'mat-circuit-bundle', qty: 15 },
     ],
   },
 ]
