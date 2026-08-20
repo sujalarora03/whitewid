@@ -5,7 +5,6 @@
  * Each recipe’s `ingredients` are the **stash needed per craft**.
  *
  * Still needed from screenshots:
- * 27mm Turbo,
  * Repair Kit, Advanced Repair Kit, Body Repair Kit,
  * Alternator Repair Kit, Fuel Pump Repair Kit, and the rest of the library.
  */
@@ -113,6 +112,21 @@ export const CATALOG_RECIPES: Recipe[] = [
       { materialId: 'mat-lightweight-metal', qty: 14 },
     ],
   },
+  {
+    id: 'rec-27mm-turbo',
+    name: '27mm Turbo',
+    category: 'forced-induction',
+    salePrice: 0,
+    ingredients: [
+      { materialId: 'mat-scrap-metal', qty: 40 },
+      { materialId: 'mat-scrap-tin', qty: 25 },
+      { materialId: 'mat-steel-plate', qty: 25 },
+      { materialId: 'mat-broken-carparts', qty: 22 },
+      { materialId: 'mat-polymer-strip', qty: 30 },
+      { materialId: 'mat-circuit-bundle', qty: 65 },
+      { materialId: 'mat-lightweight-metal', qty: 14 },
+    ],
+  },
 ]
 
 export const CATALOG_PRODUCTS: Product[] = [
@@ -169,5 +183,14 @@ export const CATALOG_PRODUCTS: Product[] = [
     salePrice: 0,
     stock: 0,
     recipeId: 'rec-stage-4-supercharger',
+  },
+  {
+    id: 'prod-27mm-turbo',
+    name: '27mm Turbo',
+    category: 'forced-induction',
+    cost: 0,
+    salePrice: 0,
+    stock: 0,
+    recipeId: 'rec-27mm-turbo',
   },
 ]

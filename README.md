@@ -26,8 +26,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Engine Stage 4** | 40 Scrap Metal, 25 Scrap Tin, 25 Steel Plate, 22 Broken Carparts, 30 Polymer Strip, 65 Circuit Bundle, 14 Lightweight Metal |
 | **Stage 3 Supercharger** | 40 Scrap Metal, 25 Scrap Tin, 25 Steel Plate, 22 Broken Carparts, 30 Polymer Strip, 65 Circuit Bundle, 14 Lightweight Metal |
 | **Stage 4 Supercharger** | 40 Scrap Metal, 25 Scrap Tin, 25 Steel Plate, 22 Broken Carparts, 30 Polymer Strip, 65 Circuit Bundle, 14 Lightweight Metal |
+| **27mm Turbo** | 40 Scrap Metal, 25 Scrap Tin, 25 Steel Plate, 22 Broken Carparts, 30 Polymer Strip, 65 Circuit Bundle, 14 Lightweight Metal |
 
-Paste the next blueprint screenshot to add 27mm Turbo / Repair Kits.
+Paste the next blueprint screenshot to add Repair Kits.
 
 ## Deploy
 
