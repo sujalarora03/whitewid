@@ -1,5 +1,5 @@
 /**
- * Shop Manager API — Discord proxy + shared D1 state (merge-on-write)
+ * FastLane Mechanic API — Discord proxy + shared D1 state (merge-on-write)
  * + public inventory page (/inv) and optional Discord slash commands.
  */
 

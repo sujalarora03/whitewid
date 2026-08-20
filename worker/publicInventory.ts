@@ -21,7 +21,7 @@ function loadState(data: string): AppState | null {
 }
 
 function renderText(state: AppState): string {
-  const business = state.settings?.businessName || 'New Shop'
+  const business = state.settings?.businessName || 'FastLane Mechanic'
   const mats = materialStockLines(state)
   const crafted = craftedStockLines(state)
   const lines = [
@@ -39,7 +39,7 @@ function renderText(state: AppState): string {
 }
 
 function renderHtml(state: AppState): string {
-  const business = state.settings?.businessName || 'New Shop'
+  const business = state.settings?.businessName || 'FastLane Mechanic'
   const mats = materialStockLines(state)
   const crafted = craftedStockLines(state)
   const matRows = mats
@@ -65,15 +65,15 @@ function renderHtml(state: AppState): string {
     :root { color-scheme: dark; }
     body {
       margin: 0; font-family: ui-sans-serif, system-ui, sans-serif;
-      background: #0f1410; color: #e8f0e9; padding: 1.25rem;
+      background: #0c0e14; color: #f3eee6; padding: 1.25rem;
     }
-    h1 { font-size: 1.35rem; margin: 0 0 0.25rem; color: #7cff9a; }
-    p { color: #9aab9e; margin: 0 0 1.25rem; font-size: 0.9rem; }
-    h2 { font-size: 0.95rem; margin: 1.25rem 0 0.5rem; color: #b6cbb9; text-transform: uppercase; letter-spacing: 0.04em; }
+    h1 { font-size: 1.35rem; margin: 0 0 0.25rem; color: #ffb040; }
+    p { color: #9a9388; margin: 0 0 1.25rem; font-size: 0.9rem; }
+    h2 { font-size: 0.95rem; margin: 1.25rem 0 0.5rem; color: #c4b8a8; text-transform: uppercase; letter-spacing: 0.04em; }
     table { width: 100%; max-width: 420px; border-collapse: collapse; }
-    td { padding: 0.45rem 0.35rem; border-bottom: 1px solid #243028; }
+    td { padding: 0.45rem 0.35rem; border-bottom: 1px solid #2a261f; }
     td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
-    .hint { margin-top: 1.5rem; font-size: 0.8rem; color: #6f7f73; }
+    .hint { margin-top: 1.5rem; font-size: 0.8rem; color: #6f6a62; }
   </style>
 </head>
 <body>
@@ -154,7 +154,7 @@ export async function handlePublicInventory(
   if (format === 'json') {
     return Response.json(
       {
-        businessName: state.settings?.businessName || 'New Shop',
+        businessName: state.settings?.businessName || 'FastLane Mechanic',
         materials: mats,
         crafted,
         updatedAt: row.updated_at,

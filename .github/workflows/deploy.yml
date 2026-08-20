@@ -1,4 +1,4 @@
-# Deploy second shop
+# Deploy FastLane Mechanic
 
 on:
   workflow_dispatch:

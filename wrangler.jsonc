@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  // Separate Worker from White Widow — do not reuse that name or D1 id.
-  "name": "second-shop-manager",
+  // FastLane Mechanic — do not reuse White Widow Worker name or D1 id.
+  "name": "fastlane-mechanic",
   "compatibility_date": "2026-08-20",
   "main": "./worker/index.ts",
   "workers_dev": true,
@@ -17,9 +17,9 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "second-shop",
+      "database_name": "fastlane-mechanic",
       // Placeholder for local `wrangler d1 migrations apply DB --local`.
-      // Create a real D1 (`npx wrangler d1 create second-shop`) before remote deploy.
+      // Create a real D1 (`npx wrangler d1 create fastlane-mechanic`) before remote deploy.
       "database_id": "00000000-0000-0000-0000-000000000000",
       "migrations_dir": "migrations"
     }

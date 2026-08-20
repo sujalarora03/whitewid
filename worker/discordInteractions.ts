@@ -67,7 +67,7 @@ async function loadAppState(db: D1Database): Promise<AppState | null> {
 }
 
 function inventoryInteractionResponse(state: AppState) {
-  const business = state.settings?.businessName || 'New Shop'
+  const business = state.settings?.businessName || 'FastLane Mechanic'
   const mats = materialStockLines(state)
   const crafted = craftedStockLines(state)
   const matsText =

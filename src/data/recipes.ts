@@ -1,40 +1,53 @@
 /**
- * Craft catalog for this shop.
+ * FastLane Mechanic craft catalog.
  *
- * Filled from in-game screenshots, one craftable item at a time.
+ * Filled from in-game screenshots, one blueprint at a time.
  * Each recipe’s `ingredients` are the **stash needed per craft**.
- * Sale prices go on the matching product (Rate Card).
  *
- * Paste the next screenshot and this file is what gets updated.
+ * Still needed from screenshots:
+ * Engine Stage 2 / 3 / 4, Stage 3 / 4 Supercharger, 27mm Turbo,
+ * Repair Kit, Advanced Repair Kit, Body Repair Kit,
+ * Alternator Repair Kit, Fuel Pump Repair Kit, and the rest of the library.
  */
 
 import type { Material, Product, Recipe } from '../types'
 
 export const CATALOG_MATERIALS: Material[] = [
-  // Example after a screenshot:
-  // { id: 'mat-steel', name: 'Steel', cost: 0, category: 'supplies', stock: 0 },
+  { id: 'mat-scrap-metal', name: 'Scrap Metal', cost: 0, category: 'parts', stock: 0 },
+  { id: 'mat-scrap-tin', name: 'Scrap Tin', cost: 0, category: 'parts', stock: 0 },
+  { id: 'mat-steel-plate', name: 'Steel Plate', cost: 0, category: 'parts', stock: 0 },
+  { id: 'mat-broken-carparts', name: 'Broken Carparts', cost: 0, category: 'parts', stock: 0 },
+  { id: 'mat-polymer-strip', name: 'Polymer Strip', cost: 0, category: 'parts', stock: 0 },
+  { id: 'mat-circuit-bundle', name: 'Circuit Bundle', cost: 0, category: 'parts', stock: 0 },
+  { id: 'mat-lightweight-metal', name: 'Lightweight Metal', cost: 0, category: 'parts', stock: 0 },
 ]
 
 export const CATALOG_RECIPES: Recipe[] = [
-  // Example:
-  // {
-  //   id: 'rec-example',
-  //   name: 'Example Item',
-  //   category: 'other',
-  //   salePrice: 0,
-  //   ingredients: [{ materialId: 'mat-steel', qty: 2 }],
-  // },
+  {
+    id: 'rec-engine-stage-1',
+    name: 'Engine Stage 1',
+    category: 'engines',
+    salePrice: 0,
+    ingredients: [
+      { materialId: 'mat-scrap-metal', qty: 27 },
+      { materialId: 'mat-scrap-tin', qty: 17 },
+      { materialId: 'mat-steel-plate', qty: 17 },
+      { materialId: 'mat-broken-carparts', qty: 15 },
+      { materialId: 'mat-polymer-strip', qty: 20 },
+      { materialId: 'mat-circuit-bundle', qty: 48 },
+      { materialId: 'mat-lightweight-metal', qty: 12 },
+    ],
+  },
 ]
 
 export const CATALOG_PRODUCTS: Product[] = [
-  // Example:
-  // {
-  //   id: 'prod-example',
-  //   name: 'Example Item',
-  //   category: 'other',
-  //   cost: 0,
-  //   salePrice: 0,
-  //   stock: 0,
-  //   recipeId: 'rec-example',
-  // },
+  {
+    id: 'prod-engine-stage-1',
+    name: 'Engine Stage 1',
+    category: 'engines',
+    cost: 0,
+    salePrice: 0,
+    stock: 0,
+    recipeId: 'rec-engine-stage-1',
+  },
 ]

@@ -1,15 +1,15 @@
 :root {
-  --bg-deep: #070d09;
-  --bg: #0c1510;
-  --bg-elevated: #121f17;
-  --bg-panel: rgba(16, 28, 20, 0.92);
-  --line: rgba(124, 255, 154, 0.12);
-  --line-strong: rgba(124, 255, 154, 0.28);
-  --text: #e8f5eb;
-  --muted: #8aa393;
-  --accent: #7cff9a;
-  --accent-dim: #3d9a55;
-  --accent-glow: rgba(124, 255, 154, 0.18);
+  --bg-deep: #08090d;
+  --bg: #0c0e14;
+  --bg-elevated: #141822;
+  --bg-panel: rgba(18, 22, 32, 0.94);
+  --line: rgba(255, 176, 64, 0.14);
+  --line-strong: rgba(255, 176, 64, 0.32);
+  --text: #f3eee6;
+  --muted: #9a9388;
+  --accent: #ffb040;
+  --accent-dim: #c47a22;
+  --accent-glow: rgba(255, 176, 64, 0.18);
   --warn: #f0c14a;
   --danger: #ff6b6b;
   --radius: 14px;
@@ -35,9 +35,9 @@ body {
   margin: 0;
   font-family: var(--font-body);
   background:
-    radial-gradient(ellipse 80% 50% at 10% -10%, rgba(61, 154, 85, 0.22), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 90% 0%, rgba(124, 255, 154, 0.08), transparent 50%),
-    linear-gradient(180deg, #0a120c 0%, var(--bg-deep) 45%, #08110c 100%);
+    radial-gradient(ellipse 80% 50% at 10% -10%, rgba(196, 122, 34, 0.22), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 0%, rgba(255, 176, 64, 0.08), transparent 50%),
+    linear-gradient(180deg, #0c0e14 0%, var(--bg-deep) 45%, #07080c 100%);
   background-attachment: fixed;
   color: var(--text);
   line-height: 1.45;
@@ -104,7 +104,7 @@ p {
   font-size: 1.25rem;
   letter-spacing: 0.02em;
   box-shadow: 0 0 24px var(--accent-glow);
-  background: rgba(124, 255, 154, 0.06);
+  background: rgba(255, 176, 64, 0.06);
 }
 
 .brand-name {
@@ -194,7 +194,7 @@ p {
 
 .nav-btn:hover {
   color: var(--text);
-  background: rgba(124, 255, 154, 0.06);
+  background: rgba(255, 176, 64, 0.06);
 }
 
 .nav-btn.active {
@@ -283,7 +283,7 @@ p {
   border-radius: calc(var(--radius) + 4px);
   border: 1px solid var(--line-strong);
   background:
-    linear-gradient(135deg, rgba(124, 255, 154, 0.12), transparent 45%),
+    linear-gradient(135deg, rgba(255, 176, 64, 0.12), transparent 45%),
     linear-gradient(180deg, rgba(18, 36, 24, 0.9), rgba(10, 18, 13, 0.95));
   box-shadow: var(--shadow);
   overflow: hidden;
@@ -295,7 +295,7 @@ p {
   position: absolute;
   inset: auto -20% -40% 40%;
   height: 180px;
-  background: radial-gradient(circle, rgba(124, 255, 154, 0.2), transparent 65%);
+  background: radial-gradient(circle, rgba(255, 176, 64, 0.2), transparent 65%);
   pointer-events: none;
 }
 
@@ -418,7 +418,7 @@ p {
   margin-bottom: 1rem;
   padding: 0.85rem;
   border-radius: 12px;
-  background: rgba(124, 255, 154, 0.07);
+  background: rgba(255, 176, 64, 0.07);
   border: 1px solid var(--line);
 }
 
@@ -474,7 +474,7 @@ p {
 
 .tip-panel {
   background:
-    linear-gradient(90deg, rgba(124, 255, 154, 0.06), transparent),
+    linear-gradient(90deg, rgba(255, 176, 64, 0.06), transparent),
     var(--bg-panel);
 }
 
@@ -655,7 +655,7 @@ p {
   margin: 1rem 0;
   padding: 1rem;
   border-radius: 12px;
-  background: rgba(124, 255, 154, 0.06);
+  background: rgba(255, 176, 64, 0.06);
   border: 1px solid var(--line-strong);
 }
 
@@ -735,7 +735,7 @@ p {
 
 .data-table td {
   padding: 0.65rem 0.45rem;
-  border-bottom: 1px solid rgba(124, 255, 154, 0.06);
+  border-bottom: 1px solid rgba(255, 176, 64, 0.06);
   vertical-align: middle;
 }
 
@@ -792,7 +792,7 @@ p {
 .recipe-card:hover,
 .recipe-card.active {
   border-color: var(--line-strong);
-  background: rgba(124, 255, 154, 0.07);
+  background: rgba(255, 176, 64, 0.07);
   transform: translateY(-2px);
 }
 

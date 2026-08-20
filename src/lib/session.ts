@@ -1,9 +1,9 @@
 export type AppRole = 'owner' | 'employee'
 
-const ROLE_KEY = 'second-shop-role'
-const EMP_KEY = 'second-shop-selected-employee'
-const EMP_AUTH_KEY = 'second-shop-employee-authed'
-const OWNER_AUTH_KEY = 'second-shop-owner-authed'
+const ROLE_KEY = 'fastlane-role'
+const EMP_KEY = 'fastlane-selected-employee'
+const EMP_AUTH_KEY = 'fastlane-employee-authed'
+const OWNER_AUTH_KEY = 'fastlane-owner-authed'
 
 export function loadRole(): AppRole {
   const q = new URLSearchParams(window.location.search).get('role')

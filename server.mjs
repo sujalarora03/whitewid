@@ -121,5 +121,5 @@ const server = http.createServer(async (req, res) => {
 })
 
 server.listen(PORT, () => {
-  console.log(`Shop Manager → http://localhost:${PORT}`)
+  console.log(`FastLane Mechanic → http://localhost:${PORT}`)
 })

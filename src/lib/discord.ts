@@ -16,7 +16,7 @@ export interface DiscordEmbed {
   timestamp?: string
 }
 
-const GREEN = 0x7cff9a
+const AMBER = 0xffb040
 
 export async function postToDiscord(
   webhookUrl: string,
@@ -61,7 +61,7 @@ export function saleEmbed(input: {
     embeds: [
       {
         title: `${input.businessName} · Sale`,
-        color: GREEN,
+        color: AMBER,
         fields: [
           { name: 'Employee', value: input.employeeName, inline: true },
           { name: 'Item', value: `${input.qty}× ${input.productName}`, inline: true },
@@ -137,7 +137,7 @@ export function weekReportEmbed(
       {
         title: `${businessName} · Weekly Report`,
         description: formatWeekLabel(report.start),
-        color: GREEN,
+        color: AMBER,
         fields: [
           { name: 'Revenue', value: money(report.revenue), inline: true },
           { name: 'Gross profit', value: money(report.profit), inline: true },
@@ -180,7 +180,7 @@ export function weekReportEmbed(
             value: crew || '—',
           },
         ],
-        footer: { text: 'Shop Manager' },
+        footer: { text: 'FastLane Mechanic' },
         timestamp: new Date().toISOString(),
       },
     ],
@@ -248,7 +248,7 @@ export function craftLogEmbed(input: {
         description: input.personal
           ? 'Crafted for themselves — not business stock / not a sale'
           : 'Production added to finished inventory (business)',
-        color: GREEN,
+        color: AMBER,
         fields: [
           { name: 'Who crafted', value: input.employeeName, inline: true },
           {
@@ -359,7 +359,7 @@ export function stashClearedEmbed(input: {
     embeds: [
       {
         title: `${input.businessName} · Stash sale confirmed`,
-        color: GREEN,
+        color: AMBER,
         description: 'Owner cleared — sale counts for profit & seller commission',
         fields: [
           { name: 'Seller', value: input.sellerName, inline: true },

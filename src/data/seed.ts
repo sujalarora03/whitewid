@@ -5,11 +5,11 @@ import {
   CATALOG_RECIPES,
 } from './recipes'
 
-export const STORAGE_KEY = 'second-shop-manager-v1'
+export const STORAGE_KEY = 'fastlane-mechanic-v1'
 
 export const defaultState = (): AppState => ({
   settings: {
-    businessName: 'New Shop',
+    businessName: 'FastLane Mechanic',
     ownerName: 'Pablo the II Escobar',
     ownerPassword: 'sujal@3301',
     commissionRate: 0.15,

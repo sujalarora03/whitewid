@@ -1,23 +1,23 @@
-# How this shop manager works
+# How FastLane Mechanic works
 
-Owner: **Pablo the II Escobar** · Default name: **New Shop** (rename under Rate card)
+Owner: **Pablo the II Escobar** · Business: **FastLane Mechanic**
 
 Everyone who opens the deployed app shares the **same Cloudflare D1 database**.
 Sidebar should say **Cloud synced**. Hit **Refresh** if a teammate’s entry is missing.
 
-This copy is a **second business**. White Widow stays on its own Worker / D1.
+This is a **separate shop** from White Widow (different Worker, D1, and browser storage).
 
 ---
 
 ## Craft
-Crafters log **production**. Pick item + qty — output is **stash needed**.
+Pick a blueprint + quantity. The main output is **stash needed**.
 
 | You do | What happens |
 |---|---|
 | Log business craft | Finished stock up; stash materials down |
 | Not enough stash | Log is blocked until you restock under **Stock** |
 
-Recipes are added from in-game screenshots into `src/data/recipes.ts`.
+Recipes live in `src/data/recipes.ts` (from in-game screenshots).
 
 ---
 
@@ -35,13 +35,7 @@ Sellers log what they sold. Commission is **sale price × commission %** (defaul
 ---
 
 ## Rate card
-- Business name, owner name, commission %
+- Business name, commission %
 - Stash needed per craft + making cost + sale price
-- Material store costs
+- Material store costs (fill when you know them)
 - Product sale prices
-- Discord webhooks (optional)
-
----
-
-## Stock
-Business inventory + material purchases (separate from crafting).

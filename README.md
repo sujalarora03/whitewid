@@ -1,12 +1,10 @@
-# Shop Manager (second business)
+# FastLane Mechanic
 
-Boilerplate for a **new** GTA V RP shop — Craft, Sales, Employees, Rate card.
+Business manager for **FastLane Mechanic** (GTA V RP) — Craft, Sales, Employees, Rate card.
 
-Rename the business under **Rate card**. Owner stays **Pablo the II Escobar**.
+Owner: **Pablo the II Escobar**
 
-This is **not** White Widow. Recipes start empty. Paste screenshots of each
-craftable item (one by one) and the catalog in `src/data/recipes.ts` is filled
-in. Craft then shows **stash needed** for any quantity.
+Craft output is **stash needed** for the selected blueprint and quantity.
 
 ## Local
 
@@ -16,21 +14,16 @@ npm run db:migrate:local
 npm run dev
 ```
 
-Employee desk: add `?role=employee` to the local URL.
+Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 
-Owner PIN: `sujal@3301`
+## Craft catalog so far
 
-## Craft / stash
+| Item | Stash needed (1×) |
+|---|---|
+| **Engine Stage 1** | 27 Scrap Metal, 17 Scrap Tin, 17 Steel Plate, 15 Broken Carparts, 20 Polymer Strip, 48 Circuit Bundle, 12 Lightweight Metal |
 
-Pick a recipe + quantity. The main output is how much stash (materials) that
-batch needs, compared with current stock.
-
-## Rate card
-
-Per-craft stash list, making cost, and sale prices. Fill sale prices as you
-know them.
+Paste the next blueprint screenshot to add Engine Stage 2 / Superchargers / Turbos / Repair Kits.
 
 ## Deploy
 
-See **[DEPLOY.md](./DEPLOY.md)** — uses Worker `second-shop-manager` and D1
-`second-shop`. Do not deploy over White Widow.
+See **[DEPLOY.md](./DEPLOY.md)** — Worker `fastlane-mechanic`, D1 `fastlane-mechanic`.

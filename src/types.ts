@@ -1,8 +1,9 @@
 export type Category =
-  | 'seeds'
-  | 'fertilizer'
+  | 'engines'
+  | 'forced-induction'
+  | 'repair'
+  | 'parts'
   | 'supplies'
-  | 'smoking'
   | 'other'
   | 'external'
 
