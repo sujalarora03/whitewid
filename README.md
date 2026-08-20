@@ -73,8 +73,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **35mm Turbo** | 40 Steel Plate (10+15+15), 40 Scrap Metal, 20 Scrap Tin, 22 Broken Carparts, 30 Polymer Strip, 50 Circuit Bundle, 14 Lightweight Metal |
 | **42mm Turbo** | 40 Steel Plate (10+15+15), 40 Scrap Metal, 20 Scrap Tin, 25 Broken Carparts, 30 Polymer Strip, 50 Circuit Bundle, 14 Lightweight Metal |
 | **52mm Turbo** | 40 Steel Plate (10+15+15), 40 Scrap Metal, 20 Scrap Tin, 25 Broken Carparts, 30 Polymer Strip, 50 Circuit Bundle, 14 Lightweight Metal |
+| **100mm Turbo** | 40 Steel Plate (10+15+15), 50 Scrap Metal, 30 Scrap Tin, 22 Broken Carparts, 30 Polymer Strip, 50 Circuit Bundle, 14 Lightweight Metal |
 
-Paste the next blueprint screenshot to add 100mm Turbo / remaining parts.
+Paste the next blueprint screenshot to add remaining parts.
 
 ## Deploy
 
