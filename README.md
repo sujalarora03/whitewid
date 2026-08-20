@@ -63,8 +63,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Plate Holder** | 25 Steel Plate (10+15), 7 Circuit Bundle |
 | **Trim Part** | 25 Steel Plate (10+15), 15 Polymer Strip |
 | **Xenon Kit** | 25 Steel Plate (10+15), 10 Lightweight Metal, 10 Circuit Bundle |
+| **Neon Kit** | 25 Steel Plate (10+15), 10 Circuit Bundle |
 
-Paste the next blueprint screenshot to add remaining parts (LED, paint, tires, or skipped cube items).
+Paste the next blueprint screenshot to add Paint Can / remaining parts.
 
 ## Deploy
 
