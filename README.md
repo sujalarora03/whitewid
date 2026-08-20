@@ -45,8 +45,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Alternator Battery** | 25 Steel Plate (10+15 on screenshot), 25 Scrap Tin, 25 Broken Carparts |
 | **Brake Parts** | 25 Steel Plate (10+15 on screenshot), 25 Scrap Tin, 25 Broken Carparts |
 | **Suspension Parts** | 40 Steel Plate (10+15+15), 40 Scrap Metal, 20 Scrap Tin, 22 Broken Carparts, 30 Polymer Strip, 50 Circuit Bundle, 14 Lightweight Metal |
+| **Clutch** | 25 Steel Plate (10+15 on screenshot), 25 Scrap Tin, 25 Broken Carparts |
 
-Paste the next blueprint screenshot to add Clutch / remaining parts.
+Paste the next blueprint screenshot to add Gearbox Parts / remaining parts.
 
 ## Deploy
 
