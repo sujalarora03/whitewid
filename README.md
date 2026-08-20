@@ -56,8 +56,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Roof Part** | 37 Steel Plate (10+15+12), 15 Scrap Metal, 10 Scrap Tin, 10 Broken Carparts, 12 Polymer Strip, 20 Circuit Bundle, 7 Lightweight Metal |
 | **Rim Set** | 25 Steel Plate (10+15), 10 Broken Carparts, 10 Polymer Strip, 10 Lightweight Metal |
 | **Exhaust** | 37 Steel Plate (10+15+12), 15 Scrap Metal, 10 Scrap Tin, 10 Broken Carparts, 12 Polymer Strip, 20 Circuit Bundle, 7 Lightweight Metal |
+| **Frame Part** | 25 Steel Plate (10+15), 15 Scrap Metal, 10 Scrap Tin, 20 Circuit Bundle, 7 Lightweight Metal |
 
-Paste the next blueprint screenshot to add Frame Part / remaining parts.
+Paste the next blueprint screenshot to add Tuning Chip / remaining parts.
 
 ## Deploy
 
