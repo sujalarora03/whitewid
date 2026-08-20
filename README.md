@@ -55,8 +55,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Hood** | 37 Steel Plate (10+15+12), 15 Scrap Metal, 10 Scrap Tin, 10 Broken Carparts, 12 Polymer Strip, 20 Circuit Bundle, 7 Lightweight Metal |
 | **Roof Part** | 37 Steel Plate (10+15+12), 15 Scrap Metal, 10 Scrap Tin, 10 Broken Carparts, 12 Polymer Strip, 20 Circuit Bundle, 7 Lightweight Metal |
 | **Rim Set** | 25 Steel Plate (10+15), 10 Broken Carparts, 10 Polymer Strip, 10 Lightweight Metal |
+| **Exhaust** | 37 Steel Plate (10+15+12), 15 Scrap Metal, 10 Scrap Tin, 10 Broken Carparts, 12 Polymer Strip, 20 Circuit Bundle, 7 Lightweight Metal |
 
-Paste the next blueprint screenshot to add Exhaust / remaining parts.
+Paste the next blueprint screenshot to add Frame Part / remaining parts.
 
 ## Deploy
 
