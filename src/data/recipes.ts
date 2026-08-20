@@ -5,7 +5,7 @@
  * Each recipe’s `ingredients` are the **stash needed per craft**.
  *
  * Still needed from screenshots:
- * Engine Stage 3 / 4, Stage 3 / 4 Supercharger, 27mm Turbo,
+ * Engine Stage 4, Stage 3 / 4 Supercharger, 27mm Turbo,
  * Repair Kit, Advanced Repair Kit, Body Repair Kit,
  * Alternator Repair Kit, Fuel Pump Repair Kit, and the rest of the library.
  */
@@ -53,6 +53,21 @@ export const CATALOG_RECIPES: Recipe[] = [
       { materialId: 'mat-lightweight-metal', qty: 12 },
     ],
   },
+  {
+    id: 'rec-engine-stage-3',
+    name: 'Engine Stage 3',
+    category: 'engines',
+    salePrice: 0,
+    ingredients: [
+      { materialId: 'mat-scrap-metal', qty: 35 },
+      { materialId: 'mat-scrap-tin', qty: 20 },
+      { materialId: 'mat-steel-plate', qty: 20 },
+      { materialId: 'mat-broken-carparts', qty: 20 },
+      { materialId: 'mat-polymer-strip', qty: 25 },
+      { materialId: 'mat-circuit-bundle', qty: 55 },
+      { materialId: 'mat-lightweight-metal', qty: 12 },
+    ],
+  },
 ]
 
 export const CATALOG_PRODUCTS: Product[] = [
@@ -73,5 +88,14 @@ export const CATALOG_PRODUCTS: Product[] = [
     salePrice: 0,
     stock: 0,
     recipeId: 'rec-engine-stage-2',
+  },
+  {
+    id: 'prod-engine-stage-3',
+    name: 'Engine Stage 3',
+    category: 'engines',
+    cost: 0,
+    salePrice: 0,
+    stock: 0,
+    recipeId: 'rec-engine-stage-3',
   },
 ]

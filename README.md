@@ -22,8 +22,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 |---|---|
 | **Engine Stage 1** | 27 Scrap Metal, 17 Scrap Tin, 17 Steel Plate, 15 Broken Carparts, 20 Polymer Strip, 48 Circuit Bundle, 12 Lightweight Metal |
 | **Engine Stage 2** | 30 Scrap Metal, 18 Scrap Tin, 18 Steel Plate, 18 Broken Carparts, 23 Polymer Strip, 50 Circuit Bundle, 12 Lightweight Metal |
+| **Engine Stage 3** | 35 Scrap Metal, 20 Scrap Tin, 20 Steel Plate, 20 Broken Carparts, 25 Polymer Strip, 55 Circuit Bundle, 12 Lightweight Metal |
 
-Paste the next blueprint screenshot to add Engine Stage 3 / Superchargers / Turbos / Repair Kits.
+Paste the next blueprint screenshot to add Engine Stage 4 / Superchargers / Turbos / Repair Kits.
 
 ## Deploy
 
