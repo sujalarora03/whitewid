@@ -67,8 +67,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Paint Can** | 25 Steel Plate (10+15), 10 Lightweight Metal |
 | **Tires** | 25 Steel Plate (10+15), 10 Lightweight Metal |
 | **Shifter** | 25 Steel Plate (10+15), 10 Lightweight Metal, 10 Circuit Bundle |
+| **Manual Gearbox** | 40 Steel Plate (10+15+15), 10 Scrap Metal, 5 Lightweight Metal |
 
-Paste the next blueprint screenshot to add Plaque / remaining parts.
+Paste the next blueprint screenshot to add Race Automatic Gearbox / remaining parts.
 
 ## Deploy
 
