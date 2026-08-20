@@ -69,8 +69,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Shifter** | 25 Steel Plate (10+15), 10 Lightweight Metal, 10 Circuit Bundle |
 | **Manual Gearbox** | 40 Steel Plate (10+15+15), 10 Scrap Metal, 5 Lightweight Metal |
 | **Race Automatic Gearbox** | 45 Steel Plate (10+20+15), 12 Scrap Metal, 5 Lightweight Metal, 2 Circuit Bundle |
+| **Semi DCT Gearbox** | 50 Steel Plate (10+15+25), 15 Scrap Metal, 5 Lightweight Metal, 4 Circuit Bundle, 4 Polymer Strip |
 
-Paste the next blueprint screenshot to add Semi DCT Gearbox / remaining parts.
+Paste the next blueprint screenshot to add remaining parts.
 
 ## Deploy
 

@@ -5,7 +5,7 @@
  * Each recipe’s `ingredients` are the **stash needed per craft**.
  *
  * Still needed from screenshots:
- * Fender, Ornament, Dial Design, Steering Wheel, Hydraulic Kit, Plaque, Semi DCT Gearbox, remaining kits.
+ * Fender, Ornament, Dial Design, Steering Wheel, Hydraulic Kit, Plaque, remaining kits.
  */
 
 import type { Material, Product, Recipe } from '../types'
@@ -634,6 +634,19 @@ export const CATALOG_RECIPES: Recipe[] = [
       { materialId: 'mat-circuit-bundle', qty: 2 },
     ],
   },
+  {
+    id: 'rec-semi-dct-gearbox',
+    name: 'Semi DCT Gearbox',
+    category: 'parts',
+    salePrice: 0,
+    ingredients: [
+      { materialId: 'mat-steel-plate', qty: 50 },
+      { materialId: 'mat-scrap-metal', qty: 15 },
+      { materialId: 'mat-lightweight-metal', qty: 5 },
+      { materialId: 'mat-circuit-bundle', qty: 4 },
+      { materialId: 'mat-polymer-strip', qty: 4 },
+    ],
+  },
 ]
 
 export const CATALOG_PRODUCTS: Product[] = [
@@ -1077,5 +1090,14 @@ export const CATALOG_PRODUCTS: Product[] = [
     salePrice: 0,
     stock: 0,
     recipeId: 'rec-race-automatic-gearbox',
+  },
+  {
+    id: 'prod-semi-dct-gearbox',
+    name: 'Semi DCT Gearbox',
+    category: 'parts',
+    cost: 0,
+    salePrice: 0,
+    stock: 0,
+    recipeId: 'rec-semi-dct-gearbox',
   },
 ]
