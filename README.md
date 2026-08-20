@@ -38,8 +38,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Brake Repair Kit** | 50 Steel Plate (10+15+25 on screenshot), 25 Scrap Metal, 10 Polymer Strip |
 | **Suspension Repair Kit** | 45 Steel Plate (10+15+20 on screenshot), 25 Circuit Bundle, 15 Polymer Strip |
 | **Clutch Repair Kit** | 40 Steel Plate (10+15+15 on screenshot), 15 Circuit Bundle, 10 Polymer Strip, 20 Scrap Tin |
+| **Armor Plate** | 40 Steel Plate (10+15+15), 40 Scrap Metal, 20 Scrap Tin, 22 Broken Carparts, 30 Polymer Strip, 50 Circuit Bundle, 14 Lightweight Metal |
 
-Paste the next blueprint screenshot to add Armor Plate / Engine Pistons.
+Paste the next blueprint screenshot to add Engine Pistons.
 
 ## Deploy
 

@@ -5,7 +5,7 @@
  * Each recipe’s `ingredients` are the **stash needed per craft**.
  *
  * Still needed from screenshots:
- * Armor Plate, Engine Pistons, and remaining kits.
+ * Engine Pistons, and remaining kits.
  */
 
 import type { Material, Product, Recipe } from '../types'
@@ -250,6 +250,21 @@ export const CATALOG_RECIPES: Recipe[] = [
       { materialId: 'mat-scrap-tin', qty: 20 },
     ],
   },
+  {
+    id: 'rec-armor-plate',
+    name: 'Armor Plate',
+    category: 'parts',
+    salePrice: 0,
+    ingredients: [
+      { materialId: 'mat-steel-plate', qty: 40 },
+      { materialId: 'mat-scrap-metal', qty: 40 },
+      { materialId: 'mat-scrap-tin', qty: 20 },
+      { materialId: 'mat-broken-carparts', qty: 22 },
+      { materialId: 'mat-polymer-strip', qty: 30 },
+      { materialId: 'mat-circuit-bundle', qty: 50 },
+      { materialId: 'mat-lightweight-metal', qty: 14 },
+    ],
+  },
 ]
 
 export const CATALOG_PRODUCTS: Product[] = [
@@ -414,5 +429,14 @@ export const CATALOG_PRODUCTS: Product[] = [
     salePrice: 0,
     stock: 0,
     recipeId: 'rec-clutch-repair-kit',
+  },
+  {
+    id: 'prod-armor-plate',
+    name: 'Armor Plate',
+    category: 'parts',
+    cost: 0,
+    salePrice: 0,
+    stock: 0,
+    recipeId: 'rec-armor-plate',
   },
 ]
