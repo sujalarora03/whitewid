@@ -65,8 +65,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Xenon Kit** | 25 Steel Plate (10+15), 10 Lightweight Metal, 10 Circuit Bundle |
 | **Neon Kit** | 25 Steel Plate (10+15), 10 Circuit Bundle |
 | **Paint Can** | 25 Steel Plate (10+15), 10 Lightweight Metal |
+| **Tires** | 25 Steel Plate (10+15), 10 Lightweight Metal |
 
-Paste the next blueprint screenshot to add Tires / remaining parts.
+Paste the next blueprint screenshot to add Shifter / remaining parts.
 
 ## Deploy
 
