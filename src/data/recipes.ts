@@ -5,7 +5,6 @@
  * Each recipe’s `ingredients` are the **stash needed per craft**.
  *
  * Still needed from screenshots:
- * Body Repair Kit,
  * Alternator Repair Kit, Fuel Pump Repair Kit, and the rest of the library.
  */
 
@@ -151,6 +150,18 @@ export const CATALOG_RECIPES: Recipe[] = [
       { materialId: 'mat-polymer-strip', qty: 5 },
     ],
   },
+  {
+    id: 'rec-body-repair-kit',
+    name: 'Body Repair Kit',
+    category: 'repair',
+    salePrice: 0,
+    ingredients: [
+      { materialId: 'mat-scrap-metal', qty: 10 },
+      { materialId: 'mat-steel-plate', qty: 10 },
+      { materialId: 'mat-circuit-bundle', qty: 5 },
+      { materialId: 'mat-polymer-strip', qty: 5 },
+    ],
+  },
 ]
 
 export const CATALOG_PRODUCTS: Product[] = [
@@ -234,5 +245,14 @@ export const CATALOG_PRODUCTS: Product[] = [
     salePrice: 0,
     stock: 0,
     recipeId: 'rec-advanced-repair-kit',
+  },
+  {
+    id: 'prod-body-repair-kit',
+    name: 'Body Repair Kit',
+    category: 'repair',
+    cost: 0,
+    salePrice: 0,
+    stock: 0,
+    recipeId: 'rec-body-repair-kit',
   },
 ]
