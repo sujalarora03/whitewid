@@ -51,8 +51,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Front Bumper** | 34 Steel Plate (10+15+9), 15 Scrap Metal, 8 Scrap Tin, 10 Broken Carparts, 12 Polymer Strip, 20 Circuit Bundle, 7 Lightweight Metal |
 | **Rear Bumper** | 34 Steel Plate (10+15+9), 15 Scrap Metal, 8 Scrap Tin, 10 Broken Carparts, 12 Polymer Strip, 20 Circuit Bundle, 7 Lightweight Metal |
 | **Side Skirt** | 34 Steel Plate (10+15+9), 15 Scrap Metal, 8 Scrap Tin, 10 Broken Carparts, 12 Polymer Strip, 20 Circuit Bundle, 7 Lightweight Metal |
+| **Grille** | 34 Steel Plate (10+15+9), 15 Scrap Metal, 8 Scrap Tin, 10 Broken Carparts, 12 Polymer Strip, 20 Circuit Bundle, 7 Lightweight Metal |
 
-Paste the next blueprint screenshot to add Grille / remaining parts.
+Paste the next blueprint screenshot to add Hood / remaining parts.
 
 ## Deploy
 
