@@ -75,8 +75,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **52mm Turbo** | 40 Steel Plate (10+15+15), 40 Scrap Metal, 20 Scrap Tin, 25 Broken Carparts, 30 Polymer Strip, 50 Circuit Bundle, 14 Lightweight Metal |
 | **100mm Turbo** | 40 Steel Plate (10+15+15), 50 Scrap Metal, 30 Scrap Tin, 22 Broken Carparts, 30 Polymer Strip, 50 Circuit Bundle, 14 Lightweight Metal |
 | **Stage 1 Crankshaft** | 33 Steel Plate (10+15+8), 4 Scrap Metal |
+| **Stage 2 Crankshaft** | 33 Steel Plate (10+15+8), 4 Scrap Metal |
 
-Paste the next blueprint screenshot to add Stage 2 Crankshaft / remaining parts.
+Paste the next blueprint screenshot to add Stage 1 Valves / remaining parts.
 
 ## Deploy
 
