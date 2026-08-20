@@ -35,8 +35,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Radiator Repair Kit** | 25 Scrap Metal, 20 Circuit Bundle, 25 Steel Plate (10+15 on screenshot) |
 | **Gearbox Repair Kit** | 50 Steel Plate (10+15+25 on screenshot), 15 Circuit Bundle |
 | **Turbo Repair Kit** | 25 Steel Plate (10+15 on screenshot), 30 Scrap Metal, 30 Circuit Bundle |
+| **Brake Repair Kit** | 50 Steel Plate (10+15+25 on screenshot), 25 Scrap Metal, 10 Polymer Strip |
 
-Paste the next blueprint screenshot to add Brake Repair Kit.
+Paste the next blueprint screenshot for remaining kits.
 
 ## Deploy
 
