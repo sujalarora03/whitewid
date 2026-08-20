@@ -5,7 +5,7 @@
  * Each recipe’s `ingredients` are the **stash needed per craft**.
  *
  * Still needed from screenshots:
- * Fender, Ornament, Dial Design, Steering Wheel, Hydraulic Kit, Tuning Chip, Cleaning Kit, Horn, License Plate, Headlight, remaining kits.
+ * Fender, Ornament, Dial Design, Steering Wheel, Hydraulic Kit, Cleaning Kit, Horn, License Plate, Headlight, remaining kits.
  */
 
 import type { Material, Product, Recipe } from '../types'
@@ -18,6 +18,8 @@ export const CATALOG_MATERIALS: Material[] = [
   { id: 'mat-polymer-strip', name: 'Polymer Strip', cost: 0, category: 'parts', stock: 0 },
   { id: 'mat-circuit-bundle', name: 'Circuit Bundle', cost: 0, category: 'parts', stock: 0 },
   { id: 'mat-lightweight-metal', name: 'Lightweight Metal', cost: 0, category: 'parts', stock: 0 },
+  { id: 'mat-tuning-parts', name: 'Tuning Parts', cost: 0, category: 'parts', stock: 0 },
+  { id: 'mat-tuning-circuit', name: 'Tuning Circuit', cost: 0, category: 'parts', stock: 0 },
 ]
 
 export const CATALOG_RECIPES: Recipe[] = [
@@ -504,6 +506,17 @@ export const CATALOG_RECIPES: Recipe[] = [
       { materialId: 'mat-lightweight-metal', qty: 7 },
     ],
   },
+  {
+    id: 'rec-tuning-chip',
+    name: 'Tuning Chip',
+    category: 'parts',
+    salePrice: 0,
+    ingredients: [
+      { materialId: 'mat-steel-plate', qty: 25 },
+      { materialId: 'mat-tuning-parts', qty: 1 },
+      { materialId: 'mat-tuning-circuit', qty: 1 },
+    ],
+  },
 ]
 
 export const CATALOG_PRODUCTS: Product[] = [
@@ -839,5 +852,14 @@ export const CATALOG_PRODUCTS: Product[] = [
     salePrice: 0,
     stock: 0,
     recipeId: 'rec-frame-part',
+  },
+  {
+    id: 'prod-tuning-chip',
+    name: 'Tuning Chip',
+    category: 'parts',
+    cost: 0,
+    salePrice: 0,
+    stock: 0,
+    recipeId: 'rec-tuning-chip',
   },
 ]
