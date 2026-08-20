@@ -58,8 +58,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Exhaust** | 37 Steel Plate (10+15+12), 15 Scrap Metal, 10 Scrap Tin, 10 Broken Carparts, 12 Polymer Strip, 20 Circuit Bundle, 7 Lightweight Metal |
 | **Frame Part** | 25 Steel Plate (10+15), 15 Scrap Metal, 10 Scrap Tin, 20 Circuit Bundle, 7 Lightweight Metal |
 | **Tuning Chip** | 25 Steel Plate (10+15), 1 Tuning Parts, 1 Tuning Circuit |
+| **Cleaning Kit** | 25 Steel Plate (10+15), 2 Circuit Bundle, 5 Scrap Tin |
 
-Paste the next blueprint screenshot to add Cleaning Kit / remaining parts.
+Paste the next blueprint screenshot to add Horn / remaining parts.
 
 ## Deploy
 
