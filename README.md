@@ -60,8 +60,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Tuning Chip** | 25 Steel Plate (10+15), 1 Tuning Parts, 1 Tuning Circuit |
 | **Cleaning Kit** | 25 Steel Plate (10+15), 2 Circuit Bundle, 5 Scrap Tin |
 | **Horn** | 25 Steel Plate (10+15), 2 Circuit Bundle, 5 Scrap Tin |
+| **Plate Holder** | 25 Steel Plate (10+15), 7 Circuit Bundle |
 
-Paste the next blueprint screenshot to add Plate Holder / remaining parts.
+Paste the next blueprint screenshot to add Trim Part / remaining parts.
 
 ## Deploy
 
