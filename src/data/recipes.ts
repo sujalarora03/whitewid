@@ -5,7 +5,7 @@
  * Each recipe’s `ingredients` are the **stash needed per craft**.
  *
  * Still needed from screenshots:
- * Fuel Pump, Alternator Battery, Brake Parts, Suspension Parts, Clutch, Gearbox Parts, Spoiler Part.
+ * Alternator Battery, Brake Parts, Suspension Parts, Clutch, Gearbox Parts, Spoiler Part.
  */
 
 import type { Material, Product, Recipe } from '../types'
@@ -287,6 +287,17 @@ export const CATALOG_RECIPES: Recipe[] = [
       { materialId: 'mat-broken-carparts', qty: 25 },
     ],
   },
+  {
+    id: 'rec-fuel-pump',
+    name: 'Fuel Pump',
+    category: 'parts',
+    salePrice: 0,
+    ingredients: [
+      { materialId: 'mat-steel-plate', qty: 25 },
+      { materialId: 'mat-scrap-tin', qty: 25 },
+      { materialId: 'mat-broken-carparts', qty: 25 },
+    ],
+  },
 ]
 
 export const CATALOG_PRODUCTS: Product[] = [
@@ -478,5 +489,14 @@ export const CATALOG_PRODUCTS: Product[] = [
     salePrice: 0,
     stock: 0,
     recipeId: 'rec-radiator',
+  },
+  {
+    id: 'prod-fuel-pump',
+    name: 'Fuel Pump',
+    category: 'parts',
+    cost: 0,
+    salePrice: 0,
+    stock: 0,
+    recipeId: 'rec-fuel-pump',
   },
 ]

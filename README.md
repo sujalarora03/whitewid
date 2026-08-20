@@ -41,8 +41,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Armor Plate** | 40 Steel Plate (10+15+15), 40 Scrap Metal, 20 Scrap Tin, 22 Broken Carparts, 30 Polymer Strip, 50 Circuit Bundle, 14 Lightweight Metal |
 | **Engine Pistons** | 25 Steel Plate (10+15 on screenshot), 25 Scrap Tin, 25 Broken Carparts |
 | **Radiator** | 25 Steel Plate (10+15 on screenshot), 25 Scrap Tin, 25 Broken Carparts |
+| **Fuel Pump** | 25 Steel Plate (10+15 on screenshot), 25 Scrap Tin, 25 Broken Carparts |
 
-Paste the next blueprint screenshot to add Fuel Pump / Alternator Battery / remaining parts.
+Paste the next blueprint screenshot to add Alternator Battery / Brake Parts / remaining parts.
 
 ## Deploy
 
