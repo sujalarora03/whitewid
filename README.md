@@ -61,8 +61,9 @@ Employee desk: add `?role=employee`. Owner PIN: `sujal@3301`
 | **Cleaning Kit** | 25 Steel Plate (10+15), 2 Circuit Bundle, 5 Scrap Tin |
 | **Horn** | 25 Steel Plate (10+15), 2 Circuit Bundle, 5 Scrap Tin |
 | **Plate Holder** | 25 Steel Plate (10+15), 7 Circuit Bundle |
+| **Trim Part** | 25 Steel Plate (10+15), 15 Polymer Strip |
 
-Paste the next blueprint screenshot to add Trim Part / remaining parts.
+Paste the next blueprint screenshot to add Xenon Kit / remaining parts.
 
 ## Deploy
 
