@@ -5,7 +5,7 @@
  * Each recipe’s `ingredients` are the **stash needed per craft**.
  *
  * Still needed from screenshots:
- * Fender, Ornament, Dial Design, Steering Wheel, Hydraulic Kit, Plaque, 42mm Turbo, 52mm Turbo, 100mm Turbo, remaining kits.
+ * Fender, Ornament, Dial Design, Steering Wheel, Hydraulic Kit, Plaque, 52mm Turbo, 100mm Turbo, remaining kits.
  */
 
 import type { Material, Product, Recipe } from '../types'
@@ -662,6 +662,21 @@ export const CATALOG_RECIPES: Recipe[] = [
       { materialId: 'mat-lightweight-metal', qty: 14 },
     ],
   },
+  {
+    id: 'rec-42mm-turbo',
+    name: '42mm Turbo',
+    category: 'forced-induction',
+    salePrice: 0,
+    ingredients: [
+      { materialId: 'mat-steel-plate', qty: 40 },
+      { materialId: 'mat-scrap-metal', qty: 40 },
+      { materialId: 'mat-scrap-tin', qty: 20 },
+      { materialId: 'mat-broken-carparts', qty: 25 },
+      { materialId: 'mat-polymer-strip', qty: 30 },
+      { materialId: 'mat-circuit-bundle', qty: 50 },
+      { materialId: 'mat-lightweight-metal', qty: 14 },
+    ],
+  },
 ]
 
 export const CATALOG_PRODUCTS: Product[] = [
@@ -1123,5 +1138,14 @@ export const CATALOG_PRODUCTS: Product[] = [
     salePrice: 0,
     stock: 0,
     recipeId: 'rec-35mm-turbo',
+  },
+  {
+    id: 'prod-42mm-turbo',
+    name: '42mm Turbo',
+    category: 'forced-induction',
+    cost: 0,
+    salePrice: 0,
+    stock: 0,
+    recipeId: 'rec-42mm-turbo',
   },
 ]
